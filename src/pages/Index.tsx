@@ -5,6 +5,7 @@ import { Truck, HardHat, Drill, Activity, Calendar, BarChart3, AlertTriangle } f
 import { KpiCard } from "@/components/dashboard/KpiCard";
 import { ProductionChart } from "@/components/dashboard/ProductionChart";
 import { EquipmentStatusChart } from "@/components/dashboard/EquipmentStatusChart";
+import { ProductionEntryForm } from "@/components/production/ProductionEntryForm";
 import { useEquipment, useDailyProduction, usePlannedProduction, useOccurrences } from "@/hooks/use-mining-data";
 
 // Demo data for initial display when DB is empty
