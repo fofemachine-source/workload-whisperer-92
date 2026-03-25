@@ -5,6 +5,7 @@ import { Truck, HardHat, Drill, Activity, Calendar, BarChart3, AlertTriangle } f
 import { KpiCard } from "@/components/dashboard/KpiCard";
 import { ProductionChart } from "@/components/dashboard/ProductionChart";
 import { EquipmentStatusChart } from "@/components/dashboard/EquipmentStatusChart";
+import { ProductionEntryForm } from "@/components/production/ProductionEntryForm";
 import { useEquipment, useDailyProduction, usePlannedProduction, useOccurrences } from "@/hooks/use-mining-data";
 
 // Demo data for initial display when DB is empty
@@ -105,6 +106,7 @@ export default function Dashboard() {
                 {format(new Date(period.from), "dd/MM")} — {format(new Date(period.to), "dd/MM/yyyy")}
               </span>
             </div>
+            <ProductionEntryForm />
             <div className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-mining-green/10 border border-mining-green/20">
               <div className="w-2 h-2 rounded-full bg-mining-green animate-pulse-glow" />
               <span className="text-xs font-medium text-mining-green">Sistema Ativo</span>
