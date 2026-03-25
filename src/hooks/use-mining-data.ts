@@ -21,7 +21,7 @@ export function useEquipment(type?: string) {
     queryKey: ["equipment", type],
     queryFn: async () => {
       let q = supabase.from("equipment").select("*").eq("active", true);
-      if (type) q = q.eq("type", type);
+      if (type) q = q.eq("type", type as any);
       const { data, error } = await q.order("code");
       if (error) throw error;
       return data;
