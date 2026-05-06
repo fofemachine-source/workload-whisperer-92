@@ -8,6 +8,7 @@ import { EquipmentStatusChart } from "@/components/dashboard/EquipmentStatusChar
 import { ProductionEntryForm } from "@/components/production/ProductionEntryForm";
 import { MicrosoftLoginButton } from "@/components/microsoft/MicrosoftLoginButton";
 import { ExcelDiscoveryPanel } from "@/components/microsoft/ExcelDiscoveryPanel";
+import { FleetMetricsPanel } from "@/components/microsoft/FleetMetricsPanel";
 import { useEquipment, useDailyProduction, usePlannedProduction, useOccurrences } from "@/hooks/use-mining-data";
 
 // Demo data for initial display when DB is empty
@@ -121,6 +122,7 @@ export default function Dashboard() {
       <main className="p-6 space-y-6">
         {/* Microsoft Excel integration */}
         <ExcelDiscoveryPanel />
+        <FleetMetricsPanel />
 
         {/* KPI Row */}
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
