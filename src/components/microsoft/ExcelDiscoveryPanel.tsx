@@ -1,12 +1,10 @@
-import { useIsAuthenticated } from "@azure/msal-react";
-import { useExcelWorkbook } from "@/hooks/useExcelWorkbook";
+import { useExcelLive } from "@/context/ExcelLiveContext";
 import { FileSpreadsheet, AlertTriangle, RefreshCw, Loader2, ExternalLink, Layers } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 
 export function ExcelDiscoveryPanel() {
-  const isAuth = useIsAuthenticated();
-  const { loading, error, file, worksheets, refresh } = useExcelWorkbook(isAuth);
+  const { isAuth, workbookLoading: loading, workbookError: error, file, worksheets, refreshWorkbook: refresh } = useExcelLive();
 
   if (!isAuth) {
     return (
