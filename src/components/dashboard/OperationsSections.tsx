@@ -2,7 +2,7 @@ import { useIsAuthenticated } from "@azure/msal-react";
 import { useExcelWorkbook } from "@/hooks/useExcelWorkbook";
 import { useExcelMetrics } from "@/hooks/useExcelMetrics";
 import { TARGET_EQUIPMENT, TargetEquipment } from "@/services/excelParser";
-import { Gauge, TrendingUp, Target, BarChart3, Mountain } from "lucide-react";
+import { Gauge, TrendingUp, Target, BarChart3, Mountain, Activity as ActivityIcon } from "lucide-react";
 import {
   BarChart,
   Bar,
@@ -222,10 +222,8 @@ export function OperationsSections() {
       <AreaProductionSection areas={areas} />
       <ProjectionSection areas={areas} />
       <FleetGaugeSection metrics={metrics} field="df" title="DF % · Frota" subtitle="Disponibilidade Física" icon={Gauge} />
-      <FleetGaugeSection metrics={metrics} field="ut" title="UT % · Frota" subtitle="Utilização Operacional" icon={Activity2} />
+      <FleetGaugeSection metrics={metrics} field="ut" title="UT % · Frota" subtitle="Utilização Operacional" icon={ActivityIcon} />
       <div className="hidden xl:block" />
     </div>
   );
 }
-
-import { Activity as Activity2 } from "lucide-react";
