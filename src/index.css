@@ -6,23 +6,23 @@
 
 @layer base {
   :root {
-    --background: 220 26% 8%;
-    --foreground: 210 40% 95%;
+    --background: 0 0% 4%;
+    --foreground: 210 40% 96%;
 
-    --card: 217 28% 12%;
-    --card-foreground: 210 40% 95%;
+    --card: 270 18% 9%;
+    --card-foreground: 210 40% 96%;
 
-    --popover: 217 28% 12%;
-    --popover-foreground: 210 40% 95%;
+    --popover: 270 18% 9%;
+    --popover-foreground: 210 40% 96%;
 
-    --primary: 217 91% 60%;
+    --primary: 270 80% 60%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 217 19% 20%;
-    --secondary-foreground: 210 40% 95%;
+    --secondary: 270 12% 16%;
+    --secondary-foreground: 210 40% 96%;
 
-    --muted: 217 19% 20%;
-    --muted-foreground: 215 16% 57%;
+    --muted: 270 10% 14%;
+    --muted-foreground: 220 10% 62%;
 
     --accent: 142 71% 45%;
     --accent-foreground: 0 0% 100%;
@@ -30,9 +30,9 @@
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 217 19% 22%;
-    --input: 217 19% 22%;
-    --ring: 217 91% 60%;
+    --border: 270 14% 18%;
+    --input: 270 14% 18%;
+    --ring: 270 80% 60%;
 
     --radius: 0.625rem;
 
@@ -40,10 +40,13 @@
     --mining-yellow: 45 93% 56%;
     --mining-indigo: 239 84% 67%;
     --mining-green: 142 71% 45%;
+    --mining-green-glow: 142 80% 55%;
     --mining-red: 0 84% 60%;
     --mining-blue: 217 91% 60%;
-    --mining-surface: 220 26% 6%;
-    --mining-card-hover: 217 28% 16%;
+    --mining-purple: 270 80% 60%;
+    --mining-purple-glow: 280 90% 70%;
+    --mining-surface: 270 18% 7%;
+    --mining-card-hover: 270 16% 12%;
 
     --sidebar-background: 220 26% 6%;
     --sidebar-foreground: 210 40% 95%;
