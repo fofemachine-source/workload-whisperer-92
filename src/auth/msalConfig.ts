@@ -9,15 +9,13 @@ export const msalConfig: Configuration = {
     authority: `https://login.microsoftonline.com/${tenantId}`,
     redirectUri: typeof window !== "undefined" ? window.location.origin : "/",
     postLogoutRedirectUri: typeof window !== "undefined" ? window.location.origin : "/",
-    navigateToLoginRequestUrl: false,
+
   },
   cache: {
     cacheLocation: BrowserCacheLocation.LocalStorage,
-    storeAuthStateInCookie: false,
   },
   system: {
     // Avoid hidden-iframe silent auth — Microsoft blocks login.microsoftonline.com inside iframes (ERR_BLOCKED_BY_RESPONSE)
-    allowNativeBroker: false,
     windowHashTimeout: 60000,
     iframeHashTimeout: 6000,
     loadFrameTimeout: 0,
