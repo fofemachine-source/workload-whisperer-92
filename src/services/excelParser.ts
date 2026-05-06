@@ -41,6 +41,36 @@ export interface AreaMetrics {
   source: string;
 }
 
+export interface AggregateSummary {
+  produtividade: number;
+  ut: number;
+  df: number;
+  manutencao: number;
+  preventiva: number;
+  totalProducao: number;
+  totalMeta: number;
+  totalRealizado: number;
+  aderencia: number;
+  rowsProcessed: number;
+  equipmentCount: number;
+  escavadeirasCount: number;
+  perfuratrizesCount: number;
+  frotaCrCount: number;
+}
+
+export interface GenericEquipmentRow {
+  equipamento: string;
+  category: "escavadeira" | "perfuratriz" | "caminhao" | "outro";
+  horasTrabalhadas: number;
+  producao: number;
+  produtividade: number;
+  manutencao: number;
+  preventiva: number;
+  df: number;
+  ut: number;
+  source: string;
+}
+
 const norm = (s: unknown): string =>
   String(s ?? "")
     .normalize("NFD")
@@ -49,14 +79,14 @@ const norm = (s: unknown): string =>
     .trim();
 
 const HEADER_PATTERNS: Record<keyof MetricColumnMap, RegExp[]> = {
-  equipamento: [/equipamento/, /^equip\b/, /frota/, /maquina/, /modelo/, /\barea\b/, /local/],
+  equipamento: [/equipamento/, /^equip\b/, /frota/, /maquina/, /m[aá]quina/, /modelo/, /\barea\b/, /local/, /^tag\b/, /^id\b/, /descri[cç][aã]o/, /^nome\b/],
   horasTrabalhadas: [/horas?\s*trabalhad/, /h\s*trab/, /horimetro/, /^ht\b/],
-  producao: [/produ[cç]ao(?!t)/, /tonelagem/, /toneladas?/, /^prod\b/, /\bton\b/],
+  producao: [/produ[cç][aã]o(?!t)/, /tonelagem/, /toneladas?/, /^prod\b/, /\bton\b/, /movimentado/, /carregad/],
   produtividade: [/produtividade/, /t\s*\/\s*h/, /ton\/h/, /\bprod\.?\s*$/],
   manutencao: [/manuten[cç]ao(?!.*prev)/, /corretiv/, /\bmanut\b/],
   preventiva: [/preventiva/, /\bprev\b/],
-  df: [/\bdf\b/, /disp(onibilidade)?\.?\s*f[ií]sica/, /disp\.?\s*f/],
-  ut: [/\but\b/, /utiliza[cç]ao/, /uso\s*(da)?\s*frota/],
+  df: [/\bdf\b/, /disp(onibilidade)?\.?\s*f[ií]sica/, /disp\.?\s*f/, /dispon[ií]vel/],
+  ut: [/\but\b/, /utiliza[cç][aã]o/, /uso\s*(da)?\s*frota/, /\butili?z/],
   meta: [/\bmeta\b/, /planejad/, /previsto/],
   realizado: [/realizad/, /\bexecutad/],
   projecao: [/proje[cç][aã]o/, /forecast/, /esperad/],
@@ -103,6 +133,22 @@ function matchEquipment(label: string): TargetEquipment | null {
   if (/komatsu.*730|hd\W*730|\b730\b/.test(n)) return "Komatsu 730";
   if (/komatsu.*785|hd\W*785|\b785\b/.test(n)) return "Komatsu 785";
   return null;
+}
+
+function classifyEquipment(label: string): GenericEquipmentRow["category"] {
+  const n = norm(label);
+  if (/escavadeir|excavator|\bex\W*\d|pa\s*carregadeira|p[aá]\s*mec/.test(n)) return "escavadeira";
+  if (/perfurat|drill|sondagem|broca/.test(n)) return "perfuratriz";
+  if (/caminh[aã]o|truck|hd\W*\d|komatsu|cat\s*\d{3}|off.?road|\bcr\b/.test(n)) return "caminhao";
+  return "outro";
+}
+
+function looksLikeEquipmentLabel(label: string): boolean {
+  const n = norm(label);
+  if (!n || n.length < 2 || n.length > 60) return false;
+  if (/^total|^m[eé]dia|^geral|^subtotal|^soma/.test(n)) return false;
+  if (/^\d+([.,]\d+)?$/.test(n)) return false;
+  return /[a-z]/.test(n);
 }
 
 function matchArea(label: string): AreaName | null {
