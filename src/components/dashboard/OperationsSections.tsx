@@ -1,6 +1,4 @@
-import { useIsAuthenticated } from "@azure/msal-react";
-import { useExcelWorkbook } from "@/hooks/useExcelWorkbook";
-import { useExcelMetrics } from "@/hooks/useExcelMetrics";
+import { useExcelLive } from "@/context/ExcelLiveContext";
 import { TARGET_EQUIPMENT, TargetEquipment } from "@/services/excelParser";
 import { Gauge, TrendingUp, Target, BarChart3, Mountain, Activity as ActivityIcon } from "lucide-react";
 import {
@@ -212,9 +210,7 @@ function FleetGaugeSection({
 }
 
 export function OperationsSections() {
-  const isAuth = useIsAuthenticated();
-  const { file, worksheets } = useExcelWorkbook(isAuth);
-  const { metrics, areas } = useExcelMetrics(file, worksheets);
+  const { metrics, areas } = useExcelLive();
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
