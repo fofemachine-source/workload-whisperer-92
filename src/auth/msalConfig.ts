@@ -15,10 +15,6 @@ export const msalConfig: Configuration = {
     cacheLocation: BrowserCacheLocation.LocalStorage,
   },
   system: {
-    // Avoid hidden-iframe silent auth — Microsoft blocks login.microsoftonline.com inside iframes (ERR_BLOCKED_BY_RESPONSE)
-    windowHashTimeout: 60000,
-    iframeHashTimeout: 6000,
-    loadFrameTimeout: 0,
     loggerOptions: {
       logLevel: LogLevel.Warning,
       piiLoggingEnabled: false,
