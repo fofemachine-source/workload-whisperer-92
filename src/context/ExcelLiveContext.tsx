@@ -77,8 +77,8 @@ export function ExcelLiveProvider({ children }: { children: ReactNode }) {
   const areas = useLocal ? local!.areas : m.areas;
   const debug = useLocal ? local!.debug : m.debug;
   const lastUpdated = useLocal ? new Date(local!.parsedAt) : m.lastUpdated;
-  const summary = useLocal ? local!.summary : null;
-  const rows = useLocal ? local!.rows : [];
+  const summary = useLocal ? local!.summary ?? null : null;
+  const rows = useLocal ? local!.rows ?? [] : [];
 
   const value: ExcelLiveValue = {
     isAuth,
