@@ -6,22 +6,22 @@
 
 @layer base {
   :root {
-    --background: 0 0% 4%;
+    --background: 222 47% 5%;
     --foreground: 210 40% 96%;
 
-    --card: 270 18% 9%;
+    --card: 222 40% 8%;
     --card-foreground: 210 40% 96%;
 
-    --popover: 270 18% 9%;
+    --popover: 222 40% 8%;
     --popover-foreground: 210 40% 96%;
 
-    --primary: 270 80% 60%;
+    --primary: 199 95% 60%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 270 12% 16%;
+    --secondary: 222 30% 14%;
     --secondary-foreground: 210 40% 96%;
 
-    --muted: 270 10% 14%;
+    --muted: 222 25% 12%;
     --muted-foreground: 220 10% 62%;
 
     --accent: 142 71% 45%;
@@ -30,11 +30,11 @@
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 270 14% 18%;
-    --input: 270 14% 18%;
-    --ring: 270 80% 60%;
+    --border: 222 30% 16%;
+    --input: 222 30% 16%;
+    --ring: 199 95% 60%;
 
-    --radius: 0.625rem;
+    --radius: 0.875rem;
 
     /* Custom mining tokens */
     --mining-yellow: 45 93% 56%;
@@ -42,11 +42,20 @@
     --mining-green: 142 71% 45%;
     --mining-green-glow: 142 80% 55%;
     --mining-red: 0 84% 60%;
-    --mining-blue: 217 91% 60%;
-    --mining-purple: 270 80% 60%;
-    --mining-purple-glow: 280 90% 70%;
-    --mining-surface: 270 18% 7%;
-    --mining-card-hover: 270 16% 12%;
+    --mining-blue: 199 95% 60%;
+    --mining-blue-glow: 195 100% 70%;
+    --mining-cyan: 180 100% 55%;
+    --mining-purple: 260 85% 65%;
+    --mining-purple-glow: 270 100% 75%;
+    --mining-surface: 222 45% 6%;
+    --mining-surface-2: 222 40% 9%;
+    --mining-card-hover: 222 35% 12%;
+
+    /* Premium gradients & shadows */
+    --gradient-ops: radial-gradient(1200px 600px at 10% -10%, hsl(var(--mining-blue) / 0.18), transparent 60%), radial-gradient(900px 500px at 90% 10%, hsl(var(--mining-cyan) / 0.10), transparent 60%), linear-gradient(180deg, hsl(222 47% 4%), hsl(222 47% 6%));
+    --gradient-card: linear-gradient(160deg, hsl(222 45% 9% / 0.9), hsl(222 50% 6% / 0.9));
+    --shadow-glow-blue: 0 0 0 1px hsl(var(--mining-blue) / 0.25), 0 10px 40px -10px hsl(var(--mining-blue) / 0.45);
+    --shadow-glow-green: 0 0 0 1px hsl(var(--mining-green) / 0.25), 0 10px 40px -10px hsl(var(--mining-green) / 0.45);
 
     --sidebar-background: 220 26% 6%;
     --sidebar-foreground: 210 40% 95%;
@@ -64,7 +73,9 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground font-sans;
+    @apply bg-background text-foreground font-sans antialiased;
+    background-image: var(--gradient-ops);
+    background-attachment: fixed;
   }
 }
 
@@ -72,4 +83,19 @@
   .font-mono-mining {
     font-family: 'JetBrains Mono', monospace;
   }
+  .ops-card {
+    background-image: var(--gradient-card);
+    @apply border border-mining-blue/15 backdrop-blur-xl rounded-2xl;
+  }
+  .ops-card-hover {
+    @apply transition-all duration-300 hover:border-mining-blue/40 hover:shadow-[0_0_40px_-10px_hsl(var(--mining-blue)/0.5)];
+  }
+  .ops-grid-bg {
+    background-image:
+      linear-gradient(hsl(var(--mining-blue) / 0.06) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--mining-blue) / 0.06) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+  .text-glow-blue { text-shadow: 0 0 18px hsl(var(--mining-blue) / 0.6); }
+  .text-glow-green { text-shadow: 0 0 18px hsl(var(--mining-green) / 0.6); }
 }
