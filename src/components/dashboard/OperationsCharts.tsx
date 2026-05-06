@@ -88,11 +88,10 @@ const Tip = ({ active, payload, label, suffix = "" }: any) => {
 };
 
 function ProductionAreaChart() {
-  const { areas } = useExcelLive();
-  // Build a smooth synthetic intraday curve from real Excel totals (meta vs realizado)
-  const meta = areas?.Mina?.meta ?? 0;
-  const real = areas?.Mina?.realizado ?? 0;
-  const projecao = areas?.Mina?.projecao ?? real;
+  const { areas, summary } = useExcelLive();
+  const meta = (areas?.Mina?.meta ?? 0) || (summary?.totalMeta ?? 0);
+  const real = (areas?.Mina?.realizado ?? 0) || (summary?.totalRealizado ?? summary?.totalProducao ?? 0);
+  const projecao = (areas?.Mina?.projecao ?? 0) || real;
 
   const data = useMemo(() => {
     const hours = ["00", "03", "06", "09", "12", "15", "18", "21", "24"];
