@@ -2,7 +2,7 @@ import { createContext, useContext, ReactNode, useState, useCallback, useEffect 
 import { useIsAuthenticated } from "@azure/msal-react";
 import { useExcelWorkbook } from "@/hooks/useExcelWorkbook";
 import { useExcelMetrics } from "@/hooks/useExcelMetrics";
-import { EquipmentMetrics, TargetEquipment, AreaMetrics, AreaName } from "@/services/excelParser";
+import { EquipmentMetrics, TargetEquipment, AreaMetrics, AreaName, AggregateSummary, GenericEquipmentRow } from "@/services/excelParser";
 import { DriveItem, WorksheetInfo } from "@/services/graphService";
 import {
   parseLocalExcel,
@@ -26,6 +26,8 @@ interface ExcelLiveValue {
   refresh: () => Promise<void>;
   refreshWorkbook: () => Promise<void>;
   debug: ReturnType<typeof useExcelMetrics>["debug"];
+  summary: AggregateSummary | null;
+  rows: GenericEquipmentRow[];
   // Local upload (xlsx) — fonte alternativa, sem OneDrive
   source: "local" | "onedrive" | "none";
   localFile: { name: string; sheetNames: string[]; parsedAt: string } | null;
@@ -75,6 +77,8 @@ export function ExcelLiveProvider({ children }: { children: ReactNode }) {
   const areas = useLocal ? local!.areas : m.areas;
   const debug = useLocal ? local!.debug : m.debug;
   const lastUpdated = useLocal ? new Date(local!.parsedAt) : m.lastUpdated;
+  const summary = useLocal ? local!.summary : null;
+  const rows = useLocal ? local!.rows : [];
 
   const value: ExcelLiveValue = {
     isAuth,
@@ -90,6 +94,8 @@ export function ExcelLiveProvider({ children }: { children: ReactNode }) {
     refresh: useLocal ? async () => {} : m.refresh,
     refreshWorkbook: wb.refresh,
     debug,
+    summary,
+    rows,
     source: useLocal ? "local" : isAuth ? "onedrive" : "none",
     localFile: local
       ? { name: local.fileName, sheetNames: local.sheetNames, parsedAt: local.parsedAt }

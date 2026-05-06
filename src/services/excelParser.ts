@@ -41,6 +41,36 @@ export interface AreaMetrics {
   source: string;
 }
 
+export interface AggregateSummary {
+  produtividade: number;
+  ut: number;
+  df: number;
+  manutencao: number;
+  preventiva: number;
+  totalProducao: number;
+  totalMeta: number;
+  totalRealizado: number;
+  aderencia: number;
+  rowsProcessed: number;
+  equipmentCount: number;
+  escavadeirasCount: number;
+  perfuratrizesCount: number;
+  frotaCrCount: number;
+}
+
+export interface GenericEquipmentRow {
+  equipamento: string;
+  category: "escavadeira" | "perfuratriz" | "caminhao" | "outro";
+  horasTrabalhadas: number;
+  producao: number;
+  produtividade: number;
+  manutencao: number;
+  preventiva: number;
+  df: number;
+  ut: number;
+  source: string;
+}
+
 const norm = (s: unknown): string =>
   String(s ?? "")
     .normalize("NFD")
@@ -49,14 +79,14 @@ const norm = (s: unknown): string =>
     .trim();
 
 const HEADER_PATTERNS: Record<keyof MetricColumnMap, RegExp[]> = {
-  equipamento: [/equipamento/, /^equip\b/, /frota/, /maquina/, /modelo/, /\barea\b/, /local/],
+  equipamento: [/equipamento/, /^equip\b/, /frota/, /maquina/, /m[aá]quina/, /modelo/, /\barea\b/, /local/, /^tag\b/, /^id\b/, /descri[cç][aã]o/, /^nome\b/],
   horasTrabalhadas: [/horas?\s*trabalhad/, /h\s*trab/, /horimetro/, /^ht\b/],
-  producao: [/produ[cç]ao(?!t)/, /tonelagem/, /toneladas?/, /^prod\b/, /\bton\b/],
+  producao: [/produ[cç][aã]o(?!t)/, /tonelagem/, /toneladas?/, /^prod\b/, /\bton\b/, /movimentado/, /carregad/],
   produtividade: [/produtividade/, /t\s*\/\s*h/, /ton\/h/, /\bprod\.?\s*$/],
   manutencao: [/manuten[cç]ao(?!.*prev)/, /corretiv/, /\bmanut\b/],
   preventiva: [/preventiva/, /\bprev\b/],
-  df: [/\bdf\b/, /disp(onibilidade)?\.?\s*f[ií]sica/, /disp\.?\s*f/],
-  ut: [/\but\b/, /utiliza[cç]ao/, /uso\s*(da)?\s*frota/],
+  df: [/\bdf\b/, /disp(onibilidade)?\.?\s*f[ií]sica/, /disp\.?\s*f/, /dispon[ií]vel/],
+  ut: [/\but\b/, /utiliza[cç][aã]o/, /uso\s*(da)?\s*frota/, /\butili?z/],
   meta: [/\bmeta\b/, /planejad/, /previsto/],
   realizado: [/realizad/, /\bexecutad/],
   projecao: [/proje[cç][aã]o/, /forecast/, /esperad/],
@@ -103,6 +133,22 @@ function matchEquipment(label: string): TargetEquipment | null {
   if (/komatsu.*730|hd\W*730|\b730\b/.test(n)) return "Komatsu 730";
   if (/komatsu.*785|hd\W*785|\b785\b/.test(n)) return "Komatsu 785";
   return null;
+}
+
+function classifyEquipment(label: string): GenericEquipmentRow["category"] {
+  const n = norm(label);
+  if (/escavadeir|excavator|\bex\W*\d|pa\s*carregadeira|p[aá]\s*mec/.test(n)) return "escavadeira";
+  if (/perfurat|drill|sondagem|broca/.test(n)) return "perfuratriz";
+  if (/caminh[aã]o|truck|hd\W*\d|komatsu|cat\s*\d{3}|off.?road|\bcr\b/.test(n)) return "caminhao";
+  return "outro";
+}
+
+function looksLikeEquipmentLabel(label: string): boolean {
+  const n = norm(label);
+  if (!n || n.length < 2 || n.length > 60) return false;
+  if (/^total|^m[eé]dia|^geral|^subtotal|^soma/.test(n)) return false;
+  if (/^\d+([.,]\d+)?$/.test(n)) return false;
+  return /[a-z]/.test(n);
 }
 
 function matchArea(label: string): AreaName | null {
@@ -236,6 +282,9 @@ export function processSheetValues(sheets: SheetValues[]): {
   metrics: Record<TargetEquipment, EquipmentMetrics>;
   areas: Record<AreaName, AreaMetrics>;
   debug: Array<{ sheet: string; headerRow: number; map: MetricColumnMap; matched: number }>;
+  rows: GenericEquipmentRow[];
+  summary: AggregateSummary;
+  primarySheet: string | null;
 } {
   const acc: Record<string, EquipmentMetrics> = {};
   TARGET_EQUIPMENT.forEach((eq) => {
@@ -258,6 +307,8 @@ export function processSheetValues(sheets: SheetValues[]): {
   };
 
   const debug: Array<{ sheet: string; headerRow: number; map: MetricColumnMap; matched: number }> = [];
+  const rowsByName = new Map<string, GenericEquipmentRow>();
+  let primarySheet: string | null = null;
 
   for (const { name: sheet, values } of sheets) {
     if (!values.length) continue;
@@ -266,14 +317,53 @@ export function processSheetValues(sheets: SheetValues[]): {
       debug.push({ sheet, headerRow, map, matched: 0 });
       continue;
     }
+    if (!primarySheet) primarySheet = sheet;
     let matched = 0;
     for (let r = headerRow + 1; r < values.length; r++) {
       const row = values[r] ?? [];
       const label = String(row[map.equipamento!] ?? "");
       const eq = matchEquipment(label);
       const area = matchArea(label);
-      if (!eq && !area) continue;
+      const isEquipLike = looksLikeEquipmentLabel(label);
+      if (!eq && !area && !isEquipLike) continue;
       matched++;
+
+      // Generic accumulator (works for any equipment in the spreadsheet)
+      if (isEquipLike && !area) {
+        const key = norm(label);
+        let g = rowsByName.get(key);
+        if (!g) {
+          g = {
+            equipamento: label.trim(),
+            category: classifyEquipment(label),
+            horasTrabalhadas: 0,
+            producao: 0,
+            produtividade: 0,
+            manutencao: 0,
+            preventiva: 0,
+            df: 0,
+            ut: 0,
+            source: sheet,
+          };
+          rowsByName.set(key, g);
+        }
+        const setG = (k: keyof MetricColumnMap, f: keyof GenericEquipmentRow) => {
+          const c = map[k];
+          if (c === undefined) return;
+          const v = toNumber(row[c]);
+          if (v && typeof g![f] === "number") {
+            (g![f] as number) = Math.max(g![f] as number, v);
+          }
+        };
+        setG("horasTrabalhadas", "horasTrabalhadas");
+        setG("producao", "producao");
+        setG("produtividade", "produtividade");
+        setG("manutencao", "manutencao");
+        setG("preventiva", "preventiva");
+        setG("df", "df");
+        setG("ut", "ut");
+      }
+
       if (eq) {
         const target = acc[eq];
         const setIfAvail = (key: keyof MetricColumnMap, field: keyof EquipmentMetrics) => {
@@ -327,5 +417,39 @@ export function processSheetValues(sheets: SheetValues[]): {
     }
   }
 
-  return { metrics: acc as Record<TargetEquipment, EquipmentMetrics>, areas, debug };
+  const rows = Array.from(rowsByName.values()).map((g) => {
+    if (!g.produtividade && g.horasTrabalhadas > 0 && g.producao > 0) {
+      g.produtividade = g.producao / g.horasTrabalhadas;
+    }
+    return g;
+  });
+
+  const filterPos = (arr: number[]) => arr.filter((x) => x > 0);
+  const meanPos = (arr: number[]) => {
+    const f = filterPos(arr);
+    return f.length ? f.reduce((a, b) => a + b, 0) / f.length : 0;
+  };
+
+  const totalMeta = (areas.Mina.meta ?? 0) + (areas.Retaludamento.meta ?? 0);
+  const totalRealizado = (areas.Mina.realizado ?? 0) + (areas.Retaludamento.realizado ?? 0);
+  const totalProducao = rows.reduce((s, r) => s + (r.producao || 0), 0);
+
+  const summary: AggregateSummary = {
+    produtividade: meanPos(rows.map((r) => r.produtividade)),
+    ut: meanPos(rows.map((r) => r.ut)),
+    df: meanPos(rows.map((r) => r.df)),
+    manutencao: rows.reduce((s, r) => s + (r.manutencao || 0), 0),
+    preventiva: rows.reduce((s, r) => s + (r.preventiva || 0), 0),
+    totalProducao,
+    totalMeta,
+    totalRealizado: totalRealizado || totalProducao,
+    aderencia: totalMeta ? ((totalRealizado || totalProducao) / totalMeta) * 100 : 0,
+    rowsProcessed: rows.length,
+    equipmentCount: rows.length,
+    escavadeirasCount: rows.filter((r) => r.category === "escavadeira").length,
+    perfuratrizesCount: rows.filter((r) => r.category === "perfuratriz").length,
+    frotaCrCount: rows.filter((r) => r.category === "caminhao").length,
+  };
+
+  return { metrics: acc as Record<TargetEquipment, EquipmentMetrics>, areas, debug, rows, summary, primarySheet };
 }

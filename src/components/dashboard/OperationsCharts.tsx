@@ -88,11 +88,10 @@ const Tip = ({ active, payload, label, suffix = "" }: any) => {
 };
 
 function ProductionAreaChart() {
-  const { areas } = useExcelLive();
-  // Build a smooth synthetic intraday curve from real Excel totals (meta vs realizado)
-  const meta = areas?.Mina?.meta ?? 0;
-  const real = areas?.Mina?.realizado ?? 0;
-  const projecao = areas?.Mina?.projecao ?? real;
+  const { areas, summary } = useExcelLive();
+  const meta = (areas?.Mina?.meta ?? 0) || (summary?.totalMeta ?? 0);
+  const real = (areas?.Mina?.realizado ?? 0) || (summary?.totalRealizado ?? summary?.totalProducao ?? 0);
+  const projecao = (areas?.Mina?.projecao ?? 0) || real;
 
   const data = useMemo(() => {
     const hours = ["00", "03", "06", "09", "12", "15", "18", "21", "24"];
@@ -140,11 +139,16 @@ function ProductionAreaChart() {
 }
 
 function ProductivityChart() {
-  const { metrics } = useExcelLive();
-  const data = TARGET_EQUIPMENT.map((eq) => ({
+  const { metrics, rows } = useExcelLive();
+  const fallback = TARGET_EQUIPMENT.map((eq) => ({
     name: eq.replace("Komatsu ", "K"),
     Produtividade: Number((metrics?.[eq]?.produtividade ?? 0).toFixed(2)),
   }));
+  const dataFromRows = rows
+    .filter((r) => r.produtividade > 0)
+    .slice(0, 8)
+    .map((r) => ({ name: r.equipamento.slice(0, 14), Produtividade: Number(r.produtividade.toFixed(2)) }));
+  const data = dataFromRows.length ? dataFromRows : fallback;
   return (
     <Panel icon={BarChart3} title="Produtividade · Frota" subtitle="t/h por equipamento" tone="green">
       <ResponsiveContainer width="100%" height={220}>
@@ -177,11 +181,16 @@ function FleetGauge({
   icon: typeof Gauge;
   tone: "blue" | "cyan";
 }) {
-  const { metrics } = useExcelLive();
-  const data = TARGET_EQUIPMENT.map((eq) => ({
+  const { metrics, rows } = useExcelLive();
+  const fallback = TARGET_EQUIPMENT.map((eq) => ({
     name: eq.replace("Komatsu ", "K"),
     value: Number((metrics?.[eq]?.[field] ?? 0).toFixed(1)),
   }));
+  const dataFromRows = rows
+    .filter((r) => (r[field] ?? 0) > 0)
+    .slice(0, 8)
+    .map((r) => ({ name: r.equipamento.slice(0, 14), value: Number(((r[field] as number) ?? 0).toFixed(1)) }));
+  const data = dataFromRows.length ? dataFromRows : fallback;
   return (
     <Panel icon={icon} title={title} subtitle={subtitle} tone={tone}>
       <ResponsiveContainer width="100%" height={220}>
@@ -203,18 +212,20 @@ function FleetGauge({
 }
 
 function FleetStatus() {
-  const { metrics } = useExcelLive();
-  // Heuristic: classify each equipment based on its UT/DF/manutenção
+  const { metrics, rows } = useExcelLive();
   const counters = { Operando: 0, Manutenção: 0, Espera: 0 };
-  TARGET_EQUIPMENT.forEach((eq) => {
-    const m = metrics?.[eq];
-    const ut = m?.ut ?? 0;
-    const manut = m?.manutencao ?? 0;
+  const source: Array<{ ut: number; manutencao: number }> =
+    rows.length > 0
+      ? rows.map((r) => ({ ut: r.ut, manutencao: r.manutencao }))
+      : TARGET_EQUIPMENT.map((eq) => ({ ut: metrics?.[eq]?.ut ?? 0, manutencao: metrics?.[eq]?.manutencao ?? 0 }));
+  source.forEach((m) => {
+    const ut = m.ut ?? 0;
+    const manut = m.manutencao ?? 0;
     if (manut > 0 && ut < 30) counters.Manutenção++;
     else if (ut >= 50) counters.Operando++;
     else counters.Espera++;
   });
-  const total = TARGET_EQUIPMENT.length;
+  const total = source.length || TARGET_EQUIPMENT.length;
   const data = [
     { name: "Operando", value: counters.Operando, fill: GREEN_GLOW },
     { name: "Manutenção", value: counters.Manutenção, fill: YELLOW },
@@ -242,9 +253,32 @@ function FleetStatus() {
 }
 
 function FleetTable() {
-  const { metrics } = useExcelLive();
+  const { metrics, rows } = useExcelLive();
+  const list =
+    rows.length > 0
+      ? rows.slice(0, 12).map((r) => ({
+          name: r.equipamento,
+          horasTrabalhadas: r.horasTrabalhadas,
+          producao: r.producao,
+          produtividade: r.produtividade,
+          manutencao: r.manutencao,
+          df: r.df,
+          ut: r.ut,
+        }))
+      : TARGET_EQUIPMENT.map((eq) => {
+          const m = metrics?.[eq];
+          return {
+            name: eq,
+            horasTrabalhadas: m?.horasTrabalhadas ?? 0,
+            producao: m?.producao ?? 0,
+            produtividade: m?.produtividade ?? 0,
+            manutencao: m?.manutencao ?? 0,
+            df: m?.df ?? 0,
+            ut: m?.ut ?? 0,
+          };
+        });
   return (
-    <Panel icon={BarChart3} title="Frota · Tempo Real" subtitle="Dados do Excel OneDrive" tone="blue" className="xl:col-span-3">
+    <Panel icon={BarChart3} title="Frota · Tempo Real" subtitle="Dados do Excel" tone="blue" className="xl:col-span-3">
       <div className="overflow-x-auto -mx-2">
         <table className="w-full text-xs min-w-[720px]">
           <thead>
@@ -259,25 +293,22 @@ function FleetTable() {
             </tr>
           </thead>
           <tbody className="font-mono">
-            {TARGET_EQUIPMENT.map((eq, i) => {
-              const m = metrics?.[eq as TargetEquipment];
-              return (
-                <tr key={eq} className={`border-b border-mining-blue/10 hover:bg-mining-blue/5 transition-colors ${i % 2 ? "" : "bg-black/20"}`}>
+            {list.map((m, i) => (
+              <tr key={`${m.name}-${i}`} className={`border-b border-mining-blue/10 hover:bg-mining-blue/5 transition-colors ${i % 2 ? "" : "bg-black/20"}`}>
                   <td className="px-3 py-2.5 font-bold text-foreground">
                     <span className="inline-flex items-center gap-2">
                       <span className="h-1.5 w-1.5 rounded-full bg-mining-green shadow-[0_0_8px_hsl(var(--mining-green))]" />
-                      {eq}
+                      {m.name}
                     </span>
                   </td>
-                  <td className="px-3 py-2.5 text-mining-blue-glow">{fmt(m?.horasTrabalhadas ?? 0)} h</td>
-                  <td className="px-3 py-2.5 text-mining-green">{fmt(m?.producao ?? 0, 0)} t</td>
-                  <td className="px-3 py-2.5 text-mining-green-glow font-bold">{fmt(m?.produtividade ?? 0, 2)}</td>
-                  <td className="px-3 py-2.5 text-mining-yellow">{fmt(m?.manutencao ?? 0)}</td>
-                  <td className="px-3 py-2.5">{fmt(m?.df ?? 0)}%</td>
-                  <td className="px-3 py-2.5">{fmt(m?.ut ?? 0)}%</td>
+                  <td className="px-3 py-2.5 text-mining-blue-glow">{fmt(m.horasTrabalhadas)} h</td>
+                  <td className="px-3 py-2.5 text-mining-green">{fmt(m.producao, 0)} t</td>
+                  <td className="px-3 py-2.5 text-mining-green-glow font-bold">{fmt(m.produtividade, 2)}</td>
+                  <td className="px-3 py-2.5 text-mining-yellow">{fmt(m.manutencao)}</td>
+                  <td className="px-3 py-2.5">{fmt(m.df)}%</td>
+                  <td className="px-3 py-2.5">{fmt(m.ut)}%</td>
                 </tr>
-              );
-            })}
+            ))}
           </tbody>
         </table>
       </div>
