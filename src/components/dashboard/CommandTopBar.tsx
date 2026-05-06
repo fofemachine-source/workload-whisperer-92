@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Calendar, RefreshCw, Cloud, CheckCircle2, Loader2, HardHat } from "lucide-react";
+import { Calendar, Cloud, CheckCircle2, Loader2, HardHat } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useExcelLive } from "@/context/ExcelLiveContext";
 import { MicrosoftLoginButton } from "@/components/microsoft/MicrosoftLoginButton";
