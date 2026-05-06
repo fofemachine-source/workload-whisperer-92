@@ -137,8 +137,10 @@ function matchEquipment(label: string): TargetEquipment | null {
 
 function classifyEquipment(label: string): GenericEquipmentRow["category"] {
   const n = norm(label);
-  if (/escavadeir|excavator|\bex\W*\d|pa\s*carregadeira|p[aá]\s*mec/.test(n)) return "escavadeira";
-  if (/perfurat|drill|sondagem|broca/.test(n)) return "perfuratriz";
+  if (/^eh[-\s]?\d/.test(n)) return "escavadeira";
+  if (/^cr[-\s]?\d/.test(n)) return "caminhao";
+  if (/^pf[-\s]?\d|^pp[-\s]?\d|perfurat|drill|sondagem|broca/.test(n)) return "perfuratriz";
+  if (/escavadeir|excavator|\bex\W*\d|pa\s*carregadeira|p[aá]\s*mec|hitachi/.test(n)) return "escavadeira";
   if (/caminh[aã]o|truck|hd\W*\d|komatsu|cat\s*\d{3}|off.?road|\bcr\b/.test(n)) return "caminhao";
   return "outro";
 }
@@ -146,7 +148,8 @@ function classifyEquipment(label: string): GenericEquipmentRow["category"] {
 function looksLikeEquipmentLabel(label: string): boolean {
   const n = norm(label);
   if (!n || n.length < 2 || n.length > 60) return false;
-  if (/^total|^m[eé]dia|^geral|^subtotal|^soma/.test(n)) return false;
+  if (/^total|^m[eé]dia|^geral|^subtotal|^soma|^informa[cç]/.test(n)) return false;
+  if (/^#ref|^#n\/?a|^#valor/.test(n)) return false;
   if (/^\d+([.,]\d+)?$/.test(n)) return false;
   return /[a-z]/.test(n);
 }
