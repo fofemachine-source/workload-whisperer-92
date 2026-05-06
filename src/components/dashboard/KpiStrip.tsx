@@ -59,19 +59,29 @@ function KpiCard({
 }
 
 export function KpiStrip() {
-  const { metrics, areas } = useExcelLive();
+  const { metrics, areas, summary } = useExcelLive();
 
+  // Prefer generic summary (works with any spreadsheet); fallback to fixed-target metrics.
   const prods = TARGET_EQUIPMENT.map((e) => metrics?.[e]?.produtividade ?? 0);
   const uts = TARGET_EQUIPMENT.map((e) => metrics?.[e]?.ut ?? 0);
   const dfs = TARGET_EQUIPMENT.map((e) => metrics?.[e]?.df ?? 0);
 
-  const produtividade = avg(prods);
-  const ut = avg(uts);
-  const df = avg(dfs);
+  const produtividade = summary?.produtividade || avg(prods);
+  const ut = summary?.ut || avg(uts);
+  const df = summary?.df || avg(dfs);
 
-  const totalRealizado = (areas?.Mina?.realizado ?? 0) + (areas?.Retaludamento?.realizado ?? 0);
-  const totalMeta = (areas?.Mina?.meta ?? 0) + (areas?.Retaludamento?.meta ?? 0);
-  const aderencia = totalMeta ? (totalRealizado / totalMeta) * 100 : 0;
+  const totalRealizado =
+    summary?.totalRealizado || (areas?.Mina?.realizado ?? 0) + (areas?.Retaludamento?.realizado ?? 0);
+  const totalMeta = summary?.totalMeta || (areas?.Mina?.meta ?? 0) + (areas?.Retaludamento?.meta ?? 0);
+  const aderencia = summary?.aderencia || (totalMeta ? (totalRealizado / totalMeta) * 100 : 0);
+
+  const escavCount =
+    summary?.escavadeirasCount ||
+    ["EX1200", "EX2500"].filter((e) => (metrics?.[e as "EX1200"]?.horasTrabalhadas ?? 0) > 0).length;
+  const perfCount =
+    summary?.perfuratrizesCount ||
+    ["Komatsu 730", "Komatsu 785"].filter((e) => (metrics?.[e as "Komatsu 730"]?.horasTrabalhadas ?? 0) > 0)
+      .length;
 
   return (
     <section className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
@@ -110,15 +120,15 @@ export function KpiStrip() {
       <KpiCard
         icon={Truck}
         label="Escavadeiras"
-        value={String(["EX1200", "EX2500"].filter((e) => (metrics?.[e as "EX1200"]?.horasTrabalhadas ?? 0) > 0).length || 2)}
-        hint="EX1200 · EX2500"
+        value={String(escavCount || 0)}
+        hint="EX / Pá Carregadeira"
         tone="yellow"
       />
       <KpiCard
         icon={Drill}
         label="Perfuratrizes"
-        value={String(["Komatsu 730", "Komatsu 785"].filter((e) => (metrics?.[e as "Komatsu 730"]?.horasTrabalhadas ?? 0) > 0).length || 2)}
-        hint="Komatsu 730 · 785"
+        value={String(perfCount || 0)}
+        hint="Drills / Sondagens"
         tone="indigo"
       />
     </section>
