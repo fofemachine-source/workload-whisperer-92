@@ -1,8 +1,7 @@
-import { useIsAuthenticated } from "@azure/msal-react";
-import { useExcelWorkbook } from "@/hooks/useExcelWorkbook";
-import { useExcelMetrics } from "@/hooks/useExcelMetrics";
+import { useExcelLive } from "@/context/ExcelLiveContext";
 import { TARGET_EQUIPMENT } from "@/services/excelParser";
-import { Activity, Loader2 } from "lucide-react";
+import { Activity, Loader2, RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const fmt = (n: number, d = 1) =>
   n
@@ -22,9 +21,7 @@ const COLS = [
 ];
 
 export function OperationsHeader() {
-  const isAuth = useIsAuthenticated();
-  const { file, worksheets } = useExcelWorkbook(isAuth);
-  const { metrics, loading, lastUpdated } = useExcelMetrics(file, worksheets);
+  const { file, metrics, metricsLoading: loading, lastUpdated, refresh } = useExcelLive();
 
   return (
     <section className="rounded-xl border border-mining-purple/30 bg-gradient-to-br from-mining-surface via-card to-mining-surface shadow-[0_0_40px_-15px_hsl(var(--mining-purple)/0.5)] overflow-hidden">
@@ -41,13 +38,19 @@ export function OperationsHeader() {
         </div>
         <div className="flex items-center gap-3 text-[11px] font-mono text-muted-foreground">
           {file ? (
-            <span className="text-mining-green">● ONEDRIVE LIVE</span>
+            <span className="inline-flex items-center gap-1 text-mining-green">
+              <span className="h-1.5 w-1.5 rounded-full bg-mining-green animate-pulse-glow shadow-[0_0_6px_hsl(var(--mining-green))]" />
+              ONEDRIVE LIVE · 30s
+            </span>
           ) : (
             <span className="text-mining-yellow">○ AGUARDANDO LOGIN</span>
           )}
           {lastUpdated && (
             <span>SYNC {lastUpdated.toLocaleTimeString("pt-BR")}</span>
           )}
+          <Button variant="ghost" size="sm" onClick={refresh} disabled={loading} className="h-6 px-2 text-mining-purple-glow hover:text-mining-purple-glow hover:bg-mining-purple/10">
+            <RefreshCw className={`h-3 w-3 ${loading ? "animate-spin" : ""}`} />
+          </Button>
         </div>
       </div>
 
