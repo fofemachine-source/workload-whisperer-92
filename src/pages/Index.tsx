@@ -6,6 +6,8 @@ import { KpiCard } from "@/components/dashboard/KpiCard";
 import { ProductionChart } from "@/components/dashboard/ProductionChart";
 import { EquipmentStatusChart } from "@/components/dashboard/EquipmentStatusChart";
 import { ProductionEntryForm } from "@/components/production/ProductionEntryForm";
+import { MicrosoftLoginButton } from "@/components/microsoft/MicrosoftLoginButton";
+import { ExcelDiscoveryPanel } from "@/components/microsoft/ExcelDiscoveryPanel";
 import { useEquipment, useDailyProduction, usePlannedProduction, useOccurrences } from "@/hooks/use-mining-data";
 
 // Demo data for initial display when DB is empty
@@ -107,6 +109,7 @@ export default function Dashboard() {
               </span>
             </div>
             <ProductionEntryForm />
+            <MicrosoftLoginButton />
             <div className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-mining-green/10 border border-mining-green/20">
               <div className="w-2 h-2 rounded-full bg-mining-green animate-pulse-glow" />
               <span className="text-xs font-medium text-mining-green">Sistema Ativo</span>
@@ -116,6 +119,9 @@ export default function Dashboard() {
       </header>
 
       <main className="p-6 space-y-6">
+        {/* Microsoft Excel integration */}
+        <ExcelDiscoveryPanel />
+
         {/* KPI Row */}
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
           <KpiCard label="Produtividade" value={stats.productivity.toFixed(1)} unit="t/h" borderColor="indigo" trend="up" trendValue="vs mês ant." />
