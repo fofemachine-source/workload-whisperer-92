@@ -222,3 +222,110 @@ export async function readWorkbookMetrics(
 
   return { metrics: acc as Record<TargetEquipment, EquipmentMetrics>, areas, debug };
 }
+
+export interface SheetValues {
+  name: string;
+  values: unknown[][];
+}
+
+/**
+ * Variant that accepts already-loaded sheet values (from xlsx local upload, OneDrive, etc).
+ * Reuses the same column detection + equipment/area matching logic as readWorkbookMetrics.
+ */
+export function processSheetValues(sheets: SheetValues[]): {
+  metrics: Record<TargetEquipment, EquipmentMetrics>;
+  areas: Record<AreaName, AreaMetrics>;
+  debug: Array<{ sheet: string; headerRow: number; map: MetricColumnMap; matched: number }>;
+} {
+  const acc: Record<string, EquipmentMetrics> = {};
+  TARGET_EQUIPMENT.forEach((eq) => {
+    acc[eq] = {
+      equipamento: eq,
+      horasTrabalhadas: 0,
+      producao: 0,
+      produtividade: 0,
+      manutencao: 0,
+      preventiva: 0,
+      df: 0,
+      ut: 0,
+      source: "",
+    };
+  });
+
+  const areas: Record<AreaName, AreaMetrics> = {
+    Mina: { area: "Mina", meta: 0, realizado: 0, projecao: 0, percentual: 0, source: "" },
+    Retaludamento: { area: "Retaludamento", meta: 0, realizado: 0, projecao: 0, percentual: 0, source: "" },
+  };
+
+  const debug: Array<{ sheet: string; headerRow: number; map: MetricColumnMap; matched: number }> = [];
+
+  for (const { name: sheet, values } of sheets) {
+    if (!values.length) continue;
+    const { row: headerRow, map } = detectHeaderRow(values);
+    if (headerRow < 0 || map.equipamento === undefined) {
+      debug.push({ sheet, headerRow, map, matched: 0 });
+      continue;
+    }
+    let matched = 0;
+    for (let r = headerRow + 1; r < values.length; r++) {
+      const row = values[r] ?? [];
+      const label = String(row[map.equipamento!] ?? "");
+      const eq = matchEquipment(label);
+      const area = matchArea(label);
+      if (!eq && !area) continue;
+      matched++;
+      if (eq) {
+        const target = acc[eq];
+        const setIfAvail = (key: keyof MetricColumnMap, field: keyof EquipmentMetrics) => {
+          const c = map[key];
+          if (c === undefined) return;
+          const v = toNumber(row[c]);
+          if (v && typeof target[field] === "number") {
+            (target[field] as number) = Math.max(target[field] as number, v);
+          }
+        };
+        setIfAvail("horasTrabalhadas", "horasTrabalhadas");
+        setIfAvail("producao", "producao");
+        setIfAvail("produtividade", "produtividade");
+        setIfAvail("manutencao", "manutencao");
+        setIfAvail("preventiva", "preventiva");
+        setIfAvail("df", "df");
+        setIfAvail("ut", "ut");
+        if (!target.source) target.source = sheet;
+      }
+      if (area) {
+        const a = areas[area];
+        const setArea = (key: keyof MetricColumnMap, field: keyof AreaMetrics) => {
+          const c = map[key];
+          if (c === undefined) return;
+          const v = toNumber(row[c]);
+          if (v && typeof a[field] === "number") {
+            (a[field] as number) = Math.max(a[field] as number, v);
+          }
+        };
+        setArea("meta", "meta");
+        setArea("realizado", "realizado");
+        setArea("producao", "realizado");
+        setArea("projecao", "projecao");
+        setArea("percentual", "percentual");
+        if (!a.source) a.source = sheet;
+      }
+    }
+    debug.push({ sheet, headerRow, map, matched });
+  }
+
+  for (const eq of TARGET_EQUIPMENT) {
+    const m = acc[eq];
+    if (!m.produtividade && m.horasTrabalhadas > 0 && m.producao > 0) {
+      m.produtividade = m.producao / m.horasTrabalhadas;
+    }
+  }
+  for (const k of Object.keys(areas) as AreaName[]) {
+    const a = areas[k];
+    if (!a.percentual && a.meta > 0 && a.realizado > 0) {
+      a.percentual = (a.realizado / a.meta) * 100;
+    }
+  }
+
+  return { metrics: acc as Record<TargetEquipment, EquipmentMetrics>, areas, debug };
+}

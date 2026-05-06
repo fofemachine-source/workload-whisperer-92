@@ -1,18 +1,27 @@
 import { useState } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Calendar, RefreshCw, Cloud, CheckCircle2, Loader2, HardHat } from "lucide-react";
+import { Calendar, Cloud, CheckCircle2, Loader2, HardHat } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useExcelLive } from "@/context/ExcelLiveContext";
 import { MicrosoftLoginButton } from "@/components/microsoft/MicrosoftLoginButton";
+import { ExcelUploadButton } from "@/components/dashboard/ExcelUploadButton";
 
 export function CommandTopBar() {
-  const { file, isAuth, lastUpdated, refresh, refreshWorkbook, metricsLoading, workbookLoading } = useExcelLive();
+  const { file, isAuth, lastUpdated, refresh, refreshWorkbook, metricsLoading, workbookLoading, source, localFile } = useExcelLive();
   const [date, setDate] = useState(() => format(new Date(), "yyyy-MM-dd"));
   const loading = metricsLoading || workbookLoading;
 
-  const status = isAuth && file ? "online" : isAuth ? "warn" : "off";
-  const statusLabel = status === "online" ? "ONLINE" : status === "warn" ? "AGUARDANDO ARQUIVO" : "OFFLINE";
+  const status =
+    source === "local" ? "online" : source === "onedrive" && file ? "online" : isAuth ? "warn" : "off";
+  const statusLabel =
+    source === "local"
+      ? "PLANILHA CARREGADA"
+      : status === "online"
+      ? "ONLINE"
+      : status === "warn"
+      ? "AGUARDANDO ARQUIVO"
+      : "AGUARDANDO PLANILHA";
   const statusCls =
     status === "online"
       ? "border-mining-green/30 bg-mining-green/5 text-mining-green"
@@ -65,31 +74,22 @@ export function CommandTopBar() {
             variant="outline"
             size="sm"
             onClick={() => { refreshWorkbook(); refresh(); }}
-            disabled={loading}
+            disabled={loading || source === "local"}
             className="gap-2 border-mining-blue/30 bg-mining-blue/5 hover:bg-mining-blue/15 text-mining-blue-glow"
+            title={source === "local" ? "Sincronização OneDrive desativada (planilha local em uso)" : "Sincronizar OneDrive"}
           >
             {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Cloud className="h-3.5 w-3.5" />}
             <span className="hidden sm:inline">Sincronizar OneDrive</span>
           </Button>
 
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={refresh}
-            disabled={loading}
-            className="gap-2 border-mining-green/30 bg-mining-green/5 hover:bg-mining-green/15 text-mining-green-glow"
-          >
-            <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
-            <span className="hidden sm:inline">Atualizar</span>
-          </Button>
-
+          <ExcelUploadButton />
           <MicrosoftLoginButton />
         </div>
       </div>
 
       <div className="px-4 md:px-6 pb-2 flex items-center gap-3 text-[10px] font-mono text-muted-foreground">
         <CheckCircle2 className="h-3 w-3 text-mining-green" />
-        <span>POLLING 30s</span>
+        <span>{source === "local" ? "FONTE: PLANILHA LOCAL" : "POLLING 30s"}</span>
         <span className="text-mining-blue/40">·</span>
         <span>{format(new Date(), "EEEE, dd MMM yyyy", { locale: ptBR })}</span>
         {lastUpdated && (
@@ -98,7 +98,13 @@ export function CommandTopBar() {
             <span>SYNC {lastUpdated.toLocaleTimeString("pt-BR")}</span>
           </>
         )}
-        {file && (
+        {source === "local" && localFile && (
+          <>
+            <span className="text-mining-blue/40">·</span>
+            <span className="truncate max-w-[40vw]">📄 {localFile.name} · {localFile.sheetNames.length} aba(s)</span>
+          </>
+        )}
+        {source === "onedrive" && file && (
           <>
             <span className="text-mining-blue/40">·</span>
             <span className="truncate max-w-[40vw]">📄 {file.name}</span>

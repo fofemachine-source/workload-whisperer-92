@@ -1,9 +1,16 @@
-import { createContext, useContext, ReactNode } from "react";
+import { createContext, useContext, ReactNode, useState, useCallback, useEffect } from "react";
 import { useIsAuthenticated } from "@azure/msal-react";
 import { useExcelWorkbook } from "@/hooks/useExcelWorkbook";
 import { useExcelMetrics } from "@/hooks/useExcelMetrics";
 import { EquipmentMetrics, TargetEquipment, AreaMetrics, AreaName } from "@/services/excelParser";
 import { DriveItem, WorksheetInfo } from "@/services/graphService";
+import {
+  parseLocalExcel,
+  persistLocalExcel,
+  loadPersistedLocalExcel,
+  clearPersistedLocalExcel,
+  LocalExcelResult,
+} from "@/services/localExcelParser";
 
 interface ExcelLiveValue {
   isAuth: boolean;
@@ -19,6 +26,13 @@ interface ExcelLiveValue {
   refresh: () => Promise<void>;
   refreshWorkbook: () => Promise<void>;
   debug: ReturnType<typeof useExcelMetrics>["debug"];
+  // Local upload (xlsx) — fonte alternativa, sem OneDrive
+  source: "local" | "onedrive" | "none";
+  localFile: { name: string; sheetNames: string[]; parsedAt: string } | null;
+  localError: string | null;
+  localLoading: boolean;
+  uploadLocalExcel: (file: File) => Promise<void>;
+  clearLocalExcel: () => void;
 }
 
 const Ctx = createContext<ExcelLiveValue | null>(null);
@@ -28,20 +42,62 @@ export function ExcelLiveProvider({ children }: { children: ReactNode }) {
   const wb = useExcelWorkbook(isAuth);
   const m = useExcelMetrics(wb.file, wb.worksheets);
 
+  const [local, setLocal] = useState<LocalExcelResult | null>(() => loadPersistedLocalExcel());
+  const [localLoading, setLocalLoading] = useState(false);
+  const [localError, setLocalError] = useState<string | null>(null);
+
+  const uploadLocalExcel = useCallback(async (file: File) => {
+    setLocalLoading(true);
+    setLocalError(null);
+    try {
+      const result = await parseLocalExcel(file);
+      setLocal(result);
+      persistLocalExcel(result);
+      console.log("[localExcel] planilha carregada:", result.fileName, result.sheetNames);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      setLocalError(msg);
+      console.error("[localExcel] erro:", msg);
+    } finally {
+      setLocalLoading(false);
+    }
+  }, []);
+
+  const clearLocalExcel = useCallback(() => {
+    clearPersistedLocalExcel();
+    setLocal(null);
+    setLocalError(null);
+  }, []);
+
+  // Local takes priority if present; otherwise fallback to OneDrive
+  const useLocal = !!local;
+  const metrics = useLocal ? local!.metrics : m.metrics;
+  const areas = useLocal ? local!.areas : m.areas;
+  const debug = useLocal ? local!.debug : m.debug;
+  const lastUpdated = useLocal ? new Date(local!.parsedAt) : m.lastUpdated;
+
   const value: ExcelLiveValue = {
     isAuth,
     file: wb.file,
     worksheets: wb.worksheets,
     workbookLoading: wb.loading,
     workbookError: wb.error,
-    metrics: m.metrics,
-    areas: m.areas,
-    metricsLoading: m.loading,
-    metricsError: m.error,
-    lastUpdated: m.lastUpdated,
-    refresh: m.refresh,
+    metrics,
+    areas,
+    metricsLoading: useLocal ? localLoading : m.loading,
+    metricsError: useLocal ? localError : m.error,
+    lastUpdated,
+    refresh: useLocal ? async () => {} : m.refresh,
     refreshWorkbook: wb.refresh,
-    debug: m.debug,
+    debug,
+    source: useLocal ? "local" : isAuth ? "onedrive" : "none",
+    localFile: local
+      ? { name: local.fileName, sheetNames: local.sheetNames, parsedAt: local.parsedAt }
+      : null,
+    localError,
+    localLoading,
+    uploadLocalExcel,
+    clearLocalExcel,
   };
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
