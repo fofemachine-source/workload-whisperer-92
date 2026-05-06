@@ -1,10 +1,23 @@
 import * as XLSX from "xlsx";
-import { processSheetValues, SheetValues, EquipmentMetrics, TargetEquipment, AreaMetrics, AreaName, MetricColumnMap } from "./excelParser";
+import {
+  processSheetValues,
+  SheetValues,
+  EquipmentMetrics,
+  TargetEquipment,
+  AreaMetrics,
+  AreaName,
+  MetricColumnMap,
+  AggregateSummary,
+  GenericEquipmentRow,
+} from "./excelParser";
 
 export interface LocalExcelResult {
   metrics: Record<TargetEquipment, EquipmentMetrics>;
   areas: Record<AreaName, AreaMetrics>;
   debug: Array<{ sheet: string; headerRow: number; map: MetricColumnMap; matched: number }>;
+  rows: GenericEquipmentRow[];
+  summary: AggregateSummary;
+  primarySheet: string | null;
   fileName: string;
   sheetNames: string[];
   parsedAt: string;
@@ -24,11 +37,28 @@ export async function parseLocalExcel(file: File): Promise<LocalExcelResult> {
     return { name, values };
   });
 
-  const { metrics, areas, debug } = processSheetValues(sheets);
+  const { metrics, areas, debug, rows, summary, primarySheet } = processSheetValues(sheets);
+
+  // Diagnostic logs (temporary)
+  console.log("[localExcel] arquivo:", file.name);
+  console.log("[localExcel] abas:", wb.SheetNames);
+  console.log("[localExcel] aba primária detectada:", primarySheet);
+  debug.forEach((d) => {
+    const cols = Object.entries(d.map)
+      .map(([k, v]) => `${k}=col${v}`)
+      .join(", ");
+    console.log(`[localExcel] [${d.sheet}] headerRow=${d.headerRow}, linhas=${d.matched}, colunas: ${cols}`);
+  });
+  console.log("[localExcel] equipamentos detectados:", rows.length, rows.map((r) => `${r.equipamento} (${r.category})`));
+  console.log("[localExcel] KPIs calculados:", summary);
+
   return {
     metrics,
     areas,
     debug,
+    rows,
+    summary,
+    primarySheet,
     fileName: file.name,
     sheetNames: wb.SheetNames,
     parsedAt: new Date().toISOString(),
