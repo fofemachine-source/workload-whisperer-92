@@ -11,8 +11,16 @@ export function CommandTopBar() {
   const [date, setDate] = useState(() => format(new Date(), "yyyy-MM-dd"));
   const loading = metricsLoading || workbookLoading;
 
-  const onlineLabel = isAuth && file ? "ONLINE" : isAuth ? "AGUARDANDO ARQUIVO" : "OFFLINE";
-  const onlineColor = isAuth && file ? "mining-green" : isAuth ? "mining-yellow" : "mining-red";
+  const status = isAuth && file ? "online" : isAuth ? "warn" : "off";
+  const statusLabel = status === "online" ? "ONLINE" : status === "warn" ? "AGUARDANDO ARQUIVO" : "OFFLINE";
+  const statusCls =
+    status === "online"
+      ? "border-mining-green/30 bg-mining-green/5 text-mining-green"
+      : status === "warn"
+      ? "border-mining-yellow/30 bg-mining-yellow/5 text-mining-yellow"
+      : "border-mining-red/30 bg-mining-red/5 text-mining-red";
+  const dotCls =
+    status === "online" ? "bg-mining-green" : status === "warn" ? "bg-mining-yellow" : "bg-mining-red";
 
   return (
     <header className="sticky top-0 z-30 ops-card !rounded-none !border-x-0 !border-t-0 border-b border-mining-blue/15 bg-mining-surface/85 backdrop-blur-xl">
@@ -43,13 +51,13 @@ export function CommandTopBar() {
             />
           </label>
 
-          <div className={`hidden md:flex items-center gap-2 px-3 py-2 rounded-lg border border-${onlineColor}/30 bg-${onlineColor}/5`}>
-            <span className={`relative flex h-2 w-2`}>
-              <span className={`absolute inset-0 rounded-full bg-${onlineColor} animate-ping opacity-75`} />
-              <span className={`relative h-2 w-2 rounded-full bg-${onlineColor}`} />
+          <div className={`hidden md:flex items-center gap-2 px-3 py-2 rounded-lg border ${statusCls}`}>
+            <span className="relative flex h-2 w-2">
+              <span className={`absolute inset-0 rounded-full ${dotCls} animate-ping opacity-75`} />
+              <span className={`relative h-2 w-2 rounded-full ${dotCls}`} />
             </span>
-            <span className={`text-[10px] font-mono font-bold tracking-wider text-${onlineColor}`}>
-              SISTEMA {onlineLabel}
+            <span className="text-[10px] font-mono font-bold tracking-wider">
+              SISTEMA {statusLabel}
             </span>
           </div>
 
