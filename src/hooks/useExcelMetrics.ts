@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useMsal, useIsAuthenticated } from "@azure/msal-react";
 import { createGraphClient } from "@/services/graphService";
-import { readWorkbookMetrics, EquipmentMetrics, TargetEquipment, TARGET_EQUIPMENT } from "@/services/excelParser";
+import { readWorkbookMetrics, EquipmentMetrics, TargetEquipment, TARGET_EQUIPMENT, MetricColumnMap } from "@/services/excelParser";
 import { DriveItem, WorksheetInfo } from "@/services/graphService";
 
 const POLL_MS = 30_000;
@@ -10,7 +10,7 @@ export interface ExcelMetricsState {
   loading: boolean;
   error: string | null;
   metrics: Record<TargetEquipment, EquipmentMetrics> | null;
-  debug: Array<{ sheet: string; headerRow: number; map: Record<string, number | undefined>; matched: number }>;
+  debug: Array<{ sheet: string; headerRow: number; map: MetricColumnMap; matched: number }>;
   lastUpdated: Date | null;
   refresh: () => Promise<void>;
 }
