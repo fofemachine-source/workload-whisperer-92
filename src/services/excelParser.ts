@@ -95,7 +95,7 @@ const HEADER_PATTERNS: Record<keyof MetricColumnMap, RegExp[]> = {
 
 function detectHeaderRow(values: unknown[][]): { row: number; map: MetricColumnMap } {
   let best = { row: -1, map: {} as MetricColumnMap, score: 0 };
-  const limit = Math.min(values.length, 12);
+  const limit = Math.min(values.length, 25);
   for (let r = 0; r < limit; r++) {
     const row = values[r] ?? [];
     const map: MetricColumnMap = {};
