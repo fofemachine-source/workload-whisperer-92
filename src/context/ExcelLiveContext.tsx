@@ -11,6 +11,8 @@ import {
   clearPersistedLocalExcel,
   LocalExcelResult,
 } from "@/services/localExcelParser";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface ExcelLiveValue {
   isAuth: boolean;
@@ -36,6 +38,8 @@ interface ExcelLiveValue {
   localLoading: boolean;
   uploadLocalExcel: (file: File) => Promise<void>;
   clearLocalExcel: () => void;
+  cloudSyncing: boolean;
+  lastCloudUpload: { fileName: string; uploadedAt: string } | null;
 }
 
 const Ctx = createContext<ExcelLiveValue | null>(null);
@@ -48,6 +52,71 @@ export function ExcelLiveProvider({ children }: { children: ReactNode }) {
   const [local, setLocal] = useState<LocalExcelResult | null>(() => loadPersistedLocalExcel());
   const [localLoading, setLocalLoading] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
+  const [cloudSyncing, setCloudSyncing] = useState(false);
+  const [lastCloudUpload, setLastCloudUpload] = useState<{ fileName: string; uploadedAt: string } | null>(null);
+
+  // Download e processa planilha do storage
+  const fetchAndParseFromCloud = useCallback(async (filePath: string, fileName: string, uploadedAt: string, silent = false) => {
+    setCloudSyncing(true);
+    try {
+      const { data, error } = await supabase.storage.from("spreadsheets").download(filePath);
+      if (error || !data) throw error ?? new Error("Falha no download");
+      const file = new File([data], fileName, { type: data.type });
+      const result = await parseLocalExcel(file);
+      setLocal(result);
+      persistLocalExcel(result);
+      setLastCloudUpload({ fileName, uploadedAt });
+      if (!silent) {
+        toast.success("Planilha sincronizada", { description: `${fileName} · ${new Date(uploadedAt).toLocaleTimeString("pt-BR")}` });
+      }
+      console.log("[cloudSync] planilha aplicada:", fileName);
+    } catch (e) {
+      console.error("[cloudSync] erro ao baixar/parsear:", e);
+    } finally {
+      setCloudSyncing(false);
+    }
+  }, []);
+
+  // Carrega a planilha mais recente da nuvem ao abrir + assina realtime
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data, error } = await supabase
+        .from("spreadsheet_uploads")
+        .select("*")
+        .order("uploaded_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (cancelled || error || !data) return;
+      // Só baixa se for mais nova que a local persistida
+      const localTime = local?.parsedAt ? new Date(local.parsedAt).getTime() : 0;
+      const cloudTime = new Date(data.uploaded_at).getTime();
+      if (cloudTime > localTime) {
+        await fetchAndParseFromCloud(data.file_path, data.file_name, data.uploaded_at, true);
+      } else {
+        setLastCloudUpload({ fileName: data.file_name, uploadedAt: data.uploaded_at });
+      }
+    })();
+
+    const channel = supabase
+      .channel("spreadsheet-uploads")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "spreadsheet_uploads" },
+        (payload) => {
+          const row = payload.new as { file_path: string; file_name: string; uploaded_at: string };
+          console.log("[cloudSync] novo upload detectado:", row.file_name);
+          fetchAndParseFromCloud(row.file_path, row.file_name, row.uploaded_at, false);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      cancelled = true;
+      supabase.removeChannel(channel);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const uploadLocalExcel = useCallback(async (file: File) => {
     setLocalLoading(true);
@@ -57,6 +126,30 @@ export function ExcelLiveProvider({ children }: { children: ReactNode }) {
       setLocal(result);
       persistLocalExcel(result);
       console.log("[localExcel] planilha carregada:", result.fileName, result.sheetNames);
+
+      // Envia para a nuvem para que outros dispositivos recebam via realtime
+      setCloudSyncing(true);
+      try {
+        const ext = file.name.split(".").pop() || "xlsx";
+        const filePath = `live/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+        const { error: upErr } = await supabase.storage
+          .from("spreadsheets")
+          .upload(filePath, file, { upsert: false, contentType: file.type || undefined });
+        if (upErr) throw upErr;
+        const { error: insErr } = await supabase
+          .from("spreadsheet_uploads")
+          .insert({ file_name: file.name, file_path: filePath });
+        if (insErr) throw insErr;
+        console.log("[cloudSync] planilha enviada para a nuvem:", filePath);
+        toast.success("Planilha publicada para todos os painéis", { description: file.name });
+      } catch (cloudErr) {
+        console.error("[cloudSync] erro ao publicar:", cloudErr);
+        toast.error("Falha ao publicar na nuvem", {
+          description: cloudErr instanceof Error ? cloudErr.message : String(cloudErr),
+        });
+      } finally {
+        setCloudSyncing(false);
+      }
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       setLocalError(msg);
@@ -110,6 +203,8 @@ export function ExcelLiveProvider({ children }: { children: ReactNode }) {
     localLoading,
     uploadLocalExcel,
     clearLocalExcel,
+    cloudSyncing,
+    lastCloudUpload,
   };
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
