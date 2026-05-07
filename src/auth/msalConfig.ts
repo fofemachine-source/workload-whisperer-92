@@ -20,7 +20,6 @@ export const msalConfig: Configuration = {
       piiLoggingEnabled: false,
       loggerCallback: () => {},
     },
-    loadFrameTimeout: 30000,
   },
 };
 
