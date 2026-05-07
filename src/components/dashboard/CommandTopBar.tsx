@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CheckCircle2, Loader2, HardHat, Calendar, RefreshCw } from "lucide-react";
+import { CheckCircle2, Loader2, HardHat, Calendar, RefreshCw, Cloud, CloudOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useExcelLive } from "@/context/ExcelLiveContext";
 import { ExcelUploadButton } from "@/components/dashboard/ExcelUploadButton";
@@ -9,7 +9,7 @@ import { MicrosoftLoginButton } from "@/components/microsoft/MicrosoftLoginButto
 import { toast } from "sonner";
 
 export function CommandTopBar() {
-  const { lastUpdated, metricsLoading, workbookLoading, source, localFile, refresh, refreshWorkbook, debug, file, worksheets } = useExcelLive();
+  const { lastUpdated, metricsLoading, workbookLoading, source, localFile, refresh, refreshWorkbook, debug, file, worksheets, cloudSyncing, lastCloudUpload } = useExcelLive();
   const [date, setDate] = useState(() => format(new Date(), "yyyy-MM-dd"));
   const loading = metricsLoading || workbookLoading;
   const [refreshCount, setRefreshCount] = useState(0);
@@ -113,6 +113,20 @@ export function CommandTopBar() {
             ? "FONTE: PLANILHA LOCAL"
             : "AGUARDANDO CONEXÃO OU UPLOAD"}
         </span>
+        <span className="text-mining-blue/40">·</span>
+        {cloudSyncing ? (
+          <span className="flex items-center gap-1 text-mining-yellow">
+            <Loader2 className="h-3 w-3 animate-spin" /> SINCRONIZANDO NUVEM…
+          </span>
+        ) : lastCloudUpload ? (
+          <span className="flex items-center gap-1 text-mining-green">
+            <Cloud className="h-3 w-3" /> NUVEM AO VIVO · {lastCloudUpload.fileName} · {new Date(lastCloudUpload.uploadedAt).toLocaleTimeString("pt-BR")}
+          </span>
+        ) : (
+          <span className="flex items-center gap-1 text-muted-foreground">
+            <CloudOff className="h-3 w-3" /> NUVEM: AGUARDANDO 1º UPLOAD
+          </span>
+        )}
         <span className="text-mining-blue/40">·</span>
         <span>{format(new Date(), "EEEE, dd MMM yyyy", { locale: ptBR })}</span>
         {lastUpdated && (
