@@ -34,6 +34,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { Pencil } from "lucide-react";
 import { AnimatedTruck } from "./AnimatedTruck";
+import logoUM from "@/assets/logo-um.png";
 import { AnimatedExcavator } from "./AnimatedExcavator";
 
 const NEON = "#22c55e";
@@ -670,6 +671,11 @@ export function OpsCenter() {
           <div className="absolute inset-y-0 w-24 animate-truck-drive" style={{ animationDuration: "30s", animationDelay: "-14s" }}>
             <AnimatedTruck className="w-24 h-14 mt-0.5" color={NEON} />
           </div>
+        </div>
+
+        {/* LOGO U&M */}
+        <div className="col-span-12 flex justify-center py-4">
+          <img src={logoUM} alt="Logo U&M" className="h-16 object-contain opacity-90" />
         </div>
       </main>
     </div>
