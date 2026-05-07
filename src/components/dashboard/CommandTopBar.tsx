@@ -8,7 +8,7 @@ import { ExcelUploadButton } from "@/components/dashboard/ExcelUploadButton";
 import { MicrosoftLoginButton } from "@/components/microsoft/MicrosoftLoginButton";
 
 export function CommandTopBar() {
-  const { lastUpdated, metricsLoading, workbookLoading, source, localFile, refresh, refreshWorkbook } = useExcelLive();
+  const { lastUpdated, metricsLoading, workbookLoading, source, localFile, refresh, refreshWorkbook, debug, file, worksheets } = useExcelLive();
   const [date, setDate] = useState(() => format(new Date(), "yyyy-MM-dd"));
   const loading = metricsLoading || workbookLoading;
 
@@ -94,7 +94,20 @@ export function CommandTopBar() {
         {lastUpdated && (
           <>
             <span className="text-mining-blue/40">·</span>
-            <span>SYNC {lastUpdated.toLocaleTimeString("pt-BR")}</span>
+            <span className="text-mining-green">
+              ÚLTIMO REFRESH: {lastUpdated.toLocaleTimeString("pt-BR")}
+            </span>
+          </>
+        )}
+        {source === "onedrive" && file && (
+          <>
+            <span className="text-mining-blue/40">·</span>
+            <span className="truncate max-w-[35vw]">
+              📊 {file.name} · {worksheets.length} aba(s)
+              {debug && debug.length > 0 && (
+                <> · processadas: {debug.filter((d) => d.matched > 0).map((d) => d.sheet).join(", ") || "—"}</>
+              )}
+            </span>
           </>
         )}
         {source === "local" && localFile && (
