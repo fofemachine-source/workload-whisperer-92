@@ -245,15 +245,18 @@ export function OpsCenter() {
     let acc = 0;
     const stepReal = producaoTurno / 12;
     const stepMeta = metaTurno / 12;
+    const prodHD785 = fleetsAgg?.["Komatsu 785"]?.totalProducao || producaoTurno * 0.55;
+    const stepHD785 = prodHD785 / 12;
     return hours.map((h, i) => {
       acc += stepReal;
       return {
         hora: `${String(h).padStart(2, "0")}:00`,
         realizado: i === 0 ? 0 : Math.round(acc),
         meta: Math.round(stepMeta * i),
+        hd785: Math.round(stepHD785 * i),
       };
     });
-  }, [producaoTurno, metaTurno]);
+  }, [producaoTurno, metaTurno, fleetsAgg]);
 
   const tonHSeries = useMemo(() => {
     const hours = Array.from({ length: 13 }, (_, i) => i * 2);
@@ -461,6 +464,7 @@ export function OpsCenter() {
                   />
                   <Area type="monotone" dataKey="realizado" stroke={NEON} strokeWidth={2} fill="url(#prodFill)" name="Realizado" />
                   <Line type="monotone" dataKey="meta" stroke="#9ca3af" strokeDasharray="4 4" strokeWidth={1.5} dot={false} name="Meta" />
+                  <Line type="monotone" dataKey="hd785" stroke={YELLOW} strokeWidth={2} dot={false} name="HD785" />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
