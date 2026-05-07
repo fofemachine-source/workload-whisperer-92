@@ -334,6 +334,242 @@ export interface SheetValues {
 }
 
 /**
+ * Maps "Frota" cell text from Horimetros/Paradas to one of the 4 target fleets.
+ */
+function frotaTextToTarget(s: unknown): TargetEquipment | null {
+  const n = norm(s);
+  if (!n) return null;
+  if (/ex\W*1200/.test(n)) return "EX1200";
+  if (/ex\W*2500/.test(n)) return "EX2500";
+  if (/785/.test(n)) return "Komatsu 785";
+  if (/730/.test(n)) return "Komatsu 730";
+  return null;
+}
+
+/** Parse Excel date cell (Date object, ISO string, or serial number) -> YYYY-MM-DD */
+function cellToDateKey(v: unknown): string | null {
+  if (v == null || v === "") return null;
+  if (v instanceof Date) return v.toISOString().slice(0, 10);
+  if (typeof v === "number") {
+    // Excel serial date
+    const d = new Date(Date.UTC(1899, 11, 30) + v * 86400000);
+    return d.toISOString().slice(0, 10);
+  }
+  const s = String(v);
+  const m = s.match(/(\d{4})-(\d{2})-(\d{2})/);
+  if (m) return `${m[1]}-${m[2]}-${m[3]}`;
+  const m2 = s.match(/(\d{2})\/(\d{2})\/(\d{4})/);
+  if (m2) return `${m2[3]}-${m2[2]}-${m2[1]}`;
+  return null;
+}
+
+function findHeaderIndex(headerRow: unknown[], patterns: RegExp[]): number {
+  for (let c = 0; c < headerRow.length; c++) {
+    const cell = norm(headerRow[c]);
+    if (patterns.some((re) => re.test(cell))) return c;
+  }
+  return -1;
+}
+
+/**
+ * Reads structured sheets (Horimetros, Paradas, PRODUÇÃO EH) and recomputes
+ * fleet aggregates & global summary using precise business rules:
+ *   - Horimetros: HTra summed per Equipamento, FILTERED by latest date
+ *   - Paradas:    Manutenção summed per Equipamento, FILTERED by same date
+ *   - PRODUÇÃO EH: total day production from row "TOTAL"
+ *   - DF = HD/HT, UT = HTra/HD  (HT = unidades * 24h)
+ */
+function applyStructuredOverrides(
+  sheets: SheetValues[],
+  fleets: Record<TargetEquipment, FleetAggregate>,
+  summary: AggregateSummary,
+): { dateKey: string | null; producaoDia: number; producaoRetalud: number } {
+  const byName = new Map(sheets.map((s) => [s.name.toLowerCase(), s]));
+  const horim = byName.get("horimetros");
+  const paradas = byName.get("paradas");
+  const prodEh =
+    byName.get("produção eh") ||
+    byName.get("producao eh") ||
+    [...byName.values()].find((s) => /produ[cç][aã]o\s*eh\b/i.test(s.name));
+
+  // 1) Determine target date from Horimetros (latest non-empty)
+  let dateKey: string | null = null;
+  let dateColH = -1, eqColH = -1, frotaColH = -1, htColH = -1, headerH = -1;
+  if (horim && horim.values.length > 4) {
+    // Header is around row 4 in user file; scan first 10 rows
+    for (let r = 0; r < Math.min(horim.values.length, 12); r++) {
+      const row = horim.values[r] ?? [];
+      const dc = findHeaderIndex(row, [/^data$/]);
+      const ec = findHeaderIndex(row, [/equipamento/]);
+      const fc = findHeaderIndex(row, [/^frota$/]);
+      const hc = findHeaderIndex(row, [/horas?\s*trabalhad/]);
+      if (dc >= 0 && ec >= 0 && fc >= 0 && hc >= 0) {
+        headerH = r; dateColH = dc; eqColH = ec; frotaColH = fc; htColH = hc;
+        break;
+      }
+    }
+    if (headerH >= 0) {
+      // Find latest date in column
+      let latest = "";
+      for (let r = headerH + 1; r < horim.values.length; r++) {
+        const k = cellToDateKey((horim.values[r] ?? [])[dateColH]);
+        if (k && k > latest) latest = k;
+      }
+      dateKey = latest || null;
+    }
+  }
+
+  // 2) Aggregate HTra per fleet for the target date
+  const htraByFleet: Record<TargetEquipment, number> = {
+    EX1200: 0, EX2500: 0, "Komatsu 730": 0, "Komatsu 785": 0,
+  };
+  const ativosByFleet: Record<TargetEquipment, Set<string>> = {
+    EX1200: new Set(), EX2500: new Set(), "Komatsu 730": new Set(), "Komatsu 785": new Set(),
+  };
+  if (horim && headerH >= 0 && dateKey) {
+    for (let r = headerH + 1; r < horim.values.length; r++) {
+      const row = horim.values[r] ?? [];
+      const k = cellToDateKey(row[dateColH]);
+      if (k !== dateKey) continue;
+      const f = frotaTextToTarget(row[frotaColH]);
+      if (!f) continue;
+      const ht = toNumber(row[htColH]);
+      htraByFleet[f] += ht;
+      const eq = String(row[eqColH] ?? "").trim();
+      if (eq && ht > 0) ativosByFleet[f].add(eq);
+    }
+  }
+
+  // 3) Aggregate Manutenção per fleet for same date from Paradas
+  const manutByFleet: Record<TargetEquipment, number> = {
+    EX1200: 0, EX2500: 0, "Komatsu 730": 0, "Komatsu 785": 0,
+  };
+  if (paradas && paradas.values.length > 3 && dateKey) {
+    // Header on row index 2 typically
+    let headerP = -1, dateColP = -1, frotaColP = -1, horasColP = -1, catColP = -1;
+    for (let r = 0; r < Math.min(paradas.values.length, 8); r++) {
+      const row = paradas.values[r] ?? [];
+      const dc = findHeaderIndex(row, [/^data$/]);
+      const fc = findHeaderIndex(row, [/^frota$/]);
+      const hc = findHeaderIndex(row, [/tempo\s*de\s*parada\s*\(hor/]);
+      const cc = findHeaderIndex(row, [/categoria/]);
+      if (dc >= 0 && fc >= 0 && hc >= 0 && cc >= 0) {
+        headerP = r; dateColP = dc; frotaColP = fc; horasColP = hc; catColP = cc;
+        break;
+      }
+    }
+    if (headerP >= 0) {
+      for (let r = headerP + 1; r < paradas.values.length; r++) {
+        const row = paradas.values[r] ?? [];
+        const k = cellToDateKey(row[dateColP]);
+        if (k !== dateKey) continue;
+        const cat = norm(row[catColP]);
+        if (!/manuten|preventiv|corretiv/.test(cat)) continue;
+        const f = frotaTextToTarget(row[frotaColP]);
+        if (!f) continue;
+        manutByFleet[f] += toNumber(row[horasColP]);
+      }
+    }
+  }
+
+  // 4) Production from PRODUÇÃO EH "TOTAL" row + Retaludamento header cells
+  let producaoDia = 0;
+  let producaoRetalud = 0;
+  if (prodEh && prodEh.values.length) {
+    // Top header carries acumulado dia
+    for (let r = 0; r < Math.min(prodEh.values.length, 8); r++) {
+      const row = prodEh.values[r] ?? [];
+      for (let c = 0; c < row.length; c++) {
+        const lab = norm(row[c]);
+        if (/acumulado\s*dia/.test(lab)) {
+          // value is somewhere to the right
+          for (let cc = c + 1; cc < Math.min(row.length, c + 5); cc++) {
+            const v = toNumber(row[cc]);
+            if (v > 0) {
+              // First occurrence is N5-SUL produção, second (further right) is retaludamento
+              if (!producaoDia) producaoDia = v;
+              else if (!producaoRetalud) producaoRetalud = v;
+              break;
+            }
+          }
+        }
+      }
+    }
+    // Fallback: TOTAL row
+    if (!producaoDia) {
+      for (let r = 0; r < prodEh.values.length; r++) {
+        const row = prodEh.values[r] ?? [];
+        if (norm(row[0]) === "total") {
+          // last numeric cell in row
+          let mx = 0;
+          for (const c of row) {
+            const v = toNumber(c);
+            if (v > mx) mx = v;
+          }
+          producaoDia = mx;
+          break;
+        }
+      }
+    }
+  }
+
+  // 5) Recompute fleet aggregates with precise values
+  const TURNO_H = 24;
+  TARGET_EQUIPMENT.forEach((f) => {
+    const agg = fleets[f];
+    const htra = htraByFleet[f];
+    const horasManut = manutByFleet[f];
+    const horasTotais = agg.totalUnits * TURNO_H;
+    const horasDisp = Math.max(horasTotais - horasManut, 0);
+    if (htra > 0 || horasManut > 0) {
+      agg.totalHoras = htra;
+      agg.horasManutencao = horasManut;
+      agg.horasTotais = horasTotais;
+      agg.horasDisponiveis = horasDisp;
+      agg.df = horasTotais > 0 ? (horasDisp / horasTotais) * 100 : 0;
+      agg.ut = horasDisp > 0 ? (htra / horasDisp) * 100 : 0;
+      agg.ativos = ativosByFleet[f].size;
+    }
+  });
+
+  // 6) Distribute Produção do dia between escavadeira fleets proportionally to HTra
+  if (producaoDia > 0) {
+    const escavHtra = ESCAVADEIRAS.reduce((s, f) => s + fleets[f].totalHoras, 0);
+    ESCAVADEIRAS.forEach((f) => {
+      const agg = fleets[f];
+      agg.totalProducao = escavHtra > 0 ? producaoDia * (agg.totalHoras / escavHtra) : 0;
+      agg.produtividade = agg.totalHoras > 0 ? agg.totalProducao / agg.totalHoras : 0;
+    });
+    // Caminhões: distribute also proportionally so cards show something coherent
+    CAMINHOES.forEach((f) => {
+      const agg = fleets[f];
+      const camHtra = CAMINHOES.reduce((s, x) => s + fleets[x].totalHoras, 0);
+      agg.totalProducao = camHtra > 0 ? producaoDia * (agg.totalHoras / camHtra) : 0;
+      agg.produtividade = agg.totalHoras > 0 ? agg.totalProducao / agg.totalHoras : 0;
+    });
+  }
+
+  // 7) Global summary recompute
+  const sumHT = TARGET_EQUIPMENT.reduce((s, f) => s + fleets[f].horasTotais, 0);
+  const sumHD = TARGET_EQUIPMENT.reduce((s, f) => s + fleets[f].horasDisponiveis, 0);
+  const sumHTra = TARGET_EQUIPMENT.reduce((s, f) => s + fleets[f].totalHoras, 0);
+  const escavHtra = ESCAVADEIRAS.reduce((s, f) => s + fleets[f].totalHoras, 0);
+
+  if (producaoDia > 0) {
+    summary.totalProducao = producaoDia;
+    summary.toneladaPorHora = escavHtra > 0 ? producaoDia / escavHtra : 0;
+    summary.produtividade = summary.toneladaPorHora;
+    summary.totalRealizado = producaoDia + producaoRetalud;
+  }
+  if (sumHT > 0) summary.df = (sumHD / sumHT) * 100;
+  if (sumHD > 0) summary.ut = (sumHTra / sumHD) * 100;
+  summary.totalCaminhoes = CAMINHOES.reduce((s, f) => s + fleets[f].ativos, 0);
+  summary.totalEscavadeiras = ESCAVADEIRAS.reduce((s, f) => s + fleets[f].ativos, 0);
+
+  return { dateKey, producaoDia, producaoRetalud };
+}
+
+/**
  * Variant that accepts already-loaded sheet values (from xlsx local upload, OneDrive, etc).
  * Reuses the same column detection + equipment/area matching logic as readWorkbookMetrics.
  */
@@ -586,6 +822,10 @@ export function processSheetValues(sheets: SheetValues[]): {
     totalEscavadeiras: escavadeiras.length,
     toneladaPorHora,
   };
+
+  // Override with structured data when available (Horimetros/Paradas/PRODUÇÃO EH)
+  const overrides = applyStructuredOverrides(sheets, fleets, summary);
+  console.log("[excelParser] structured overrides:", overrides);
 
   return { metrics: acc as Record<TargetEquipment, EquipmentMetrics>, areas, debug, rows, summary, primarySheet, fleets };
 }
