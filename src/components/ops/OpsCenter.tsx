@@ -245,15 +245,18 @@ export function OpsCenter() {
     let acc = 0;
     const stepReal = producaoTurno / 12;
     const stepMeta = metaTurno / 12;
+    const prodHD785 = fleetsAgg?.["Komatsu 785"]?.totalProducao || producaoTurno * 0.55;
+    const stepHD785 = prodHD785 / 12;
     return hours.map((h, i) => {
       acc += stepReal;
       return {
         hora: `${String(h).padStart(2, "0")}:00`,
         realizado: i === 0 ? 0 : Math.round(acc),
         meta: Math.round(stepMeta * i),
+        hd785: Math.round(stepHD785 * i),
       };
     });
-  }, [producaoTurno, metaTurno]);
+  }, [producaoTurno, metaTurno, fleetsAgg]);
 
   const tonHSeries = useMemo(() => {
     const hours = Array.from({ length: 13 }, (_, i) => i * 2);
