@@ -4,6 +4,20 @@ import { getUsedRange } from "./graphService";
 export const TARGET_EQUIPMENT = ["EX1200", "EX2500", "Komatsu 730", "Komatsu 785"] as const;
 export type TargetEquipment = (typeof TARGET_EQUIPMENT)[number];
 
+/**
+ * Frota operacional fixa definida pela operação (turno = dia).
+ * Foco: apenas caminhão e escavadeira (48 equipamentos de produção no total).
+ */
+export const FLEET_SIZE: Record<TargetEquipment, number> = {
+  "Komatsu 785": 25,
+  "Komatsu 730": 15,
+  EX2500: 3,
+  EX1200: 5,
+};
+export const FLEET_TOTAL = 48;
+export const ESCAVADEIRAS: TargetEquipment[] = ["EX1200", "EX2500"];
+export const CAMINHOES: TargetEquipment[] = ["Komatsu 730", "Komatsu 785"];
+
 export interface MetricColumnMap {
   equipamento?: number;
   horasTrabalhadas?: number;
@@ -56,6 +70,9 @@ export interface AggregateSummary {
   escavadeirasCount: number;
   perfuratrizesCount: number;
   frotaCrCount: number;
+  totalCaminhoes: number;
+  totalEscavadeiras: number;
+  toneladaPorHora: number;
 }
 
 export interface GenericEquipmentRow {
