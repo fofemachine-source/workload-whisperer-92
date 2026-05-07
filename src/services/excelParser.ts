@@ -600,20 +600,18 @@ function applyStructuredOverrides(
     retaludDebug.turnoRetalud = turnoRetalud;
 
     // --- Pass 2: fallback via "TOTAL" row of the per-hour RETALUDAMENTO table.
-    // If we found anchors but no value, sum numeric cells of the TOTAL row that
-    // sit inside retaludCols.
-    if (!producaoRetalud && retaludAnchors.length) {
+    // Only if we did NOT detect a precise TOTAL column above. Skip Excel date
+    // serials (>40000) which can leak into retaludCols span.
+    if (!producaoRetalud && retaludAnchors.length && retaludTotalCol < 0) {
       for (let r = 0; r < prodEh.values.length; r++) {
         const row = prodEh.values[r] ?? [];
-        // first cell of row says "TOTAL" or any cell in the row equals "TOTAL"
         const hasTotal = row.some((v) => norm(v) === "total");
         if (!hasTotal) continue;
-        // find largest numeric in retaludCols range for this row
         let mx = 0;
         for (let c = 0; c < row.length; c++) {
           if (!retaludCols.has(c)) continue;
           const v = toNumber(row[c]);
-          if (v > mx) mx = v;
+          if (v > mx && v < 40000) mx = v;
         }
         if (mx > 0) {
           producaoRetalud = mx;
