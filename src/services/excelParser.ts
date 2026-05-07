@@ -560,10 +560,17 @@ export function processSheetValues(sheets: SheetValues[]): {
     return f.length ? f.reduce((a, b) => a + b, 0) / f.length : 0;
   };
 
+  // DF/UT globais usando soma das frotas (HT, HD, HTra) — mesma regra do cliente
+  const sumHT = TARGET_EQUIPMENT.reduce((s, f) => s + fleets[f].horasTotais, 0);
+  const sumHD = TARGET_EQUIPMENT.reduce((s, f) => s + fleets[f].horasDisponiveis, 0);
+  const sumHTra = TARGET_EQUIPMENT.reduce((s, f) => s + fleets[f].totalHoras, 0);
+  const dfGlobal = sumHT > 0 ? (sumHD / sumHT) * 100 : 0;
+  const utGlobal = sumHD > 0 ? (sumHTra / sumHD) * 100 : 0;
+
   const summary: AggregateSummary = {
     produtividade: toneladaPorHora || meanPos(rows.map((r) => r.produtividade)),
-    ut: meanFleet(fleet.map((r) => r.ut)),
-    df: meanFleet(fleet.map((r) => r.df)),
+    ut: utGlobal || meanFleet(fleet.map((r) => r.ut)),
+    df: dfGlobal || meanFleet(fleet.map((r) => r.df)),
     manutencao: rows.reduce((s, r) => s + (r.manutencao || 0), 0),
     preventiva: rows.reduce((s, r) => s + (r.preventiva || 0), 0),
     totalProducao,
