@@ -1,23 +1,29 @@
 import { useState } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CheckCircle2, Loader2, HardHat, Calendar } from "lucide-react";
+import { CheckCircle2, Loader2, HardHat, Calendar, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useExcelLive } from "@/context/ExcelLiveContext";
 import { ExcelUploadButton } from "@/components/dashboard/ExcelUploadButton";
+import { MicrosoftLoginButton } from "@/components/microsoft/MicrosoftLoginButton";
 
 export function CommandTopBar() {
-  const { lastUpdated, metricsLoading, workbookLoading, source, localFile } = useExcelLive();
+  const { lastUpdated, metricsLoading, workbookLoading, source, localFile, refresh, refreshWorkbook } = useExcelLive();
   const [date, setDate] = useState(() => format(new Date(), "yyyy-MM-dd"));
   const loading = metricsLoading || workbookLoading;
 
-  const status = source === "local" ? "online" : "off";
-  const statusLabel = source === "local" ? "PLANILHA CARREGADA" : "AGUARDANDO PLANILHA";
+  const status = source === "none" ? "off" : "online";
+  const statusLabel =
+    source === "onedrive" ? "ONEDRIVE CONECTADO" : source === "local" ? "PLANILHA CARREGADA" : "AGUARDANDO PLANILHA";
   const statusCls =
     status === "online"
       ? "border-mining-green/30 bg-mining-green/5 text-mining-green"
       : "border-mining-red/30 bg-mining-red/5 text-mining-red";
   const dotCls = status === "online" ? "bg-mining-green" : "bg-mining-red";
+
+  const handleRefresh = async () => {
+    await Promise.all([refreshWorkbook(), refresh()]);
+  };
 
   return (
     <header className="sticky top-0 z-30 ops-card !rounded-none !border-x-0 !border-t-0 border-b border-mining-blue/15 bg-mining-surface/85 backdrop-blur-xl">
@@ -59,13 +65,30 @@ export function CommandTopBar() {
           </div>
 
           {loading && <Loader2 className="h-4 w-4 animate-spin text-mining-blue-glow" />}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRefresh}
+            disabled={loading}
+            className="gap-2 border-mining-green/40 text-mining-green hover:bg-mining-green/10"
+          >
+            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+            Atualizar agora
+          </Button>
+          <MicrosoftLoginButton />
           <ExcelUploadButton />
         </div>
       </div>
 
       <div className="px-4 md:px-6 pb-2 flex items-center gap-3 text-[10px] font-mono text-muted-foreground">
         <CheckCircle2 className="h-3 w-3 text-mining-green" />
-        <span>{source === "local" ? "FONTE: PLANILHA LOCAL" : "AGUARDANDO UPLOAD"}</span>
+        <span>
+          {source === "onedrive"
+            ? "FONTE: ONEDRIVE (auto a cada 30s)"
+            : source === "local"
+            ? "FONTE: PLANILHA LOCAL"
+            : "AGUARDANDO CONEXÃO OU UPLOAD"}
+        </span>
         <span className="text-mining-blue/40">·</span>
         <span>{format(new Date(), "EEEE, dd MMM yyyy", { locale: ptBR })}</span>
         {lastUpdated && (
