@@ -309,16 +309,18 @@ export function OpsCenter() {
       <main className="relative z-10 p-3 md:p-4 grid grid-cols-12 gap-3">
         {/* CARDS PRINCIPAIS — linha 1 */}
         <div className="col-span-12 md:col-span-3">
-          <CardShell title="PRODUÇÃO DO TURNO">
-            <div className="flex items-end justify-between">
-              <p className="text-3xl font-mono font-bold text-mining-green text-glow-neon">{fmt(producaoTurno)} <span className="text-base">t</span></p>
-              <p className="text-2xl font-mono font-bold text-foreground">{aderTurno.toFixed(1)}%</p>
+          <CardShell title="PRODUÇÃO DO DIA">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[11px] font-mono text-muted-foreground uppercase tracking-wider">Acumulado Dia:</span>
+                <span className="text-2xl font-mono font-bold text-mining-blue">{fmt(summary?.acumuladoDia || producaoTurno)}</span>
+              </div>
+              <div className="h-px bg-mining-green/15" />
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[11px] font-mono text-muted-foreground uppercase tracking-wider">Projetado Dia:</span>
+                <span className="text-2xl font-mono font-bold text-mining-green text-glow-neon">{fmt(summary?.projetadoDia || summary?.acumuladoDia || producaoTurno)}</span>
+              </div>
             </div>
-            <div className="mt-2 flex items-center justify-between text-[10px] font-mono text-muted-foreground">
-              <span>META: {fmt(metaTurno)} t</span>
-              <span>DA META</span>
-            </div>
-            <div className="mt-1.5"><ProgressBar value={aderTurno} /></div>
           </CardShell>
         </div>
         <div className="col-span-12 md:col-span-3">
@@ -355,23 +357,6 @@ export function OpsCenter() {
               </div>
             </div>
           </CardShell>
-        </div>
-
-        {/* MINI LINHA — Acumulado Dia / Projetado Dia (igual à planilha) */}
-        <div className="col-span-12">
-          <div className="flex flex-wrap items-center justify-end gap-4 px-3 py-1.5 rounded-md border border-mining-green/20 bg-black/50">
-            <div className="flex items-center gap-2 text-[11px] font-mono">
-              <span className="text-muted-foreground uppercase tracking-wider">Acumulado Dia:</span>
-              <span className="text-mining-blue font-bold text-base">{fmt(summary?.acumuladoDia || producaoTurno)}</span>
-              <span className="text-muted-foreground">t</span>
-            </div>
-            <div className="h-4 w-px bg-mining-green/20" />
-            <div className="flex items-center gap-2 text-[11px] font-mono">
-              <span className="text-muted-foreground uppercase tracking-wider">Projetado Dia:</span>
-              <span className="text-mining-green font-bold text-base">{fmt(summary?.projetadoDia || summary?.acumuladoDia || producaoTurno)}</span>
-              <span className="text-muted-foreground">t</span>
-            </div>
-          </div>
         </div>
 
         {/* GRÁFICO PRODUÇÃO TURNO */}
