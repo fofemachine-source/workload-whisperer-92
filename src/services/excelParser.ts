@@ -84,8 +84,11 @@ export interface FleetAggregate {
   totalProducao: number;
   totalHoras: number;
   produtividade: number;     // produção / horas
-  df: number;                // disponibilidade física média (0-100)
-  ut: number;                // utilização média (0-100)
+  df: number;                // DF = HD / HT  (0-100)
+  ut: number;                // UT = HTra / HD (0-100)
+  horasTotais: number;       // HT = totalUnits * turno
+  horasManutencao: number;   // HM = soma manutenção da frota
+  horasDisponiveis: number;  // HD = HT - HM
 }
 
 export interface GenericEquipmentRow {
@@ -496,6 +499,9 @@ export function processSheetValues(sheets: SheetValues[]): {
       produtividade: 0,
       df: 0,
       ut: 0,
+      horasTotais: 0,
+      horasManutencao: 0,
+      horasDisponiveis: 0,
     };
   });
   for (const r of rows) {
@@ -506,17 +512,26 @@ export function processSheetValues(sheets: SheetValues[]): {
     if (r.manutencao > 0) agg.emManutencao++;
     agg.totalProducao += r.producao || 0;
     agg.totalHoras += r.horasTrabalhadas || 0;
+    agg.horasManutencao += r.manutencao || 0;
   }
   TARGET_EQUIPMENT.forEach((f) => {
     const agg = fleets[f];
     agg.produtividade = agg.totalHoras > 0 ? agg.totalProducao / agg.totalHoras : 0;
-    // DF = (totalUnits*H - manutenção*H) / (totalUnits*H) — aproximação por contagem (turno=12h)
-    const TURNO_H = 12;
+    // Regra do cliente:
+    //   HT  = horas totais       = totalUnits * 24h (turno=dia)
+    //   HM  = horas em manutenção (somadas da planilha; fallback: emManutencao * 24h)
+    //   HD  = HT - HM            (horas disponíveis)
+    //   HTra= horas trabalhadas  (somadas da planilha)
+    //   DF  = HD / HT * 100      (Disponibilidade Física)
+    //   UT  = HTra / HD * 100    (Utilização)
+    const TURNO_H = 24;
     const horasTotais = agg.totalUnits * TURNO_H;
-    const horasManut = agg.emManutencao * TURNO_H;
-    agg.df = horasTotais > 0 ? ((horasTotais - horasManut) / horasTotais) * 100 : 0;
-    // UT = horas utilizadas / horas disponíveis (totais - manutenção)
-    const horasDisp = horasTotais - horasManut;
+    const horasManut = agg.horasManutencao > 0 ? agg.horasManutencao : agg.emManutencao * TURNO_H;
+    const horasDisp = Math.max(horasTotais - horasManut, 0);
+    agg.horasTotais = horasTotais;
+    agg.horasManutencao = horasManut;
+    agg.horasDisponiveis = horasDisp;
+    agg.df = horasTotais > 0 ? (horasDisp / horasTotais) * 100 : 0;
     agg.ut = horasDisp > 0 ? (agg.totalHoras / horasDisp) * 100 : 0;
   });
 
@@ -545,10 +560,17 @@ export function processSheetValues(sheets: SheetValues[]): {
     return f.length ? f.reduce((a, b) => a + b, 0) / f.length : 0;
   };
 
+  // DF/UT globais usando soma das frotas (HT, HD, HTra) — mesma regra do cliente
+  const sumHT = TARGET_EQUIPMENT.reduce((s, f) => s + fleets[f].horasTotais, 0);
+  const sumHD = TARGET_EQUIPMENT.reduce((s, f) => s + fleets[f].horasDisponiveis, 0);
+  const sumHTra = TARGET_EQUIPMENT.reduce((s, f) => s + fleets[f].totalHoras, 0);
+  const dfGlobal = sumHT > 0 ? (sumHD / sumHT) * 100 : 0;
+  const utGlobal = sumHD > 0 ? (sumHTra / sumHD) * 100 : 0;
+
   const summary: AggregateSummary = {
     produtividade: toneladaPorHora || meanPos(rows.map((r) => r.produtividade)),
-    ut: meanFleet(fleet.map((r) => r.ut)),
-    df: meanFleet(fleet.map((r) => r.df)),
+    ut: utGlobal || meanFleet(fleet.map((r) => r.ut)),
+    df: dfGlobal || meanFleet(fleet.map((r) => r.df)),
     manutencao: rows.reduce((s, r) => s + (r.manutencao || 0), 0),
     preventiva: rows.reduce((s, r) => s + (r.preventiva || 0), 0),
     totalProducao,
