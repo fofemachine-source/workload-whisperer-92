@@ -1,7 +1,19 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useMsal, useIsAuthenticated } from "@azure/msal-react";
-import { createGraphClient } from "@/services/graphService";
-import { readWorkbookMetrics, EquipmentMetrics, TargetEquipment, TARGET_EQUIPMENT, MetricColumnMap, AreaMetrics, AreaName } from "@/services/excelParser";
+import { createGraphClient, getUsedRange } from "@/services/graphService";
+import {
+  processSheetValues,
+  EquipmentMetrics,
+  TargetEquipment,
+  TARGET_EQUIPMENT,
+  MetricColumnMap,
+  AreaMetrics,
+  AreaName,
+  AggregateSummary,
+  GenericEquipmentRow,
+  FleetAggregate,
+  SheetValues,
+} from "@/services/excelParser";
 import { DriveItem, WorksheetInfo } from "@/services/graphService";
 
 const POLL_MS = 30_000;
@@ -13,6 +25,9 @@ export interface ExcelMetricsState {
   areas: Record<AreaName, AreaMetrics> | null;
   debug: Array<{ sheet: string; headerRow: number; map: MetricColumnMap; matched: number }>;
   lastUpdated: Date | null;
+  summary: AggregateSummary | null;
+  rows: GenericEquipmentRow[];
+  fleets: Record<TargetEquipment, FleetAggregate> | null;
   refresh: () => Promise<void>;
 }
 
@@ -25,6 +40,9 @@ export function useExcelMetrics(file: DriveItem | null, worksheets: WorksheetInf
   const [areas, setAreas] = useState<Record<AreaName, AreaMetrics> | null>(null);
   const [debug, setDebug] = useState<ExcelMetricsState["debug"]>([]);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [summary, setSummary] = useState<AggregateSummary | null>(null);
+  const [rows, setRows] = useState<GenericEquipmentRow[]>([]);
+  const [fleets, setFleets] = useState<Record<TargetEquipment, FleetAggregate> | null>(null);
   const timer = useRef<number | null>(null);
   const lastFingerprint = useRef<string>("");
 
@@ -40,15 +58,26 @@ export function useExcelMetrics(file: DriveItem | null, worksheets: WorksheetInf
     try {
       const client = createGraphClient(instance, accounts[0]);
       const driveId = file.parentReference?.driveId ?? "";
-      const { metrics: m, areas: a, debug: d } = await readWorkbookMetrics(
-        client,
-        driveId,
-        file.id,
-        worksheets.map((w) => w.name),
+      // Fetch all sheet values in parallel, then run the same structured parser
+      // used for local uploads (Horimetros / Paradas / PRODUÇÃO EH rules).
+      const sheetValues: SheetValues[] = await Promise.all(
+        worksheets.map(async (w) => {
+          try {
+            const r = await getUsedRange(client, driveId, file.id, w.name);
+            return { name: w.name, values: (r?.values ?? []) as unknown[][] };
+          } catch (err) {
+            console.warn(`[excel] erro ao ler aba ${w.name}`, err);
+            return { name: w.name, values: [] as unknown[][] };
+          }
+        }),
       );
-      setMetrics(m);
-      setAreas(a);
-      setDebug(d);
+      const parsed = processSheetValues(sheetValues);
+      setMetrics(parsed.metrics);
+      setAreas(parsed.areas);
+      setDebug(parsed.debug);
+      setSummary(parsed.summary);
+      setRows(parsed.rows);
+      setFleets(parsed.fleets);
       setLastUpdated(new Date());
       lastFingerprint.current = fingerprint;
       console.log("[excel] sync:", new Date().toLocaleTimeString());
@@ -77,7 +106,7 @@ export function useExcelMetrics(file: DriveItem | null, worksheets: WorksheetInf
     };
   }, [load, file]);
 
-  return { loading, error, metrics, areas, debug, lastUpdated, refresh: () => load(true) };
+  return { loading, error, metrics, areas, debug, lastUpdated, summary, rows, fleets, refresh: () => load(true) };
 }
 
 export { TARGET_EQUIPMENT };
