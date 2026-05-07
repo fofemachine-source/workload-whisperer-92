@@ -454,10 +454,25 @@ export function processSheetValues(sheets: SheetValues[]): {
   const totalRealizado = (areas.Mina.realizado ?? 0) + (areas.Retaludamento.realizado ?? 0);
   const totalProducao = rows.reduce((s, r) => s + (r.producao || 0), 0);
 
+  // Foco apenas em caminhão e escavadeira (regra de negócio)
+  const caminhoes = rows.filter((r) => r.category === "caminhao");
+  const escavadeiras = rows.filter((r) => r.category === "escavadeira");
+
+  // Tonelada/hora = toda tonelada movimentada / horas rodadas das escavadeiras
+  const horasEscav = escavadeiras.reduce((s, r) => s + (r.horasTrabalhadas || 0), 0);
+  const toneladaPorHora = horasEscav > 0 ? totalProducao / horasEscav : 0;
+
+  // Médias ponderadas para DF e UT considerando apenas caminhão + escavadeira
+  const fleet = [...caminhoes, ...escavadeiras];
+  const meanFleet = (vals: number[]) => {
+    const f = vals.filter((x) => x > 0);
+    return f.length ? f.reduce((a, b) => a + b, 0) / f.length : 0;
+  };
+
   const summary: AggregateSummary = {
-    produtividade: meanPos(rows.map((r) => r.produtividade)),
-    ut: meanPos(rows.map((r) => r.ut)),
-    df: meanPos(rows.map((r) => r.df)),
+    produtividade: toneladaPorHora || meanPos(rows.map((r) => r.produtividade)),
+    ut: meanFleet(fleet.map((r) => r.ut)),
+    df: meanFleet(fleet.map((r) => r.df)),
     manutencao: rows.reduce((s, r) => s + (r.manutencao || 0), 0),
     preventiva: rows.reduce((s, r) => s + (r.preventiva || 0), 0),
     totalProducao,
@@ -466,9 +481,12 @@ export function processSheetValues(sheets: SheetValues[]): {
     aderencia: totalMeta ? ((totalRealizado || totalProducao) / totalMeta) * 100 : 0,
     rowsProcessed: rows.length,
     equipmentCount: rows.length,
-    escavadeirasCount: rows.filter((r) => r.category === "escavadeira").length,
+    escavadeirasCount: escavadeiras.length,
     perfuratrizesCount: rows.filter((r) => r.category === "perfuratriz").length,
-    frotaCrCount: rows.filter((r) => r.category === "caminhao").length,
+    frotaCrCount: caminhoes.length,
+    totalCaminhoes: caminhoes.length,
+    totalEscavadeiras: escavadeiras.length,
+    toneladaPorHora,
   };
 
   return { metrics: acc as Record<TargetEquipment, EquipmentMetrics>, areas, debug, rows, summary, primarySheet };
