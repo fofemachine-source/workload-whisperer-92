@@ -11,17 +11,32 @@ export function MicrosoftLoginButton() {
   const [busy, setBusy] = useState(false);
 
   const inIframe = typeof window !== "undefined" && window.self !== window.top;
+  const PUBLISHED_URL = "https://workload-whisperer-92.lovable.app";
+  // Qualquer host que não seja a URL publicada precisa redirecionar pra ela,
+  // pois o Azure só conhece a publicada como redirectUri.
+  const isPublishedHost =
+    typeof window !== "undefined" && window.location.origin === PUBLISHED_URL;
+  const needsExternalTab = inIframe || !isPublishedHost;
 
   const openInNewTab = () => {
-    const url = `${window.location.origin}${window.location.pathname}?mslogin=1`;
-    window.open(url, "_blank", "noopener");
+    const url = `${PUBLISHED_URL}/?mslogin=1`;
+    const win = window.open(url, "_blank", "noopener,noreferrer");
+    if (!win) {
+      toast.error("Popup bloqueado pelo navegador", {
+        description: "Permita pop-ups deste site ou abra manualmente: " + url,
+        duration: 8000,
+      });
+      // copia URL pra área de transferência se possível
+      try { navigator.clipboard?.writeText(url); } catch {}
+      return;
+    }
     toast.message("Abrindo nova aba para login Microsoft", {
       description: "Faça login com despacho.ca@uem.com.br e volte aqui.",
     });
   };
 
   const login = async () => {
-    if (inIframe) {
+    if (needsExternalTab) {
       openInNewTab();
       return;
     }
@@ -75,8 +90,8 @@ export function MicrosoftLoginButton() {
 
   return (
     <Button size="sm" onClick={login} disabled={busy} className="gap-2 bg-mining-indigo hover:bg-mining-indigo/90">
-      {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : inIframe ? <ExternalLink className="h-4 w-4" /> : <LogIn className="h-4 w-4" />}
-      {inIframe ? "Conectar Microsoft (nova aba)" : "Conectar Microsoft"}
+      {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : needsExternalTab ? <ExternalLink className="h-4 w-4" /> : <LogIn className="h-4 w-4" />}
+      {needsExternalTab ? "Conectar Microsoft (nova aba)" : "Conectar Microsoft"}
     </Button>
   );
 }
