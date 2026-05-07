@@ -482,19 +482,33 @@ function applyStructuredOverrides(
   let projetadoDia = 0;
   let projetadoRetalud = 0;
   if (prodEh && prodEh.values.length) {
+    // Detect column range of "RETALUDAMENTO" header block (scans top rows)
+    const retaludCols = new Set<number>();
+    for (let r = 0; r < Math.min(prodEh.values.length, 10); r++) {
+      const row = prodEh.values[r] ?? [];
+      for (let c = 0; c < row.length; c++) {
+        if (/retalud/.test(norm(row[c]))) {
+          // mark this column and a few to the right (header spans label + value)
+          for (let k = c; k < c + 6; k++) retaludCols.add(k);
+        }
+      }
+    }
     // Top header carries acumulado dia
-    for (let r = 0; r < Math.min(prodEh.values.length, 8); r++) {
+    for (let r = 0; r < Math.min(prodEh.values.length, 10); r++) {
       const row = prodEh.values[r] ?? [];
       for (let c = 0; c < row.length; c++) {
         const lab = norm(row[c]);
+        const isRetaludCol = retaludCols.has(c);
         if (/acumulado\s*dia/.test(lab)) {
           // value is somewhere to the right
           for (let cc = c + 1; cc < Math.min(row.length, c + 5); cc++) {
             const v = toNumber(row[cc]);
             if (v > 0) {
-              // First occurrence is N5-SUL produção, second (further right) is retaludamento
-              if (!producaoDia) producaoDia = v;
-              else if (!producaoRetalud) producaoRetalud = v;
+              if (isRetaludCol) {
+                if (!producaoRetalud) producaoRetalud = v;
+              } else {
+                if (!producaoDia) producaoDia = v;
+              }
               break;
             }
           }
@@ -503,8 +517,11 @@ function applyStructuredOverrides(
           for (let cc = c + 1; cc < Math.min(row.length, c + 5); cc++) {
             const v = toNumber(row[cc]);
             if (v > 0) {
-              if (!projetadoDia) projetadoDia = v;
-              else if (!projetadoRetalud) projetadoRetalud = v;
+              if (isRetaludCol) {
+                if (!projetadoRetalud) projetadoRetalud = v;
+              } else {
+                if (!projetadoDia) projetadoDia = v;
+              }
               break;
             }
           }
