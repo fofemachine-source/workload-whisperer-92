@@ -138,11 +138,11 @@ function FleetRow({
 }) {
   return (
     <div className="flex items-center gap-3 py-2">
-      <div className="w-14 shrink-0">
+      <div className="w-16 shrink-0">
         {icon === "ex" ? (
-          <AnimatedExcavator className="w-14 h-8" color={iconColor} />
+          <AnimatedExcavator className="w-16 h-10" color={iconColor} />
         ) : (
-          <AnimatedTruck className="w-14 h-8" color={iconColor} />
+          <AnimatedTruck className="w-16 h-9" color={iconColor} />
         )}
       </div>
       <div className="flex-1 min-w-0">
@@ -328,10 +328,8 @@ export function OpsCenter() {
                 </p>
                 <p className="mt-2 text-[10px] font-mono text-muted-foreground">{pctOp.toFixed(1)}% DO TOTAL</p>
               </div>
-              <div className="overflow-hidden w-24 h-12 relative">
-                <div className="absolute inset-y-0 animate-truck-drive">
-                  <AnimatedExcavator className="w-20 h-12" />
-                </div>
+              <div className="w-24 h-14 relative">
+                <AnimatedExcavator className="w-24 h-14" />
               </div>
             </div>
           </CardShell>
@@ -408,8 +406,8 @@ export function OpsCenter() {
                 { qty: FLEET_SIZE.EX2500, model: "EX2500", prod: 67_200, tonH: 6_150 },
               ].map((g) => (
                 <div key={g.model} className="flex items-center gap-3 border-t border-mining-green/10 pt-2 first:border-0 first:pt-0">
-                  <div className="overflow-hidden w-20 h-12 relative">
-                    <AnimatedExcavator className="w-20 h-12" />
+                  <div className="w-20 h-14 relative">
+                    <AnimatedExcavator className="w-20 h-14" />
                   </div>
                   <div>
                     <p className="font-mono font-bold text-foreground"><span className="text-mining-green">{g.qty}x</span> {g.model}</p>
@@ -481,9 +479,9 @@ export function OpsCenter() {
                 { qty: FLEET_SIZE["Komatsu 730"], model: "HD730", ton: 38_800, tonH: 4_050 },
               ].map((g) => (
                 <div key={g.model} className="flex items-center gap-3 border-t border-mining-green/10 pt-2 first:border-0 first:pt-0">
-                  <div className="overflow-hidden w-20 h-10 relative">
+                  <div className="w-20 h-12 relative">
                     <div className="animate-truck-bounce">
-                      <AnimatedTruck className="w-20 h-10" />
+                      <AnimatedTruck className="w-20 h-12" />
                     </div>
                   </div>
                   <div>
@@ -504,14 +502,14 @@ export function OpsCenter() {
         {/* FAIXA DE CAMINHÕES ANIMADA — banda inferior */}
         <div className="col-span-12 relative h-14 border border-mining-green/15 rounded-md bg-black/60 overflow-hidden">
           <div className="absolute inset-x-0 bottom-2 h-px bg-gradient-to-r from-transparent via-mining-green/40 to-transparent" />
-          <div className="absolute inset-y-0 w-20 animate-truck-drive">
-            <AnimatedTruck className="w-20 h-12 mt-1" color={YELLOW} />
+          <div className="absolute inset-y-0 w-24 animate-truck-drive">
+            <AnimatedTruck className="w-24 h-14 mt-0.5" color={YELLOW} />
           </div>
-          <div className="absolute inset-y-0 w-20 animate-truck-drive" style={{ animationDuration: "24s", animationDelay: "-7s" }}>
-            <AnimatedTruck className="w-20 h-12 mt-1" color="#fb923c" />
+          <div className="absolute inset-y-0 w-24 animate-truck-drive" style={{ animationDuration: "24s", animationDelay: "-7s" }}>
+            <AnimatedTruck className="w-24 h-14 mt-0.5" color="#fb923c" />
           </div>
-          <div className="absolute inset-y-0 w-20 animate-truck-drive" style={{ animationDuration: "30s", animationDelay: "-14s" }}>
-            <AnimatedTruck className="w-20 h-12 mt-1" color={NEON} />
+          <div className="absolute inset-y-0 w-24 animate-truck-drive" style={{ animationDuration: "30s", animationDelay: "-14s" }}>
+            <AnimatedTruck className="w-24 h-14 mt-0.5" color={NEON} />
           </div>
         </div>
       </main>
