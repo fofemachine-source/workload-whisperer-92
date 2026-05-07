@@ -68,10 +68,12 @@ export async function parseLocalExcel(file: File): Promise<LocalExcelResult> {
   };
 }
 
-const STORAGE_KEY = "lovable.localExcel.v1";
+const STORAGE_KEY = "lovable.localExcel.v3";
+const LEGACY_KEYS = ["lovable.localExcel.v1", "lovable.localExcel.v2"];
 
 export function persistLocalExcel(result: LocalExcelResult) {
   try {
+    LEGACY_KEYS.forEach((k) => localStorage.removeItem(k));
     localStorage.setItem(STORAGE_KEY, JSON.stringify(result));
   } catch (e) {
     console.warn("[localExcel] não foi possível salvar no localStorage", e);
@@ -80,9 +82,16 @@ export function persistLocalExcel(result: LocalExcelResult) {
 
 export function loadPersistedLocalExcel(): LocalExcelResult | null {
   try {
+    LEGACY_KEYS.forEach((k) => localStorage.removeItem(k));
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
-    return JSON.parse(raw) as LocalExcelResult;
+    const parsed = JSON.parse(raw) as LocalExcelResult;
+    // Sanity: precisa ter summary com os novos campos
+    if (!parsed?.summary || typeof parsed.summary.acumuladoDia === "undefined") {
+      localStorage.removeItem(STORAGE_KEY);
+      return null;
+    }
+    return parsed;
   } catch {
     return null;
   }
