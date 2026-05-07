@@ -75,6 +75,8 @@ export interface AggregateSummary {
   toneladaPorHora: number;
   acumuladoDia?: number;
   projetadoDia?: number;
+  acumuladoRetalud?: number;
+  projetadoRetalud?: number;
 }
 
 export interface FleetAggregate {
