@@ -346,23 +346,6 @@ export function OpsCenter() {
           </CardShell>
         </div>
         <div className="col-span-12 md:col-span-3">
-          <CardShell title="EQUIPAMENTOS OPERANDO">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-3xl font-mono font-bold text-mining-green text-glow-neon">
-                  {opTotal} <span className="text-foreground">/ {FLEET_TOTAL}</span>
-                </p>
-                <p className="mt-2 text-[10px] font-mono text-muted-foreground">{pctOp.toFixed(1)}% DO TOTAL</p>
-              </div>
-              <div className="w-24 h-14 relative">
-                <AnimatedExcavator className="w-24 h-14" />
-              </div>
-            </div>
-          </CardShell>
-        </div>
-
-        {/* PRODUÇÃO MENSAL — segunda linha */}
-        <div className="col-span-12 md:col-span-6">
           <CardShell title="PRODUÇÃO MENSAL">
             <div className="flex items-end justify-between">
               <p className="text-3xl font-mono font-bold text-mining-green text-glow-neon">{fmt(producaoMensal)} <span className="text-base">t</span></p>
@@ -461,6 +444,23 @@ export function OpsCenter() {
                   </div>
                 </div>
               ))}
+            </div>
+          </CardShell>
+        </div>
+
+        {/* EQUIPAMENTOS OPERANDO — ao lado da Frota de Escavadeiras */}
+        <div className="col-span-12 md:col-span-6 lg:col-span-3">
+          <CardShell title="EQUIPAMENTOS OPERANDO">
+            <div className="flex items-center justify-between h-full min-h-[120px]">
+              <div>
+                <p className="text-3xl font-mono font-bold text-mining-green text-glow-neon">
+                  {opTotal} <span className="text-foreground">/ {FLEET_TOTAL}</span>
+                </p>
+                <p className="mt-2 text-[10px] font-mono text-muted-foreground">{pctOp.toFixed(1)}% DO TOTAL</p>
+              </div>
+              <div className="w-24 h-14 relative">
+                <AnimatedExcavator className="w-24 h-14" />
+              </div>
             </div>
           </CardShell>
         </div>
