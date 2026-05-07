@@ -823,5 +823,9 @@ export function processSheetValues(sheets: SheetValues[]): {
     toneladaPorHora,
   };
 
+  // Override with structured data when available (Horimetros/Paradas/PRODUÇÃO EH)
+  const overrides = applyStructuredOverrides(sheets, fleets, summary);
+  console.log("[excelParser] structured overrides:", overrides);
+
   return { metrics: acc as Record<TargetEquipment, EquipmentMetrics>, areas, debug, rows, summary, primarySheet, fleets };
 }
