@@ -357,6 +357,23 @@ export function OpsCenter() {
           </CardShell>
         </div>
 
+        {/* MINI LINHA — Acumulado Dia / Projetado Dia (igual à planilha) */}
+        <div className="col-span-12">
+          <div className="flex flex-wrap items-center justify-end gap-4 px-3 py-1.5 rounded-md border border-mining-green/20 bg-black/50">
+            <div className="flex items-center gap-2 text-[11px] font-mono">
+              <span className="text-muted-foreground uppercase tracking-wider">Acumulado Dia:</span>
+              <span className="text-mining-blue font-bold text-base">{fmt(summary?.acumuladoDia || producaoTurno)}</span>
+              <span className="text-muted-foreground">t</span>
+            </div>
+            <div className="h-4 w-px bg-mining-green/20" />
+            <div className="flex items-center gap-2 text-[11px] font-mono">
+              <span className="text-muted-foreground uppercase tracking-wider">Projetado Dia:</span>
+              <span className="text-mining-green font-bold text-base">{fmt(summary?.projetadoDia || summary?.acumuladoDia || producaoTurno)}</span>
+              <span className="text-muted-foreground">t</span>
+            </div>
+          </div>
+        </div>
+
         {/* GRÁFICO PRODUÇÃO TURNO */}
         <div className="col-span-12 lg:col-span-6">
           <CardShell title="PRODUÇÃO DO TURNO (TONELADAS)">
