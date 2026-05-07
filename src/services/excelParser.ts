@@ -81,6 +81,12 @@ export interface AggregateSummary {
   projetadoMorro1?: number;
 }
 
+export interface HourlyProduction {
+  hora: string;
+  hour: number;
+  tonH: number;
+}
+
 export interface FleetAggregate {
   fleet: TargetEquipment;
   category: "escavadeira" | "caminhao";
