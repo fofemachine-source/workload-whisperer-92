@@ -361,6 +361,21 @@ export function OpsCenter() {
           </CardShell>
         </div>
 
+        {/* PRODUÇÃO MENSAL — segunda linha */}
+        <div className="col-span-12 md:col-span-6">
+          <CardShell title="PRODUÇÃO MENSAL">
+            <div className="flex items-end justify-between">
+              <p className="text-3xl font-mono font-bold text-mining-green text-glow-neon">{fmt(producaoMensal)} <span className="text-base">t</span></p>
+              <p className="text-2xl font-mono font-bold text-foreground">{aderMensal.toFixed(1)}%</p>
+            </div>
+            <div className="mt-2 flex items-center justify-between text-[10px] font-mono text-muted-foreground">
+              <span>META: {fmt(metaMensal)} t</span>
+              <span>DA META</span>
+            </div>
+            <div className="mt-1.5"><ProgressBar value={aderMensal} /></div>
+          </CardShell>
+        </div>
+
         {/* GRÁFICO PRODUÇÃO TURNO */}
         <div className="col-span-12 lg:col-span-6">
           <CardShell title="PRODUÇÃO DO TURNO (TONELADAS)">
