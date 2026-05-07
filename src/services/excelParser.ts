@@ -481,53 +481,122 @@ function applyStructuredOverrides(
   let producaoRetalud = 0;
   let projetadoDia = 0;
   let projetadoRetalud = 0;
+  const retaludDebug: Record<string, unknown> = {};
   if (prodEh && prodEh.values.length) {
-    // Detect column range of "RETALUDAMENTO" header block (scans top rows)
-    const retaludCols = new Set<number>();
-    for (let r = 0; r < Math.min(prodEh.values.length, 10); r++) {
+    // --- Locate RETALUDAMENTO header blocks anywhere in the sheet ---
+    // A "header anchor" is a cell containing "RETALUD" (mini summary box or
+    // hourly table title). The associated label/value mini-table sits within a
+    // few rows below and within a small column window starting from that cell.
+    const retaludAnchors: { row: number; col: number }[] = [];
+    for (let r = 0; r < prodEh.values.length; r++) {
       const row = prodEh.values[r] ?? [];
       for (let c = 0; c < row.length; c++) {
-        if (/retalud/.test(norm(row[c]))) {
-          // mark this column and a few to the right (header spans label + value)
-          for (let k = c; k < c + 6; k++) retaludCols.add(k);
-        }
+        if (/retalud/.test(norm(row[c]))) retaludAnchors.push({ row: r, col: c });
       }
     }
-    // Top header carries acumulado dia
-    for (let r = 0; r < Math.min(prodEh.values.length, 10); r++) {
+    retaludDebug.anchors = retaludAnchors;
+
+    // Build set of columns considered to belong to a RETALUDAMENTO block.
+    // We expand 6 columns to the right of each anchor, which covers both the
+    // mini "Turno/Acumulado/Projetado" box and the per-hour table header.
+    const retaludCols = new Set<number>();
+    for (const a of retaludAnchors) {
+      for (let k = a.col; k <= a.col + 6; k++) retaludCols.add(k);
+    }
+
+    // Helper: read first numeric cell to the right of column `c` within `span`.
+    const numRight = (row: unknown[], c: number, span = 5): number => {
+      for (let cc = c + 1; cc <= c + span && cc < row.length; cc++) {
+        const v = toNumber(row[cc]);
+        if (v > 0) return v;
+      }
+      return 0;
+    };
+
+    // --- Pass 1: scan ALL rows for "Acumulado dia"/"Projetado dia" labels ---
+    // Decide which bucket (Mina vs Retaludamento) by column membership.
+    const turnoRetalud: number[] = [];
+    for (let r = 0; r < prodEh.values.length; r++) {
       const row = prodEh.values[r] ?? [];
       for (let c = 0; c < row.length; c++) {
         const lab = norm(row[c]);
         const isRetaludCol = retaludCols.has(c);
         if (/acumulado\s*dia/.test(lab)) {
-          // value is somewhere to the right
-          for (let cc = c + 1; cc < Math.min(row.length, c + 5); cc++) {
-            const v = toNumber(row[cc]);
-            if (v > 0) {
-              if (isRetaludCol) {
-                if (!producaoRetalud) producaoRetalud = v;
-              } else {
-                if (!producaoDia) producaoDia = v;
-              }
-              break;
-            }
+          const v = numRight(row, c);
+          if (v > 0) {
+            if (isRetaludCol) { if (!producaoRetalud) producaoRetalud = v; }
+            else { if (!producaoDia) producaoDia = v; }
           }
-        }
-        if (/projetad[oa]\s*dia/.test(lab)) {
-          for (let cc = c + 1; cc < Math.min(row.length, c + 5); cc++) {
-            const v = toNumber(row[cc]);
-            if (v > 0) {
-              if (isRetaludCol) {
-                if (!projetadoRetalud) projetadoRetalud = v;
-              } else {
-                if (!projetadoDia) projetadoDia = v;
-              }
-              break;
-            }
+        } else if (/projetad[oa]\s*dia/.test(lab)) {
+          const v = numRight(row, c);
+          if (v > 0) {
+            if (isRetaludCol) { if (!projetadoRetalud) projetadoRetalud = v; }
+            else { if (!projetadoDia) projetadoDia = v; }
           }
+        } else if (isRetaludCol && /^turno\s*[12]\s*:?$/.test(lab)) {
+          const v = numRight(row, c);
+          if (v > 0) turnoRetalud.push(v);
         }
       }
     }
+    retaludDebug.turnoRetalud = turnoRetalud;
+
+    // --- Pass 2: fallback via "TOTAL" row of the per-hour RETALUDAMENTO table.
+    // If we found anchors but no value, sum numeric cells of the TOTAL row that
+    // sit inside retaludCols.
+    if (!producaoRetalud && retaludAnchors.length) {
+      for (let r = 0; r < prodEh.values.length; r++) {
+        const row = prodEh.values[r] ?? [];
+        // first cell of row says "TOTAL" or any cell in the row equals "TOTAL"
+        const hasTotal = row.some((v) => norm(v) === "total");
+        if (!hasTotal) continue;
+        // find largest numeric in retaludCols range for this row
+        let mx = 0;
+        for (let c = 0; c < row.length; c++) {
+          if (!retaludCols.has(c)) continue;
+          const v = toNumber(row[c]);
+          if (v > mx) mx = v;
+        }
+        if (mx > 0) {
+          producaoRetalud = mx;
+          retaludDebug.totalRowFallback = mx;
+          break;
+        }
+      }
+    }
+
+    // --- Pass 3: Turno1 + Turno2 fallback for Acumulado ---
+    if (!producaoRetalud && turnoRetalud.length >= 2) {
+      producaoRetalud = turnoRetalud.slice(0, 2).reduce((s, v) => s + v, 0);
+      retaludDebug.turnoSumFallback = producaoRetalud;
+    }
+
+    // --- Validation: Acumulado ≈ Turno1 + Turno2 (within 5%) ---
+    if (producaoRetalud > 0 && turnoRetalud.length >= 2) {
+      const sum = turnoRetalud[0] + turnoRetalud[1];
+      const drift = Math.abs(sum - producaoRetalud) / producaoRetalud;
+      if (drift > 0.05) {
+        console.warn(
+          `[excelParser] RETALUDAMENTO inconsistente: Turno1+Turno2=${sum} vs Acumulado=${producaoRetalud}`
+        );
+        retaludDebug.inconsistencyDrift = drift;
+      }
+    }
+
+    // --- Validation: warn if RETALUDAMENTO header exists but no value found ---
+    if (retaludAnchors.length && !producaoRetalud) {
+      console.warn("[excelParser] PRODUÇÃO EH contém 'RETALUDAMENTO' mas nenhum valor numérico foi extraído.");
+    }
+    if (process?.env?.NODE_ENV !== "production" || typeof window !== "undefined") {
+      console.debug("[excelParser] retaludamento debug", {
+        ...retaludDebug,
+        producaoRetalud,
+        projetadoRetalud,
+        producaoDia,
+        projetadoDia,
+      });
+    }
+
     // Fallback: TOTAL row
     if (!producaoDia) {
       for (let r = 0; r < prodEh.values.length; r++) {
