@@ -13,9 +13,20 @@ export function MicrosoftLoginButton() {
   const login = async () => {
     setBusy(true);
     try {
-      const res = await instance.loginPopup(loginRequest);
-      console.log("[msal] login realizado:", res.account?.username);
-      toast.success(`Conectado como ${res.account?.username}`);
+      try {
+        const res = await instance.loginPopup(loginRequest);
+        console.log("[msal] login realizado:", res.account?.username);
+        toast.success(`Conectado como ${res.account?.username}`);
+      } catch (popupErr) {
+        const m = popupErr instanceof Error ? popupErr.message : String(popupErr);
+        console.warn("[msal] popup falhou, tentando redirect:", m);
+        if (/timed_out|popup_window_error|user_cancelled|block/i.test(m)) {
+          toast.message("Abrindo login no navegador...", { description: "Você será redirecionado." });
+          await instance.loginRedirect(loginRequest);
+          return;
+        }
+        throw popupErr;
+      }
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       console.error("[msal] erro de login:", msg);
