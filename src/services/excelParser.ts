@@ -504,7 +504,62 @@ function applyStructuredOverrides(
     // mini "Turno/Acumulado/Projetado" box and the per-hour table header.
     const retaludCols = new Set<number>();
     for (const a of retaludAnchors) {
-      for (let k = a.col; k <= a.col + 6; k++) retaludCols.add(k);
+      // Span 12 cols to the right to cover the per-hour table (HORA, TURNO,
+      // up to 9 equipamentos and TOTAL — 12+ columns).
+      for (let k = a.col; k <= a.col + 12; k++) retaludCols.add(k);
+    }
+
+    // --- Locate "TOTAL" header columns precisely ---
+    // The header row (usually row index 7 / row 8 in Excel) has "TOTAL" once
+    // for the Mina block and once for the Retaludamento block. We use those
+    // exact columns to read the totals from the TOTAL row (row 33 / idx 32).
+    let minaTotalCol = -1;
+    let retaludTotalCol = -1;
+    let headerRowIdx = -1;
+    for (let r = 0; r < Math.min(prodEh.values.length, 12); r++) {
+      const row = prodEh.values[r] ?? [];
+      const hasTurno = row.some((v) => /^turno$/i.test(String(v ?? "").trim()));
+      const hasTotal = row.some((v) => /^total$/i.test(String(v ?? "").trim()));
+      if (hasTurno && hasTotal) {
+        headerRowIdx = r;
+        for (let c = 0; c < row.length; c++) {
+          if (/^total$/i.test(String(row[c] ?? "").trim())) {
+            if (retaludCols.has(c)) {
+              if (retaludTotalCol < 0) retaludTotalCol = c;
+            } else {
+              if (minaTotalCol < 0) minaTotalCol = c;
+            }
+          }
+        }
+        break;
+      }
+    }
+    retaludDebug.headerRowIdx = headerRowIdx;
+    retaludDebug.minaTotalCol = minaTotalCol;
+    retaludDebug.retaludTotalCol = retaludTotalCol;
+
+    // --- Find the TOTAL row (label "TOTAL" in column 0 OR 18 below headers) ---
+    let totalRowIdx = -1;
+    for (let r = (headerRowIdx >= 0 ? headerRowIdx + 1 : 0); r < prodEh.values.length; r++) {
+      const row = prodEh.values[r] ?? [];
+      if (/^total$/i.test(String(row[0] ?? "").trim())) {
+        totalRowIdx = r;
+        break;
+      }
+    }
+    retaludDebug.totalRowIdx = totalRowIdx;
+
+    // Read totals directly from the TOTAL row at the located columns
+    if (totalRowIdx >= 0) {
+      const trow = prodEh.values[totalRowIdx] ?? [];
+      if (minaTotalCol >= 0) {
+        const v = toNumber(trow[minaTotalCol]);
+        if (v > 0) producaoDia = v;
+      }
+      if (retaludTotalCol >= 0) {
+        const v = toNumber(trow[retaludTotalCol]);
+        if (v > 0) producaoRetalud = v;
+      }
     }
 
     // Helper: read first numeric cell to the right of column `c` within `span`.
@@ -600,16 +655,17 @@ function applyStructuredOverrides(
       });
     }
 
-    // Fallback: TOTAL row
+    // Fallback: if header detection failed, scan the TOTAL row for the first
+    // reasonable numeric in the Mina block (cols 0..15). We skip values that
+    // look like Excel date serials (>40000) to avoid picking up B7+P33+1.
     if (!producaoDia) {
       for (let r = 0; r < prodEh.values.length; r++) {
         const row = prodEh.values[r] ?? [];
         if (norm(row[0]) === "total") {
-          // last numeric cell in row
           let mx = 0;
-          for (const c of row) {
-            const v = toNumber(c);
-            if (v > mx) mx = v;
+          for (let c = 0; c < Math.min(row.length, 16); c++) {
+            const v = toNumber(row[c]);
+            if (v > mx && v < 40000) mx = v;
           }
           producaoDia = mx;
           break;
