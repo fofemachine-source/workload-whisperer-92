@@ -327,12 +327,7 @@ export function OpsCenter() {
       {/* TOP BAR */}
       <header className="relative z-10 flex items-center justify-between px-5 py-3 border-b border-mining-green/20 bg-black/60 backdrop-blur-sm">
         <div className="flex items-center gap-3">
-          <div className="h-9 w-9 rounded-md bg-mining-green/15 border border-mining-green/40 flex items-center justify-center shadow-[0_0_20px_-4px_hsl(var(--mining-green))]">
-            <Mountain className="h-5 w-5 text-mining-green" />
-          </div>
-          <div>
-            <p className="text-[10px] font-mono tracking-[0.25em] text-mining-green/80">SUA MINA</p>
-          </div>
+          <img src={logoUM} alt="Logo U&M" className="h-10 object-contain" />
         </div>
         <h1 className="text-lg md:text-2xl font-bold tracking-[0.2em] text-foreground text-glow-neon">
           PAINEL DE PRODUÇÃO OPERACIONAL
