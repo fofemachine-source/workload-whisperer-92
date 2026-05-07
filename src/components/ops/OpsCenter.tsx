@@ -361,12 +361,12 @@ export function OpsCenter() {
           <CardShell title="PRODUÇÃO DO DIA">
             <div className="space-y-2">
               <div className="flex items-center justify-between gap-2">
-                <span className="text-[11px] font-mono text-muted-foreground uppercase tracking-wider">Acumulado Dia:</span>
+                <span className="text-[11px] font-mono text-muted-foreground uppercase tracking-wider">ACUMULADO DIA:</span>
                 <span className="text-2xl font-mono font-bold text-mining-blue">{fmt(summary?.acumuladoDia || producaoTurno)}</span>
               </div>
               <div className="h-px bg-mining-green/15" />
               <div className="flex items-center justify-between gap-2">
-                <span className="text-[11px] font-mono text-muted-foreground uppercase tracking-wider">Projetado Dia:</span>
+                <span className="text-[11px] font-mono text-muted-foreground uppercase tracking-wider">PROJETADO DIA:</span>
                 <span className="text-2xl font-mono font-bold text-mining-green text-glow-neon">{fmt(summary?.projetadoDia || summary?.acumuladoDia || producaoTurno)}</span>
               </div>
             </div>
@@ -376,12 +376,12 @@ export function OpsCenter() {
           <CardShell title="RETALUDAMENTO">
             <div className="space-y-2">
               <div className="flex items-center justify-between gap-2">
-                <span className="text-[11px] font-mono text-muted-foreground uppercase tracking-wider">Acumulado Dia:</span>
+                <span className="text-[11px] font-mono text-muted-foreground uppercase tracking-wider">ACUMULADO DIA:</span>
                 <span className="text-2xl font-mono font-bold text-mining-blue">{fmt(acumuladoRetaludShown)}</span>
               </div>
               <div className="h-px bg-mining-green/15" />
               <div className="flex items-center justify-between gap-2">
-                <span className="text-[11px] font-mono text-muted-foreground uppercase tracking-wider">Projetado Dia:</span>
+                <span className="text-[11px] font-mono text-muted-foreground uppercase tracking-wider">PROJETADO DIA:</span>
                 <span className="text-2xl font-mono font-bold text-mining-green text-glow-neon">{fmt(projetadoRetaludShown)}</span>
               </div>
               <div className="pt-1 flex items-center justify-between">
