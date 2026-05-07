@@ -84,8 +84,11 @@ export interface FleetAggregate {
   totalProducao: number;
   totalHoras: number;
   produtividade: number;     // produção / horas
-  df: number;                // disponibilidade física média (0-100)
-  ut: number;                // utilização média (0-100)
+  df: number;                // DF = HD / HT  (0-100)
+  ut: number;                // UT = HTra / HD (0-100)
+  horasTotais: number;       // HT = totalUnits * turno
+  horasManutencao: number;   // HM = soma manutenção da frota
+  horasDisponiveis: number;  // HD = HT - HM
 }
 
 export interface GenericEquipmentRow {
