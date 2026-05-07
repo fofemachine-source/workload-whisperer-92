@@ -161,7 +161,7 @@ function FleetRow({
 }
 
 export function OpsCenter() {
-  const { summary, rows, lastUpdated, source, refresh } = useExcelLive();
+  const { summary, rows, fleets: fleetsAgg, lastUpdated, source, refresh } = useExcelLive();
   const clock = useClock();
 
   // Auto refresh OneDrive a cada 60s
@@ -232,12 +232,12 @@ export function OpsCenter() {
     ];
   }, [rows]);
 
-  // Frotas (DF/UT por modelo)
+  // Frotas (DF/UT/produção por modelo) — vindas da planilha quando disponível
   const fleets = [
-    { name: "EX1200", icon: "ex" as const, count: FLEET_SIZE.EX1200, df: 87.2, ut: 79.2 },
-    { name: "EX2500", icon: "ex" as const, count: FLEET_SIZE.EX2500, df: 88.1, ut: 76.5 },
-    { name: "CAMINHÕES 785", icon: "truck" as const, count: FLEET_SIZE["Komatsu 785"], df: 88.4, ut: 76.8 },
-    { name: "CAMINHÕES 730", icon: "truck" as const, count: FLEET_SIZE["Komatsu 730"], df: 86.9, ut: 79.5 },
+    { key: "EX1200" as const, name: "EX1200", icon: "ex" as const, count: FLEET_SIZE.EX1200, df: fleetsAgg?.EX1200.df ?? 87.2, ut: fleetsAgg?.EX1200.ut ?? 79.2 },
+    { key: "EX2500" as const, name: "EX2500", icon: "ex" as const, count: FLEET_SIZE.EX2500, df: fleetsAgg?.EX2500.df ?? 88.1, ut: fleetsAgg?.EX2500.ut ?? 76.5 },
+    { key: "Komatsu 785" as const, name: "CAMINHÕES 785", icon: "truck" as const, count: FLEET_SIZE["Komatsu 785"], df: fleetsAgg?.["Komatsu 785"].df ?? 88.4, ut: fleetsAgg?.["Komatsu 785"].ut ?? 76.8 },
+    { key: "Komatsu 730" as const, name: "CAMINHÕES 730", icon: "truck" as const, count: FLEET_SIZE["Komatsu 730"], df: fleetsAgg?.["Komatsu 730"].df ?? 86.9, ut: fleetsAgg?.["Komatsu 730"].ut ?? 79.5 },
   ];
 
   return (
