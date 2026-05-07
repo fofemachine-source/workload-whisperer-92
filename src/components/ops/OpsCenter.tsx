@@ -402,8 +402,8 @@ export function OpsCenter() {
           <CardShell title={`FROTA DE ESCAVADEIRAS · ${opEscav}/${fleets[0].count + fleets[1].count} OPERANDO`}>
             <div className="space-y-3">
               {[
-                { qty: FLEET_SIZE.EX1200, model: "EX1200", prod: 61_250, tonH: 4_200 },
-                { qty: FLEET_SIZE.EX2500, model: "EX2500", prod: 67_200, tonH: 6_150 },
+                { qty: FLEET_SIZE.EX1200, model: "EX1200", prod: fleetsAgg?.EX1200.totalProducao || 61_250, tonH: fleetsAgg?.EX1200.produtividade || 4_200 },
+                { qty: FLEET_SIZE.EX2500, model: "EX2500", prod: fleetsAgg?.EX2500.totalProducao || 67_200, tonH: fleetsAgg?.EX2500.produtividade || 6_150 },
               ].map((g) => (
                 <div key={g.model} className="flex items-center gap-3 border-t border-mining-green/10 pt-2 first:border-0 first:pt-0">
                   <div className="w-20 h-14 relative">
@@ -475,8 +475,8 @@ export function OpsCenter() {
           <CardShell title={`FROTA DE CAMINHÕES · ${opCam}/${FLEET_SIZE["Komatsu 785"] + FLEET_SIZE["Komatsu 730"]} OPERANDO`}>
             <div className="space-y-3">
               {[
-                { qty: FLEET_SIZE["Komatsu 785"], model: "HD785", ton: 89_650, tonH: 9_850 },
-                { qty: FLEET_SIZE["Komatsu 730"], model: "HD730", ton: 38_800, tonH: 4_050 },
+                { qty: FLEET_SIZE["Komatsu 785"], model: "HD785", ton: fleetsAgg?.["Komatsu 785"].totalProducao || 89_650, tonH: fleetsAgg?.["Komatsu 785"].produtividade || 9_850 },
+                { qty: FLEET_SIZE["Komatsu 730"], model: "HD730", ton: fleetsAgg?.["Komatsu 730"].totalProducao || 38_800, tonH: fleetsAgg?.["Komatsu 730"].produtividade || 4_050 },
               ].map((g) => (
                 <div key={g.model} className="flex items-center gap-3 border-t border-mining-green/10 pt-2 first:border-0 first:pt-0">
                   <div className="w-20 h-12 relative">
