@@ -672,6 +672,11 @@ export function OpsCenter() {
             <AnimatedTruck className="w-24 h-14 mt-0.5" color={NEON} />
           </div>
         </div>
+
+        {/* LOGO U&M */}
+        <div className="col-span-12 flex justify-center py-4">
+          <img src={logoUM} alt="Logo U&M" className="h-16 object-contain opacity-90" />
+        </div>
       </main>
     </div>
   );
