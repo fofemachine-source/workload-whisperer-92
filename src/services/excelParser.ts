@@ -477,6 +477,7 @@ function applyStructuredOverrides(
   // 4) Production from PRODUÇÃO EH "TOTAL" row + Retaludamento header cells
   let producaoDia = 0;
   let producaoRetalud = 0;
+  let projetadoDia = 0;
   if (prodEh && prodEh.values.length) {
     // Top header carries acumulado dia
     for (let r = 0; r < Math.min(prodEh.values.length, 8); r++) {
@@ -493,6 +494,12 @@ function applyStructuredOverrides(
               else if (!producaoRetalud) producaoRetalud = v;
               break;
             }
+          }
+        }
+        if (/projetad[oa]\s*dia/.test(lab)) {
+          for (let cc = c + 1; cc < Math.min(row.length, c + 5); cc++) {
+            const v = toNumber(row[cc]);
+            if (v > 0) { if (!projetadoDia) projetadoDia = v; break; }
           }
         }
       }
@@ -563,6 +570,8 @@ function applyStructuredOverrides(
     summary.produtividade = summary.toneladaPorHora;
     summary.totalRealizado = producaoDia + producaoRetalud;
   }
+  summary.acumuladoDia = producaoDia || 0;
+  summary.projetadoDia = projetadoDia || producaoDia || 0;
   if (sumHT > 0) summary.df = (sumHD / sumHT) * 100;
   if (sumHD > 0) summary.ut = (sumHTra / sumHD) * 100;
   summary.totalCaminhoes = CAMINHOES.reduce((s, f) => s + fleets[f].ativos, 0);
