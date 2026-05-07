@@ -464,6 +464,39 @@ export function OpsCenter() {
           </CardShell>
         </div>
 
+        {/* OPERAÇÃO AO VIVO — preenche espaço lateral */}
+        <div className="col-span-12 md:col-span-6 lg:col-span-3">
+          <CardShell title="OPERAÇÃO AO VIVO">
+            <div className="relative h-52 overflow-hidden rounded-sm bg-gradient-to-b from-black via-black to-mining-green/5">
+              {/* chão */}
+              <div className="absolute inset-x-0 bottom-6 h-px bg-gradient-to-r from-transparent via-mining-green/40 to-transparent" />
+              <div className="absolute inset-x-0 bottom-3 h-px bg-gradient-to-r from-transparent via-mining-green/20 to-transparent" />
+
+              {/* escavadeira fixa operando */}
+              <div className="absolute left-3 bottom-4">
+                <AnimatedExcavator className="w-20 h-14" />
+              </div>
+
+              {/* caminhões cruzando em loop */}
+              <div className="absolute inset-y-0 w-20 animate-truck-drive" style={{ animationDuration: "14s" }}>
+                <AnimatedTruck className="w-20 h-12 mt-[120px]" color={YELLOW} />
+              </div>
+              <div className="absolute inset-y-0 w-20 animate-truck-drive" style={{ animationDuration: "18s", animationDelay: "-6s" }}>
+                <AnimatedTruck className="w-20 h-12 mt-[120px]" color="#fb923c" />
+              </div>
+              <div className="absolute inset-y-0 w-20 animate-truck-drive" style={{ animationDuration: "22s", animationDelay: "-12s" }}>
+                <AnimatedTruck className="w-20 h-12 mt-[120px]" color={NEON} />
+              </div>
+
+              {/* indicador */}
+              <div className="absolute top-2 right-2 flex items-center gap-1.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-mining-green animate-pulse" style={{ boxShadow: `0 0 8px ${NEON}` }} />
+                <span className="text-[9px] font-mono text-mining-green tracking-[0.2em]">LIVE</span>
+              </div>
+            </div>
+          </CardShell>
+        </div>
+
         {/* RANKING */}
         <div className="col-span-12 lg:col-span-6">
           <CardShell title="RANKING DE PRODUTIVIDADE — ESCAVADEIRAS (T/H)">
