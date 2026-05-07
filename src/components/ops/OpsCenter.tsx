@@ -279,6 +279,17 @@ export function OpsCenter() {
     }));
   }, [summary, metaTonH]);
 
+  const tonHCheck = useMemo(() => {
+    const real = summary?.hourlySeries;
+    if (!real || !real.length) return null;
+    const soma = real.reduce((a, p) => a + (p.tonH || 0), 0);
+    const total = summary?.acumuladoDia || 0;
+    if (!total) return null;
+    const diff = soma - total;
+    const pct = (Math.abs(diff) / total) * 100;
+    return { soma: Math.round(soma), total: Math.round(total), diff: Math.round(diff), pct, ok: pct < 1 };
+  }, [summary]);
+
   const ranking = useMemo(() => {
     const escav = (rows || []).filter((r) => r.category === "escavadeira" && r.produtividade > 0);
     if (escav.length >= 4) {
@@ -577,6 +588,13 @@ export function OpsCenter() {
                 </ComposedChart>
               </ResponsiveContainer>
             </div>
+            {tonHCheck && (
+              <div className={`mt-2 px-2 py-1 text-[10px] font-mono rounded-sm border ${tonHCheck.ok ? "border-mining-green/40 text-mining-green/80 bg-mining-green/5" : "border-mining-yellow/60 text-mining-yellow bg-mining-yellow/10"}`}>
+                {tonHCheck.ok
+                  ? `✓ SOMA HORÁRIA ${tonHCheck.soma}t = TOTAL DIA ${tonHCheck.total}t`
+                  : `⚠ DIVERGÊNCIA: soma horária ${tonHCheck.soma}t vs total dia ${tonHCheck.total}t (Δ ${tonHCheck.diff > 0 ? "+" : ""}${tonHCheck.diff}t · ${tonHCheck.pct.toFixed(1)}%)`}
+              </div>
+            )}
           </CardShell>
         </div>
 
