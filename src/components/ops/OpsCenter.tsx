@@ -395,7 +395,7 @@ export function OpsCenter() {
                 count={f.count}
                 total={f.count}
                 value={f.df}
-                meta={90}
+                meta={85}
               />
             ))}
           </CardShell>
