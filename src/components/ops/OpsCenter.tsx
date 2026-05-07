@@ -29,6 +29,10 @@ import { FLEET_SIZE, FLEET_TOTAL } from "@/services/excelParser";
 import { ExcelUploadButton } from "@/components/dashboard/ExcelUploadButton";
 import { MicrosoftLoginButton } from "@/components/microsoft/MicrosoftLoginButton";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
+import { Pencil } from "lucide-react";
 import { AnimatedTruck } from "./AnimatedTruck";
 import { AnimatedExcavator } from "./AnimatedExcavator";
 
@@ -169,6 +173,43 @@ export function OpsCenter() {
   const handleManualRefresh = async () => {
     await Promise.all([refreshWorkbook(), refresh()]);
   };
+
+  // Override manual de RETALUDAMENTO (persistido localmente).
+  // Enquanto a leitura automática da planilha não bate, o usuário lança aqui.
+  const RETALUD_KEY = "lovable.retalud.override.v1";
+  const [retaludOverride, setRetaludOverride] = useState<{ acumulado: number; projetado: number } | null>(() => {
+    try {
+      const raw = localStorage.getItem(RETALUD_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [retaludOpen, setRetaludOpen] = useState(false);
+  const [retaludForm, setRetaludForm] = useState({ acumulado: "", projetado: "" });
+  useEffect(() => {
+    if (retaludOpen) {
+      setRetaludForm({
+        acumulado: retaludOverride?.acumulado?.toString() ?? "",
+        projetado: retaludOverride?.projetado?.toString() ?? "",
+      });
+    }
+  }, [retaludOpen, retaludOverride]);
+  const saveRetalud = () => {
+    const a = Number(retaludForm.acumulado.replace(",", ".")) || 0;
+    const p = Number(retaludForm.projetado.replace(",", ".")) || a;
+    const next = { acumulado: a, projetado: p };
+    setRetaludOverride(next);
+    localStorage.setItem(RETALUD_KEY, JSON.stringify(next));
+    setRetaludOpen(false);
+  };
+  const clearRetalud = () => {
+    localStorage.removeItem(RETALUD_KEY);
+    setRetaludOverride(null);
+    setRetaludOpen(false);
+  };
+  const acumuladoRetaludShown = retaludOverride?.acumulado ?? summary?.acumuladoRetalud ?? 0;
+  const projetadoRetaludShown = retaludOverride?.projetado ?? summary?.projetadoRetalud ?? summary?.acumuladoRetalud ?? 0;
 
   // Auto refresh OneDrive a cada 60s
   useEffect(() => {
@@ -328,12 +369,47 @@ export function OpsCenter() {
             <div className="space-y-2">
               <div className="flex items-center justify-between gap-2">
                 <span className="text-[11px] font-mono text-muted-foreground uppercase tracking-wider">Acumulado Dia:</span>
-                <span className="text-2xl font-mono font-bold text-mining-blue">{fmt(summary?.acumuladoRetalud || 0)}</span>
+                <span className="text-2xl font-mono font-bold text-mining-blue">{fmt(acumuladoRetaludShown)}</span>
               </div>
               <div className="h-px bg-mining-green/15" />
               <div className="flex items-center justify-between gap-2">
                 <span className="text-[11px] font-mono text-muted-foreground uppercase tracking-wider">Projetado Dia:</span>
-                <span className="text-2xl font-mono font-bold text-mining-green text-glow-neon">{fmt(summary?.projetadoRetalud || summary?.acumuladoRetalud || 0)}</span>
+                <span className="text-2xl font-mono font-bold text-mining-green text-glow-neon">{fmt(projetadoRetaludShown)}</span>
+              </div>
+              <div className="pt-1 flex items-center justify-between">
+                <span className="text-[9px] font-mono text-muted-foreground">
+                  {retaludOverride ? "lançamento manual" : "auto"}
+                </span>
+                <Dialog open={retaludOpen} onOpenChange={setRetaludOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="ghost" size="sm" className="h-6 px-2 text-mining-green hover:bg-mining-green/10 gap-1">
+                      <Pencil className="h-3 w-3" /> <span className="text-[10px] font-mono">Lançar</span>
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-sm">
+                    <DialogHeader>
+                      <DialogTitle>Lançar Retaludamento manual</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-3">
+                      <div className="space-y-1">
+                        <Label htmlFor="ret-ac">Acumulado Dia (t)</Label>
+                        <Input id="ret-ac" type="number" inputMode="decimal" value={retaludForm.acumulado}
+                          onChange={(e) => setRetaludForm((s) => ({ ...s, acumulado: e.target.value }))} />
+                      </div>
+                      <div className="space-y-1">
+                        <Label htmlFor="ret-pr">Projetado Dia (t)</Label>
+                        <Input id="ret-pr" type="number" inputMode="decimal" value={retaludForm.projetado}
+                          onChange={(e) => setRetaludForm((s) => ({ ...s, projetado: e.target.value }))} />
+                      </div>
+                    </div>
+                    <DialogFooter className="gap-2">
+                      {retaludOverride && (
+                        <Button variant="ghost" onClick={clearRetalud}>Voltar pra automático</Button>
+                      )}
+                      <Button onClick={saveRetalud}>Salvar</Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
               </div>
             </div>
           </CardShell>
