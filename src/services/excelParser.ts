@@ -692,21 +692,22 @@ function applyStructuredOverrides(
       }
     }
     if (hr >= 0) {
-      // Find latest date
-      let maxD = 0;
+      // Find latest date — supports Date, ISO string, dd/mm/yyyy and serial number
+      let latestKey = "";
       for (let r = hr + 1; r < rows.length; r++) {
-        const dv = Number((rows[r] ?? [])[dCol]);
-        if (Number.isFinite(dv) && dv > maxD) maxD = dv;
+        const k = cellToDateKey((rows[r] ?? [])[dCol]);
+        if (k && k > latestKey) latestKey = k;
       }
-      // Sum prod where Obra matches "morro"
+      // Sum prod where Obra matches "morro" on the latest date
       for (let r = hr + 1; r < rows.length; r++) {
         const row = rows[r] ?? [];
-        if (Number(row[dCol]) !== maxD) continue;
+        const k = cellToDateKey(row[dCol]);
+        if (!k || k !== latestKey) continue;
         const obra = norm(row[obraCol]);
         if (!/morro/.test(obra)) continue;
         acumuladoMorro1 += toNumber(row[prodCol]);
       }
-      console.log("[excelParser] MORRO 1 acumulado (data", maxD, "):", acumuladoMorro1);
+      console.log("[excelParser] MORRO 1 acumulado (data", latestKey, "):", acumuladoMorro1);
     }
   }
   summary.acumuladoMorro1 = acumuladoMorro1;
