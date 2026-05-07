@@ -569,6 +569,31 @@ function applyStructuredOverrides(
       }
     }
 
+    // --- Extract HOURLY production series (Mina) from PRODUÇÃO EH ---
+    // Rows between headerRow+1 and totalRow have HORA in col 0 and TOTAL at minaTotalCol.
+    if (headerRowIdx >= 0 && minaTotalCol >= 0) {
+      const startR = headerRowIdx + 1;
+      const endR = totalRowIdx > 0 ? totalRowIdx : prodEh.values.length;
+      const series: HourlyProduction[] = [];
+      for (let r = startR; r < endR; r++) {
+        const row = prodEh.values[r] ?? [];
+        const hraw = row[0];
+        const hnum = typeof hraw === "number" ? hraw : Number(String(hraw ?? "").trim());
+        if (!Number.isFinite(hnum) || hnum < 0 || hnum > 23) continue;
+        const v = toNumber(row[minaTotalCol]);
+        series.push({
+          hour: hnum,
+          hora: `${String(hnum).padStart(2, "0")}:00`,
+          tonH: v > 0 ? v : 0,
+        });
+      }
+      if (series.length) {
+        // Sort by hour starting at 00:00
+        series.sort((a, b) => a.hour - b.hour);
+        summary.hourlySeries = series;
+      }
+    }
+
     // Helper: read first numeric cell to the right of column `c` within `span`.
     const numRight = (row: unknown[], c: number, span = 5): number => {
       for (let cc = c + 1; cc <= c + span && cc < row.length; cc++) {
