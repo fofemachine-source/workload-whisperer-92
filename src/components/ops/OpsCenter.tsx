@@ -168,9 +168,18 @@ function FleetRow({
 }
 
 export function OpsCenter() {
-  const { summary, rows, fleets: fleetsAgg, lastUpdated, source, refresh, refreshWorkbook, metricsLoading, workbookLoading, file, worksheets } = useExcelLive();
+  const { summary, rows, fleets: fleetsAgg, lastUpdated, source, refresh, refreshWorkbook, metricsLoading, workbookLoading, file, worksheets, workbookError, metricsError } = useExcelLive();
   const clock = useClock();
   const syncing = metricsLoading || workbookLoading;
+  const syncError = workbookError || metricsError;
+  const syncStatus: "error" | "syncing" | "connected" | "idle" =
+    syncError ? "error" : syncing ? "syncing" : source === "onedrive" ? "connected" : "idle";
+  const syncStatusMeta = {
+    connected: { label: "ONEDRIVE CONECTADO", box: "border-mining-green/40 text-mining-green", dot: "bg-mining-green" },
+    syncing: { label: "ATUALIZANDO…", box: "border-mining-yellow/40 text-mining-yellow", dot: "bg-mining-yellow" },
+    error: { label: "ERRO DE SINCRONIZAÇÃO", box: "border-mining-red/40 text-mining-red", dot: "bg-mining-red" },
+    idle: { label: "AGUARDANDO ONEDRIVE", box: "border-muted-foreground/30 text-muted-foreground", dot: "bg-muted-foreground" },
+  }[syncStatus];
   const handleManualRefresh = async () => {
     await Promise.all([refreshWorkbook(), refresh()]);
   };
@@ -328,6 +337,18 @@ export function OpsCenter() {
       <header className="relative z-10 flex items-center justify-between px-5 py-3 border-b border-mining-green/20 bg-black/60 backdrop-blur-sm">
         <div className="flex items-center gap-3">
           <img src={logoUM} alt="Logo U&M" className="h-9 w-auto object-contain" />
+          <div
+            title={syncError ?? undefined}
+            className={`flex items-center gap-2 px-2.5 py-1 rounded-md border bg-black/40 ${syncStatusMeta.box}`}
+          >
+            <span className="relative flex h-2 w-2">
+              <span className={`absolute inset-0 rounded-full ${syncStatusMeta.dot} ${syncStatus !== "idle" ? "animate-ping opacity-60" : ""}`} />
+              <span className={`relative h-2 w-2 rounded-full ${syncStatusMeta.dot}`} />
+            </span>
+            <span className="text-[10px] font-mono font-bold tracking-wider">
+              {syncStatusMeta.label}
+            </span>
+          </div>
         </div>
         <h1 className="text-lg md:text-2xl font-bold tracking-[0.2em] text-foreground text-glow-neon">
           PAINEL DE PRODUÇÃO OPERACIONAL
