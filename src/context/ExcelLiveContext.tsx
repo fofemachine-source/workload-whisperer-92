@@ -165,11 +165,20 @@ export function ExcelLiveProvider({ children }: { children: ReactNode }) {
     setLocalError(null);
   }, []);
 
-  // Local takes priority if present; otherwise fallback to OneDrive
-  // OneDrive takes priority when authenticated and a workbook was found;
-  // local upload acts as manual fallback.
-  const useOneDrive = isAuth && !!wb.file && !!m.metrics;
-  const useLocal = !useOneDrive && !!local;
+  // A fonte mais RECENTE vence. Upload local sempre sobrescreve OneDrive
+  // se for mais novo (e vice-versa). Isso garante que, ao subir uma planilha
+  // manualmente, os indicadores atualizem mesmo com login MS ativo.
+  const oneDriveTime = m.lastUpdated ? m.lastUpdated.getTime() : 0;
+  const localTime = local?.parsedAt ? new Date(local.parsedAt).getTime() : 0;
+  const oneDriveAvailable = isAuth && !!wb.file && !!m.metrics;
+  const localAvailable = !!local;
+  const useLocal = localAvailable && (!oneDriveAvailable || localTime >= oneDriveTime);
+  const useOneDrive = !useLocal && oneDriveAvailable;
+  if (useLocal) {
+    console.log("[ExcelLive] fonte ativa: LOCAL", local?.fileName, "parsedAt=", local?.parsedAt);
+  } else if (useOneDrive) {
+    console.log("[ExcelLive] fonte ativa: ONEDRIVE", wb.file?.name);
+  }
   const metrics = useOneDrive ? m.metrics : useLocal ? local!.metrics : null;
   const areas = useOneDrive ? m.areas : useLocal ? local!.areas : null;
   const debug = useOneDrive ? m.debug : useLocal ? local!.debug : [];
