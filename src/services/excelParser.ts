@@ -79,6 +79,7 @@ export interface AggregateSummary {
   projetadoRetalud?: number;
   acumuladoMorro1?: number;
   projetadoMorro1?: number;
+  hourlySeries?: HourlyProduction[];
 }
 
 export interface HourlyProduction {
