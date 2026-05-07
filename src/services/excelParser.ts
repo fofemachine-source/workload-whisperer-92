@@ -483,12 +483,13 @@ function applyStructuredOverrides(
   let projetadoRetalud = 0;
   const retaludDebug: Record<string, unknown> = {};
   if (prodEh && prodEh.values.length) {
-    // --- Locate RETALUDAMENTO header blocks anywhere in the sheet ---
-    // A "header anchor" is a cell containing "RETALUD" (mini summary box or
-    // hourly table title). The associated label/value mini-table sits within a
-    // few rows below and within a small column window starting from that cell.
+    // --- Locate RETALUDAMENTO header blocks at the TOP of the sheet only ---
+    // The mini-summary boxes ("Turno1/Turno2/Acumulado/Projetado") live in the
+    // first ~10 rows. Anchors deeper in the sheet (e.g. detail rows in column 0)
+    // would wrongly mark the N5-SUL summary columns as belonging to retaludamento.
     const retaludAnchors: { row: number; col: number }[] = [];
-    for (let r = 0; r < prodEh.values.length; r++) {
+    const HEADER_SCAN_ROWS = 10;
+    for (let r = 0; r < Math.min(prodEh.values.length, HEADER_SCAN_ROWS); r++) {
       const row = prodEh.values[r] ?? [];
       for (let c = 0; c < row.length; c++) {
         if (/retalud/.test(norm(row[c]))) retaludAnchors.push({ row: r, col: c });
@@ -513,10 +514,10 @@ function applyStructuredOverrides(
       return 0;
     };
 
-    // --- Pass 1: scan ALL rows for "Acumulado dia"/"Projetado dia" labels ---
+    // --- Pass 1: scan TOP rows for "Acumulado dia"/"Projetado dia" labels ---
     // Decide which bucket (Mina vs Retaludamento) by column membership.
     const turnoRetalud: number[] = [];
-    for (let r = 0; r < prodEh.values.length; r++) {
+    for (let r = 0; r < Math.min(prodEh.values.length, HEADER_SCAN_ROWS); r++) {
       const row = prodEh.values[r] ?? [];
       for (let c = 0; c < row.length; c++) {
         const lab = norm(row[c]);
