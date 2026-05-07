@@ -34,6 +34,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { Pencil } from "lucide-react";
 import { AnimatedTruck } from "./AnimatedTruck";
+import logoUM from "@/assets/logo-um.png";
 import { AnimatedExcavator } from "./AnimatedExcavator";
 
 const NEON = "#22c55e";
