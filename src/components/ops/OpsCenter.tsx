@@ -337,6 +337,18 @@ export function OpsCenter() {
       <header className="relative z-10 flex items-center justify-between px-5 py-3 border-b border-mining-green/20 bg-black/60 backdrop-blur-sm">
         <div className="flex items-center gap-3">
           <img src={logoUM} alt="Logo U&M" className="h-9 w-auto object-contain" />
+          <div
+            title={syncError ?? undefined}
+            className={`flex items-center gap-2 px-2.5 py-1 rounded-md border bg-black/40 border-${syncStatusMeta.color}/40 text-${syncStatusMeta.color}`}
+          >
+            <span className="relative flex h-2 w-2">
+              <span className={`absolute inset-0 rounded-full ${syncStatusMeta.dot} ${syncStatus !== "idle" ? "animate-ping opacity-60" : ""}`} />
+              <span className={`relative h-2 w-2 rounded-full ${syncStatusMeta.dot}`} />
+            </span>
+            <span className="text-[10px] font-mono font-bold tracking-wider">
+              {syncStatusMeta.label}
+            </span>
+          </div>
         </div>
         <h1 className="text-lg md:text-2xl font-bold tracking-[0.2em] text-foreground text-glow-neon">
           PAINEL DE PRODUÇÃO OPERACIONAL
