@@ -9,6 +9,7 @@ import {
   MetricColumnMap,
   AggregateSummary,
   GenericEquipmentRow,
+  FleetAggregate,
 } from "./excelParser";
 
 export interface LocalExcelResult {
@@ -18,6 +19,7 @@ export interface LocalExcelResult {
   rows: GenericEquipmentRow[];
   summary: AggregateSummary;
   primarySheet: string | null;
+  fleets: Record<TargetEquipment, FleetAggregate>;
   fileName: string;
   sheetNames: string[];
   parsedAt: string;
@@ -37,7 +39,7 @@ export async function parseLocalExcel(file: File): Promise<LocalExcelResult> {
     return { name, values };
   });
 
-  const { metrics, areas, debug, rows, summary, primarySheet } = processSheetValues(sheets);
+  const { metrics, areas, debug, rows, summary, primarySheet, fleets } = processSheetValues(sheets);
 
   // Diagnostic logs (temporary)
   console.log("[localExcel] arquivo:", file.name);
@@ -59,6 +61,7 @@ export async function parseLocalExcel(file: File): Promise<LocalExcelResult> {
     rows,
     summary,
     primarySheet,
+    fleets,
     fileName: file.name,
     sheetNames: wb.SheetNames,
     parsedAt: new Date().toISOString(),
