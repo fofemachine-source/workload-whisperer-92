@@ -75,6 +75,19 @@ export interface AggregateSummary {
   toneladaPorHora: number;
 }
 
+export interface FleetAggregate {
+  fleet: TargetEquipment;
+  category: "escavadeira" | "caminhao";
+  totalUnits: number;        // tamanho fixo da frota
+  ativos: number;            // unidades com horas trabalhadas > 0
+  emManutencao: number;      // unidades com horas de manutenção > 0
+  totalProducao: number;
+  totalHoras: number;
+  produtividade: number;     // produção / horas
+  df: number;                // disponibilidade física média (0-100)
+  ut: number;                // utilização média (0-100)
+}
+
 export interface GenericEquipmentRow {
   equipamento: string;
   category: "escavadeira" | "perfuratriz" | "caminhao" | "outro";
@@ -86,6 +99,7 @@ export interface GenericEquipmentRow {
   df: number;
   ut: number;
   source: string;
+  fleet?: TargetEquipment | null;
 }
 
 const norm = (s: unknown): string =>
