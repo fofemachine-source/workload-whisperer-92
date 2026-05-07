@@ -12,58 +12,41 @@ export function MicrosoftLoginButton() {
 
   const inIframe = typeof window !== "undefined" && window.self !== window.top;
   const PUBLISHED_URL = "https://workload-whisperer-92.lovable.app";
-  // Qualquer host que não seja a URL publicada precisa redirecionar pra ela,
-  // pois o Azure só conhece a publicada como redirectUri.
   const isPublishedHost =
     typeof window !== "undefined" && window.location.origin === PUBLISHED_URL;
-  const needsExternalTab = inIframe || !isPublishedHost;
+  const needsRedirect = inIframe || !isPublishedHost;
 
-  const openInNewTab = () => {
+  const goToPublished = () => {
     const url = `${PUBLISHED_URL}/?mslogin=1`;
-    const win = window.open(url, "_blank", "noopener,noreferrer");
-    if (!win) {
-      toast.error("Popup bloqueado pelo navegador", {
-        description: "Permita pop-ups deste site ou abra manualmente: " + url,
-        duration: 8000,
-      });
-      // copia URL pra área de transferência se possível
-      try { navigator.clipboard?.writeText(url); } catch {}
-      return;
-    }
-    toast.message("Abrindo nova aba para login Microsoft", {
-      description: "Faça login com despacho.ca@uem.com.br e volte aqui.",
+    toast.message("Redirecionando para login Microsoft...", {
+      description: "Faça login com despacho.ca@uem.com.br",
     });
+    // Navegação top-level (sai do iframe do preview) — evita ERR_BLOCKED_BY_RESPONSE
+    try {
+      if (window.top) {
+        window.top.location.href = url;
+      } else {
+        window.location.href = url;
+      }
+    } catch {
+      // bloqueado pelo iframe? abre em nova aba como fallback
+      window.open(url, "_blank");
+    }
   };
 
   const login = async () => {
-    if (needsExternalTab) {
-      openInNewTab();
+    if (needsRedirect) {
+      goToPublished();
       return;
     }
     setBusy(true);
     try {
-      try {
-        const res = await instance.loginPopup(loginRequest);
-        console.log("[msal] login realizado:", res.account?.username);
-        toast.success(`Conectado como ${res.account?.username}`);
-      } catch (popupErr) {
-        const m = popupErr instanceof Error ? popupErr.message : String(popupErr);
-        console.warn("[msal] popup falhou, tentando redirect:", m);
-        if (/timed_out|popup_window_error|user_cancelled|block/i.test(m)) {
-          toast.message("Abrindo login no navegador...", { description: "Você será redirecionado." });
-          await instance.loginRedirect(loginRequest);
-          return;
-        }
-        throw popupErr;
-      }
+      // Sempre usa redirect de página inteira — evita ERR_BLOCKED_BY_RESPONSE em popups
+      await instance.loginRedirect(loginRequest);
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       console.error("[msal] erro de login:", msg);
-      if (/redirect_in_iframe/i.test(msg)) {
-        openInNewTab();
-      } else {
-        toast.error("Erro no login Microsoft", { description: msg });
-      }
+      toast.error("Erro no login Microsoft", { description: msg });
     } finally {
       setBusy(false);
     }
@@ -90,8 +73,8 @@ export function MicrosoftLoginButton() {
 
   return (
     <Button size="sm" onClick={login} disabled={busy} className="gap-2 bg-mining-indigo hover:bg-mining-indigo/90">
-      {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : needsExternalTab ? <ExternalLink className="h-4 w-4" /> : <LogIn className="h-4 w-4" />}
-      {needsExternalTab ? "Conectar Microsoft (nova aba)" : "Conectar Microsoft"}
+      {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : needsRedirect ? <ExternalLink className="h-4 w-4" /> : <LogIn className="h-4 w-4" />}
+      {needsRedirect ? "Conectar Microsoft" : "Conectar Microsoft"}
     </Button>
   );
 }
