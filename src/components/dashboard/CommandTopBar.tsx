@@ -121,6 +121,8 @@ export function CommandTopBar() {
             <span className="text-mining-green">
               ÚLTIMO REFRESH: {lastUpdated.toLocaleTimeString("pt-BR")}
             </span>
+            <span className="text-mining-blue/40">·</span>
+            <span className="text-mining-yellow">CICLOS: {refreshCount}</span>
           </>
         )}
         {source === "onedrive" && file && (
