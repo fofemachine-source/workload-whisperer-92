@@ -341,6 +341,7 @@ export function processSheetValues(sheets: SheetValues[]): {
   rows: GenericEquipmentRow[];
   summary: AggregateSummary;
   primarySheet: string | null;
+  fleets: Record<TargetEquipment, FleetAggregate>;
 } {
   const acc: Record<string, EquipmentMetrics> = {};
   TARGET_EQUIPMENT.forEach((eq) => {
@@ -400,6 +401,7 @@ export function processSheetValues(sheets: SheetValues[]): {
             df: 0,
             ut: 0,
             source: sheet,
+            fleet: fleetByTag(label),
           };
           rowsByName.set(key, g);
         }
@@ -480,6 +482,44 @@ export function processSheetValues(sheets: SheetValues[]): {
     return g;
   });
 
+  // Agregação por frota-alvo (apenas caminhão e escavadeira)
+  const fleets = {} as Record<TargetEquipment, FleetAggregate>;
+  TARGET_EQUIPMENT.forEach((f) => {
+    fleets[f] = {
+      fleet: f,
+      category: ESCAVADEIRAS.includes(f) ? "escavadeira" : "caminhao",
+      totalUnits: FLEET_SIZE[f],
+      ativos: 0,
+      emManutencao: 0,
+      totalProducao: 0,
+      totalHoras: 0,
+      produtividade: 0,
+      df: 0,
+      ut: 0,
+    };
+  });
+  for (const r of rows) {
+    const f = r.fleet;
+    if (!f) continue;
+    const agg = fleets[f];
+    if (r.horasTrabalhadas > 0) agg.ativos++;
+    if (r.manutencao > 0) agg.emManutencao++;
+    agg.totalProducao += r.producao || 0;
+    agg.totalHoras += r.horasTrabalhadas || 0;
+  }
+  TARGET_EQUIPMENT.forEach((f) => {
+    const agg = fleets[f];
+    agg.produtividade = agg.totalHoras > 0 ? agg.totalProducao / agg.totalHoras : 0;
+    // DF = (totalUnits*H - manutenção*H) / (totalUnits*H) — aproximação por contagem (turno=12h)
+    const TURNO_H = 12;
+    const horasTotais = agg.totalUnits * TURNO_H;
+    const horasManut = agg.emManutencao * TURNO_H;
+    agg.df = horasTotais > 0 ? ((horasTotais - horasManut) / horasTotais) * 100 : 0;
+    // UT = horas utilizadas / horas disponíveis (totais - manutenção)
+    const horasDisp = horasTotais - horasManut;
+    agg.ut = horasDisp > 0 ? (agg.totalHoras / horasDisp) * 100 : 0;
+  });
+
   const filterPos = (arr: number[]) => arr.filter((x) => x > 0);
   const meanPos = (arr: number[]) => {
     const f = filterPos(arr);
@@ -525,5 +565,5 @@ export function processSheetValues(sheets: SheetValues[]): {
     toneladaPorHora,
   };
 
-  return { metrics: acc as Record<TargetEquipment, EquipmentMetrics>, areas, debug, rows, summary, primarySheet };
+  return { metrics: acc as Record<TargetEquipment, EquipmentMetrics>, areas, debug, rows, summary, primarySheet, fleets };
 }
