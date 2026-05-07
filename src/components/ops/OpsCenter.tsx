@@ -168,9 +168,18 @@ function FleetRow({
 }
 
 export function OpsCenter() {
-  const { summary, rows, fleets: fleetsAgg, lastUpdated, source, refresh, refreshWorkbook, metricsLoading, workbookLoading, file, worksheets } = useExcelLive();
+  const { summary, rows, fleets: fleetsAgg, lastUpdated, source, refresh, refreshWorkbook, metricsLoading, workbookLoading, file, worksheets, workbookError, metricsError } = useExcelLive();
   const clock = useClock();
   const syncing = metricsLoading || workbookLoading;
+  const syncError = workbookError || metricsError;
+  const syncStatus: "error" | "syncing" | "connected" | "idle" =
+    syncError ? "error" : syncing ? "syncing" : source === "onedrive" ? "connected" : "idle";
+  const syncStatusMeta = {
+    connected: { label: "ONEDRIVE CONECTADO", color: "mining-green", dot: "bg-mining-green" },
+    syncing: { label: "ATUALIZANDO…", color: "mining-yellow", dot: "bg-mining-yellow" },
+    error: { label: "ERRO DE SINCRONIZAÇÃO", color: "mining-red", dot: "bg-mining-red" },
+    idle: { label: "AGUARDANDO ONEDRIVE", color: "muted-foreground", dot: "bg-muted-foreground" },
+  }[syncStatus];
   const handleManualRefresh = async () => {
     await Promise.all([refreshWorkbook(), refresh()]);
   };
