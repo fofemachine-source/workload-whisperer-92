@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { CheckCircle2, Loader2, HardHat, Calendar, RefreshCw } from "lucide-react";
@@ -6,11 +6,24 @@ import { Button } from "@/components/ui/button";
 import { useExcelLive } from "@/context/ExcelLiveContext";
 import { ExcelUploadButton } from "@/components/dashboard/ExcelUploadButton";
 import { MicrosoftLoginButton } from "@/components/microsoft/MicrosoftLoginButton";
+import { toast } from "sonner";
 
 export function CommandTopBar() {
   const { lastUpdated, metricsLoading, workbookLoading, source, localFile, refresh, refreshWorkbook, debug, file, worksheets } = useExcelLive();
   const [date, setDate] = useState(() => format(new Date(), "yyyy-MM-dd"));
   const loading = metricsLoading || workbookLoading;
+  const [refreshCount, setRefreshCount] = useState(0);
+  const lastSeenRef = useRef<number | null>(null);
+
+  // Conta sempre que um novo lastUpdated chega (auto a cada 30s ou manual)
+  useEffect(() => {
+    if (!lastUpdated) return;
+    const t = lastUpdated.getTime();
+    if (lastSeenRef.current !== t) {
+      lastSeenRef.current = t;
+      setRefreshCount((c) => c + 1);
+    }
+  }, [lastUpdated]);
 
   const status = source === "none" ? "off" : "online";
   const statusLabel =
@@ -22,7 +35,18 @@ export function CommandTopBar() {
   const dotCls = status === "online" ? "bg-mining-green" : "bg-mining-red";
 
   const handleRefresh = async () => {
-    await Promise.all([refreshWorkbook(), refresh()]);
+    const before = lastUpdated?.getTime() ?? 0;
+    toast.loading("Recarregando dados...", { id: "refresh" });
+    try {
+      await Promise.all([refreshWorkbook(), refresh()]);
+      const sheetsProcessed = debug?.filter((d) => d.matched > 0).map((d) => d.sheet).join(", ") || "—";
+      toast.success(`Dados atualizados às ${new Date().toLocaleTimeString("pt-BR")}`, {
+        id: "refresh",
+        description: source === "onedrive" ? `Abas processadas: ${sheetsProcessed}` : source === "local" ? `Planilha: ${localFile?.name}` : "Sem fonte conectada",
+      });
+    } catch (e) {
+      toast.error("Falha ao atualizar", { id: "refresh", description: e instanceof Error ? e.message : String(e) });
+    }
   };
 
   return (
