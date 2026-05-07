@@ -75,6 +75,8 @@ export interface AggregateSummary {
   toneladaPorHora: number;
   acumuladoDia?: number;
   projetadoDia?: number;
+  acumuladoRetalud?: number;
+  projetadoRetalud?: number;
 }
 
 export interface FleetAggregate {
@@ -478,6 +480,7 @@ function applyStructuredOverrides(
   let producaoDia = 0;
   let producaoRetalud = 0;
   let projetadoDia = 0;
+  let projetadoRetalud = 0;
   if (prodEh && prodEh.values.length) {
     // Top header carries acumulado dia
     for (let r = 0; r < Math.min(prodEh.values.length, 8); r++) {
@@ -499,7 +502,11 @@ function applyStructuredOverrides(
         if (/projetad[oa]\s*dia/.test(lab)) {
           for (let cc = c + 1; cc < Math.min(row.length, c + 5); cc++) {
             const v = toNumber(row[cc]);
-            if (v > 0) { if (!projetadoDia) projetadoDia = v; break; }
+            if (v > 0) {
+              if (!projetadoDia) projetadoDia = v;
+              else if (!projetadoRetalud) projetadoRetalud = v;
+              break;
+            }
           }
         }
       }
@@ -572,6 +579,8 @@ function applyStructuredOverrides(
   }
   summary.acumuladoDia = producaoDia || 0;
   summary.projetadoDia = projetadoDia || producaoDia || 0;
+  summary.acumuladoRetalud = producaoRetalud || 0;
+  summary.projetadoRetalud = projetadoRetalud || producaoRetalud || 0;
   if (sumHT > 0) summary.df = (sumHD / sumHT) * 100;
   if (sumHD > 0) summary.ut = (sumHTra / sumHD) * 100;
   summary.totalCaminhoes = CAMINHOES.reduce((s, f) => s + fleets[f].ativos, 0);
