@@ -535,23 +535,6 @@ export function OpsCenter() {
           </div>
         </div>
       </main>
-
-      {/* RODAPÉ */}
-      <footer className="relative z-10 border-t border-mining-green/20 bg-black/60 px-5 py-3">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-[11px] font-mono uppercase tracking-[0.18em] text-foreground">
-          {[
-            { icon: Shield, label: "Segurança em 1º lugar" },
-            { icon: Settings, label: "Produzir com eficiência" },
-            { icon: DollarSign, label: "Custo controlado" },
-            { icon: Leaf, label: "Sustentabilidade" },
-          ].map(({ icon: Icon, label }) => (
-            <div key={label} className="flex items-center justify-center gap-2">
-              <Icon className="h-4 w-4 text-mining-yellow" />
-              <span>{label}</span>
-            </div>
-          ))}
-        </div>
-      </footer>
     </div>
   );
 }
