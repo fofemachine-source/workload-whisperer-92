@@ -77,6 +77,8 @@ export interface AggregateSummary {
   projetadoDia?: number;
   acumuladoRetalud?: number;
   projetadoRetalud?: number;
+  acumuladoMorro1?: number;
+  projetadoMorro1?: number;
 }
 
 export interface FleetAggregate {
