@@ -979,5 +979,73 @@ export function processSheetValues(sheets: SheetValues[]): {
   const overrides = applyStructuredOverrides(sheets, fleets, summary);
   console.log("[excelParser] structured overrides:", overrides);
 
+  // Validação por aba — confirma se datas e totais foram lidos
+  validateSheets(sheets, overrides, summary);
+
   return { metrics: acc as Record<TargetEquipment, EquipmentMetrics>, areas, debug, rows, summary, primarySheet, fleets };
+}
+
+/**
+ * Valida cada aba esperada e loga PASS/FAIL com contagem de linhas, datas e totais
+ * lidos. Útil para diagnosticar quando a planilha (OneDrive ou upload local) não
+ * está atualizando os indicadores.
+ */
+function validateSheets(
+  sheets: SheetValues[],
+  overrides: { dateKey: string | null; producaoDia: number; producaoRetalud: number },
+  summary: AggregateSummary,
+) {
+  const byName = new Map(sheets.map((s) => [s.name.toLowerCase(), s]));
+  const expected: Array<{ key: string; label: string; needs: string[] }> = [
+    { key: "horimetros", label: "Horimetros", needs: ["data", "equipamento", "frota", "horas trabalhadas"] },
+    { key: "paradas", label: "Paradas", needs: ["data", "frota", "tempo de parada", "categoria"] },
+    { key: "produção eh", label: "PRODUÇÃO EH", needs: ["acumulado dia / total"] },
+    { key: "retaludamento", label: "RETALUDAMENTO", needs: ["data", "obra", "produção"] },
+  ];
+
+  console.groupCollapsed("[excelParser] ✅ Validação por aba");
+  for (const exp of expected) {
+    const sh =
+      byName.get(exp.key) ||
+      [...byName.values()].find((s) => new RegExp(exp.key.replace(/\s+/g, "\\s*"), "i").test(s.name));
+    if (!sh) {
+      console.warn(`❌ [${exp.label}] aba NÃO encontrada na planilha. Esperado: ${exp.needs.join(", ")}`);
+      continue;
+    }
+    const rows = sh.values?.length ?? 0;
+    if (!rows) {
+      console.warn(`❌ [${exp.label}] aba vazia.`);
+      continue;
+    }
+    // Tenta detectar datas na coluna "DATA" para reportar range
+    let dateCol = -1;
+    let headerRow = -1;
+    for (let r = 0; r < Math.min(rows, 12); r++) {
+      const dc = findHeaderIndex(sh.values[r] ?? [], [/^data$/]);
+      if (dc >= 0) { dateCol = dc; headerRow = r; break; }
+    }
+    let minDate = "", maxDate = "", dateCount = 0;
+    if (dateCol >= 0) {
+      for (let r = headerRow + 1; r < rows; r++) {
+        const k = cellToDateKey((sh.values[r] ?? [])[dateCol]);
+        if (!k) continue;
+        dateCount++;
+        if (!minDate || k < minDate) minDate = k;
+        if (!maxDate || k > maxDate) maxDate = k;
+      }
+    }
+    const ok = rows > 1 && (dateCol < 0 || dateCount > 0);
+    const icon = ok ? "✅" : "⚠️";
+    console.log(
+      `${icon} [${exp.label}] linhas=${rows}` +
+        (dateCol >= 0 ? ` · datas=${dateCount} (${minDate || "?"} → ${maxDate || "?"})` : " · sem coluna DATA"),
+    );
+    if (!ok) console.warn(`   ↳ Carregamento parcial/falhou para "${exp.label}". Verifique o cabeçalho da aba.`);
+  }
+  console.log(
+    `📊 Totais calculados → data ref=${overrides.dateKey ?? "?"} · ` +
+      `producaoDia=${overrides.producaoDia} · producaoRetalud=${overrides.producaoRetalud} · ` +
+      `acumuladoMorro1=${summary.acumuladoMorro1 ?? 0}`,
+  );
+  console.groupEnd();
 }
