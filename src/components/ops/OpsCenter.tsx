@@ -339,13 +339,6 @@ export function OpsCenter() {
           </CardShell>
         </div>
         <div className="col-span-12 md:col-span-3">
-          <CardShell title="TONELADAS / HORA (MÉDIA DO TURNO)">
-            <p className="text-3xl font-mono font-bold text-mining-green text-glow-neon">{fmt(tonH)} <span className="text-base">t/h</span></p>
-            <div className="mt-3 text-[10px] font-mono text-muted-foreground">META: {fmt(metaTonH)} t/h</div>
-            <div className="mt-1.5"><ProgressBar value={(tonH / metaTonH) * 100} color={BLUE} /></div>
-          </CardShell>
-        </div>
-        <div className="col-span-12 md:col-span-3">
           <CardShell title="PRODUÇÃO MENSAL">
             <div className="flex items-end justify-between">
               <p className="text-3xl font-mono font-bold text-mining-green text-glow-neon">{fmt(producaoMensal)} <span className="text-base">t</span></p>
@@ -356,6 +349,13 @@ export function OpsCenter() {
               <span>DA META</span>
             </div>
             <div className="mt-1.5"><ProgressBar value={aderMensal} /></div>
+          </CardShell>
+        </div>
+        <div className="col-span-12 md:col-span-3">
+          <CardShell title="TONELADAS / HORA (MÉDIA DO TURNO)">
+            <p className="text-3xl font-mono font-bold text-mining-green text-glow-neon">{fmt(tonH)} <span className="text-base">t/h</span></p>
+            <div className="mt-3 text-[10px] font-mono text-muted-foreground">META: {fmt(metaTonH)} t/h</div>
+            <div className="mt-1.5"><ProgressBar value={(tonH / metaTonH) * 100} color={BLUE} /></div>
           </CardShell>
         </div>
 
