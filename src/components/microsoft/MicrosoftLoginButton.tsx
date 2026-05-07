@@ -11,10 +11,23 @@ export function MicrosoftLoginButton() {
   const [busy, setBusy] = useState(false);
 
   const inIframe = typeof window !== "undefined" && window.self !== window.top;
+  const isPreviewHost = typeof window !== "undefined" && /id-preview--/.test(window.location.host);
+  const PUBLISHED_URL = "https://workload-whisperer-92.lovable.app";
 
   const openInNewTab = () => {
-    const url = `${window.location.origin}${window.location.pathname}?mslogin=1`;
-    window.open(url, "_blank", "noopener");
+    // Sempre abre na URL PUBLICADA (a preview não está registrada como redirectUri no Azure)
+    const base = isPreviewHost ? PUBLISHED_URL : window.location.origin;
+    const url = `${base}/?mslogin=1`;
+    const win = window.open(url, "_blank", "noopener,noreferrer");
+    if (!win) {
+      toast.error("Popup bloqueado pelo navegador", {
+        description: "Permita pop-ups deste site ou abra manualmente: " + url,
+        duration: 8000,
+      });
+      // copia URL pra área de transferência se possível
+      try { navigator.clipboard?.writeText(url); } catch {}
+      return;
+    }
     toast.message("Abrindo nova aba para login Microsoft", {
       description: "Faça login com despacho.ca@uem.com.br e volte aqui.",
     });
