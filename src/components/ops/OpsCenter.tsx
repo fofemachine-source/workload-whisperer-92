@@ -348,6 +348,11 @@ export function OpsCenter() {
             <span className="text-[10px] font-mono font-bold tracking-wider">
               {syncStatusMeta.label}
             </span>
+            {lastUpdated && (
+              <span className="text-[10px] font-mono text-muted-foreground border-l border-current/30 pl-2 ml-1">
+                ATUALIZADO {lastUpdated.toLocaleTimeString("pt-BR")}
+              </span>
+            )}
           </div>
         </div>
         <h1 className="text-lg md:text-2xl font-bold tracking-[0.2em] text-foreground text-glow-neon">
