@@ -27,6 +27,8 @@ import {
 import { useExcelLive } from "@/context/ExcelLiveContext";
 import { FLEET_SIZE, FLEET_TOTAL } from "@/services/excelParser";
 import { ExcelUploadButton } from "@/components/dashboard/ExcelUploadButton";
+import { MicrosoftLoginButton } from "@/components/microsoft/MicrosoftLoginButton";
+import { Button } from "@/components/ui/button";
 import { AnimatedTruck } from "./AnimatedTruck";
 import { AnimatedExcavator } from "./AnimatedExcavator";
 
@@ -161,8 +163,12 @@ function FleetRow({
 }
 
 export function OpsCenter() {
-  const { summary, rows, fleets: fleetsAgg, lastUpdated, source, refresh } = useExcelLive();
+  const { summary, rows, fleets: fleetsAgg, lastUpdated, source, refresh, refreshWorkbook, metricsLoading, workbookLoading, file, worksheets } = useExcelLive();
   const clock = useClock();
+  const syncing = metricsLoading || workbookLoading;
+  const handleManualRefresh = async () => {
+    await Promise.all([refreshWorkbook(), refresh()]);
+  };
 
   // Auto refresh OneDrive a cada 60s
   useEffect(() => {
@@ -272,14 +278,30 @@ export function OpsCenter() {
             <p className="text-mining-green font-bold">DIA</p>
           </div>
           <div className="border-l border-mining-green/20 pl-4 flex items-center gap-2">
-            <RefreshCw className="h-3.5 w-3.5 text-mining-green animate-spin" style={{ animationDuration: "4s" }} />
+            <RefreshCw className={`h-3.5 w-3.5 text-mining-green ${syncing ? "animate-spin" : ""}`} style={syncing ? undefined : { animationDuration: "4s" }} />
             <div>
-              <p className="text-muted-foreground">ATUALIZAÇÃO</p>
+              <p className="text-muted-foreground">ÚLTIMO REFRESH</p>
               <p className="text-mining-green">
-                {lastUpdated ? `${Math.max(0, Math.floor((+clock - +lastUpdated) / 60000))} min atrás` : "agora"}
+                {lastUpdated ? lastUpdated.toLocaleTimeString("pt-BR") : "—"}
               </p>
+              {source === "onedrive" && file && (
+                <p className="text-[9px] text-muted-foreground truncate max-w-[180px]">
+                  {file.name} · {worksheets.length} aba(s)
+                </p>
+              )}
             </div>
           </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleManualRefresh}
+            disabled={syncing}
+            className="gap-2 border-mining-green/40 text-mining-green hover:bg-mining-green/10 h-9"
+          >
+            <RefreshCw className={`h-4 w-4 ${syncing ? "animate-spin" : ""}`} />
+            Atualizar agora
+          </Button>
+          <MicrosoftLoginButton />
           <ExcelUploadButton />
         </div>
       </header>
