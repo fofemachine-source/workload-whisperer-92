@@ -260,13 +260,24 @@ export function OpsCenter() {
   }, [producaoTurno, metaTurno, fleetsAgg]);
 
   const tonHSeries = useMemo(() => {
-    const hours = Array.from({ length: 13 }, (_, i) => i * 2);
-    return hours.map((h) => ({
+    const real = summary?.hourlySeries;
+    // Meta hora-a-hora = projetado / 24 (fallback metaTonH)
+    const projetado = summary?.projetadoDia || 0;
+    const metaHora = projetado > 0 ? projetado / 24 : metaTonH;
+    if (real && real.length) {
+      return real.map((p) => ({
+        hora: p.hora,
+        tonH: Math.round(p.tonH),
+        meta: Math.round(metaHora),
+      }));
+    }
+    // Fallback: 24h vazias (sem dados)
+    return Array.from({ length: 24 }, (_, h) => ({
       hora: `${String(h).padStart(2, "0")}:00`,
-      tonH: Math.round(tonH * (0.8 + Math.random() * 0.35)),
-      meta: metaTonH,
+      tonH: 0,
+      meta: Math.round(metaHora),
     }));
-  }, [tonH]);
+  }, [summary, metaTonH]);
 
   const ranking = useMemo(() => {
     const escav = (rows || []).filter((r) => r.category === "escavadeira" && r.produtividade > 0);
