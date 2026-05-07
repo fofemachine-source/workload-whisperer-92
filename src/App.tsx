@@ -29,6 +29,17 @@ msalInstance.initialize().then(async () => {
       msalInstance.setActiveAccount((event.payload as { account: Parameters<typeof msalInstance.setActiveAccount>[0] }).account);
     }
   });
+  // Auto-login quando a aba é aberta com ?mslogin=1 (fora do iframe do preview)
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const inIframe = window.self !== window.top;
+    if (params.get("mslogin") === "1" && !inIframe && msalInstance.getAllAccounts().length === 0) {
+      const { loginRequest } = await import("@/auth/msalConfig");
+      await msalInstance.loginRedirect(loginRequest);
+    }
+  } catch (e) {
+    console.error("[msal] auto-login erro:", e);
+  }
 });
 
 const App = () => (
