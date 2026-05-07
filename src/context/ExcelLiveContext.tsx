@@ -152,8 +152,10 @@ export function ExcelLiveProvider({ children }: { children: ReactNode }) {
       }
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
+      const stack = e instanceof Error ? e.stack : undefined;
       setLocalError(msg);
-      console.error("[localExcel] erro:", msg);
+      console.error("[localExcel] erro ao parsear/publicar:", msg, stack);
+      toast.error("Erro ao processar planilha", { description: msg });
     } finally {
       setLocalLoading(false);
     }
