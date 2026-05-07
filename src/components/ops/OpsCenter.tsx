@@ -327,7 +327,7 @@ export function OpsCenter() {
       {/* TOP BAR */}
       <header className="relative z-10 flex items-center justify-between px-5 py-3 border-b border-mining-green/20 bg-black/60 backdrop-blur-sm">
         <div className="flex items-center gap-3">
-          <img src={logoUM} alt="Logo U&M" className="h-10 object-contain" />
+          <img src={logoUM} alt="Logo U&M" className="h-12 w-auto object-contain bg-white/95 rounded-md px-2 py-1 shadow-[0_0_20px_-4px_hsl(var(--mining-green))]" />
         </div>
         <h1 className="text-lg md:text-2xl font-bold tracking-[0.2em] text-foreground text-glow-neon">
           PAINEL DE PRODUÇÃO OPERACIONAL
