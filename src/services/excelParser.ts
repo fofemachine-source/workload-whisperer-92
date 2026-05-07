@@ -73,6 +73,8 @@ export interface AggregateSummary {
   totalCaminhoes: number;
   totalEscavadeiras: number;
   toneladaPorHora: number;
+  acumuladoDia?: number;
+  projetadoDia?: number;
 }
 
 export interface FleetAggregate {
