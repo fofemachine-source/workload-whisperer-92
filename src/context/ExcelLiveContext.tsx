@@ -170,11 +170,11 @@ export function ExcelLiveProvider({ children }: { children: ReactNode }) {
   // A fonte mais RECENTE vence. Upload local sempre sobrescreve OneDrive
   // se for mais novo (e vice-versa). Isso garante que, ao subir uma planilha
   // manualmente, os indicadores atualizem mesmo com login MS ativo.
-  const oneDriveTime = m.lastUpdated ? m.lastUpdated.getTime() : 0;
-  const localTime = local?.parsedAt ? new Date(local.parsedAt).getTime() : 0;
   const oneDriveAvailable = isAuth && !!wb.file && !!m.metrics;
   const localAvailable = !!local;
-  const useLocal = localAvailable && (!oneDriveAvailable || localTime >= oneDriveTime);
+  // Local upload SEMPRE vence se existir — o parser local calcula retaludamento
+  // e os totais estruturados (PRODUÇÃO EH), o OneDrive parser não.
+  const useLocal = localAvailable;
   const useOneDrive = !useLocal && oneDriveAvailable;
   if (useLocal) {
     console.log("[ExcelLive] fonte ativa: LOCAL", local?.fileName, "parsedAt=", local?.parsedAt);
