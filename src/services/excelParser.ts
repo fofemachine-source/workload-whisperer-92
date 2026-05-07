@@ -670,6 +670,48 @@ function applyStructuredOverrides(
   summary.projetadoDia = projetadoDia || producaoDia || 0;
   summary.acumuladoRetalud = producaoRetalud || 0;
   summary.projetadoRetalud = projetadoRetalud || producaoRetalud || 0;
+
+  // 7.b) RETALUDAMENTO por Obra (MORRO 1) — soma da aba "RETALUDAMENTO"
+  // filtrada pela data mais recente, agrupando coluna "Obra".
+  const retaludSheet =
+    byName.get("retaludamento") ||
+    [...byName.values()].find((s) => /^retalud/i.test(s.name));
+  let acumuladoMorro1 = 0;
+  if (retaludSheet?.values?.length) {
+    const rows = retaludSheet.values;
+    // Detect header row: needs DATA + Obra + Produção columns
+    let hr = -1, dCol = -1, obraCol = -1, prodCol = -1;
+    for (let r = 0; r < Math.min(rows.length, 12); r++) {
+      const row = rows[r] ?? [];
+      const dc = findHeaderIndex(row, [/^data$/]);
+      const oc = findHeaderIndex(row, [/^obra$/]);
+      const pc = findHeaderIndex(row, [/produ[cç][aã]o/]);
+      if (dc >= 0 && oc >= 0 && pc >= 0) {
+        hr = r; dCol = dc; obraCol = oc; prodCol = pc;
+        break;
+      }
+    }
+    if (hr >= 0) {
+      // Find latest date
+      let maxD = 0;
+      for (let r = hr + 1; r < rows.length; r++) {
+        const dv = Number((rows[r] ?? [])[dCol]);
+        if (Number.isFinite(dv) && dv > maxD) maxD = dv;
+      }
+      // Sum prod where Obra matches "morro"
+      for (let r = hr + 1; r < rows.length; r++) {
+        const row = rows[r] ?? [];
+        if (Number(row[dCol]) !== maxD) continue;
+        const obra = norm(row[obraCol]);
+        if (!/morro/.test(obra)) continue;
+        acumuladoMorro1 += toNumber(row[prodCol]);
+      }
+      console.log("[excelParser] MORRO 1 acumulado (data", maxD, "):", acumuladoMorro1);
+    }
+  }
+  summary.acumuladoMorro1 = acumuladoMorro1;
+  summary.projetadoMorro1 = acumuladoMorro1; // mesma lógica do N5-SUL (projetado = acumulado)
+
   if (sumHT > 0) summary.df = (sumHD / sumHT) * 100;
   if (sumHD > 0) summary.ut = (sumHTra / sumHD) * 100;
   summary.totalCaminhoes = CAMINHOES.reduce((s, f) => s + fleets[f].ativos, 0);
