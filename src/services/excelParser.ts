@@ -643,7 +643,7 @@ function applyStructuredOverrides(
     if (retaludAnchors.length && !producaoRetalud) {
       console.warn("[excelParser] PRODUÇÃO EH contém 'RETALUDAMENTO' mas nenhum valor numérico foi extraído.");
     }
-    if (process?.env?.NODE_ENV !== "production" || typeof window !== "undefined") {
+    if (typeof window !== "undefined") {
       console.debug("[excelParser] retaludamento debug", {
         ...retaludDebug,
         producaoRetalud,
