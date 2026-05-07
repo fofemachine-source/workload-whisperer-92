@@ -98,4 +98,47 @@
   }
   .text-glow-blue { text-shadow: 0 0 18px hsl(var(--mining-blue) / 0.6); }
   .text-glow-green { text-shadow: 0 0 18px hsl(var(--mining-green) / 0.6); }
+  .text-glow-neon { text-shadow: 0 0 12px hsl(var(--mining-green) / 0.8), 0 0 24px hsl(var(--mining-green) / 0.4); }
+
+  @keyframes truck-drive {
+    0%   { transform: translateX(-15%); }
+    100% { transform: translateX(115%); }
+  }
+  .animate-truck-drive { animation: truck-drive 18s linear infinite; }
+
+  @keyframes truck-bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-1.5px); }
+  }
+  .animate-truck-bounce { animation: truck-bounce 0.4s ease-in-out infinite; }
+
+  @keyframes wheel-spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+  .animate-wheel-spin { animation: wheel-spin 0.8s linear infinite; transform-origin: center; transform-box: fill-box; }
+
+  @keyframes excavator-arm {
+    0%, 100% { transform: rotate(-8deg); }
+    50%      { transform: rotate(18deg); }
+  }
+  .animate-excavator-arm { animation: excavator-arm 3s ease-in-out infinite; transform-origin: 18px 22px; transform-box: fill-box; }
+
+  @keyframes blink-status {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.25; }
+  }
+  .animate-blink { animation: blink-status 1.4s ease-in-out infinite; }
+
+  @keyframes radar-sweep {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+  .animate-radar { animation: radar-sweep 4s linear infinite; transform-origin: center; }
+
+  @keyframes scanline {
+    0%   { transform: translateY(-100%); }
+    100% { transform: translateY(100%); }
+  }
+  .animate-scanline { animation: scanline 6s linear infinite; }
 }
