@@ -166,6 +166,28 @@ function matchEquipment(label: string): TargetEquipment | null {
   return null;
 }
 
+/**
+ * Classifica TAGs (CR-xxxx, EH-xxxx) nas 4 frotas-alvo, replicando o cadastro:
+ * - EH-40xx => HITACHI EX1200; EH-50xx => HITACHI EX2500
+ * - CR-25xx => KOMATSU HD785;  CR-30xx/31xx => KOMATSU 730E
+ */
+function fleetByTag(label: string): TargetEquipment | null {
+  const n = norm(label).toUpperCase();
+  let m = n.match(/^EH[-\s]?(\d{2})/);
+  if (m) {
+    const p = m[1];
+    if (p.startsWith("40")) return "EX1200";
+    if (p.startsWith("50")) return "EX2500";
+  }
+  m = n.match(/^CR[-\s]?(\d{2})/);
+  if (m) {
+    const p = m[1];
+    if (p.startsWith("25")) return "Komatsu 785";
+    if (p.startsWith("30") || p.startsWith("31")) return "Komatsu 730";
+  }
+  return matchEquipment(label);
+}
+
 function classifyEquipment(label: string): GenericEquipmentRow["category"] {
   const n = norm(label);
   if (/^eh[-\s]?\d/.test(n)) return "escavadeira";
