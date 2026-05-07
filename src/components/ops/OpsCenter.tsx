@@ -208,8 +208,13 @@ export function OpsCenter() {
     setRetaludOverride(null);
     setRetaludOpen(false);
   };
-  const acumuladoRetaludShown = retaludOverride?.acumulado ?? summary?.acumuladoRetalud ?? 0;
-  const projetadoRetaludShown = retaludOverride?.projetado ?? summary?.projetadoRetalud ?? summary?.acumuladoRetalud ?? 0;
+  // Planilha sempre vence quando tem valor; override manual é apenas fallback.
+  const acumuladoRetaludShown = (summary?.acumuladoRetalud && summary.acumuladoRetalud > 0)
+    ? summary.acumuladoRetalud
+    : (retaludOverride?.acumulado ?? 0);
+  const projetadoRetaludShown = (summary?.projetadoRetalud && summary.projetadoRetalud > 0)
+    ? summary.projetadoRetalud
+    : (retaludOverride?.projetado ?? acumuladoRetaludShown);
 
   // Auto refresh OneDrive a cada 60s
   useEffect(() => {
