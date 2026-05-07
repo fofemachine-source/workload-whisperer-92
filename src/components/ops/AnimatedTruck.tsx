@@ -3,6 +3,7 @@ import truckImg from "@/assets/truck.png";
 interface Props {
   className?: string;
   driving?: boolean;
+  color?: string;
 }
 
 export function AnimatedTruck({ className, driving = true }: Props) {

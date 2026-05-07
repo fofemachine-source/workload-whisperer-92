@@ -3,6 +3,7 @@ import excavatorImg from "@/assets/excavator.png";
 interface Props {
   className?: string;
   animate?: boolean;
+  color?: string;
 }
 
 export function AnimatedExcavator({ className, animate = true }: Props) {
