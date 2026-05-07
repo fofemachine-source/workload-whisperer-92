@@ -1,6 +1,6 @@
 import { useExcelLive } from "@/context/ExcelLiveContext";
-import { TARGET_EQUIPMENT } from "@/services/excelParser";
-import { Activity, Gauge, TrendingUp, Truck, Mountain, Drill } from "lucide-react";
+import { TARGET_EQUIPMENT, FLEET_SIZE, FLEET_TOTAL } from "@/services/excelParser";
+import { Activity, Gauge, TrendingUp, Truck, Mountain, Shovel } from "lucide-react";
 
 const fmt = (n: number, d = 1) =>
   n ? n.toLocaleString("pt-BR", { minimumFractionDigits: d, maximumFractionDigits: d }) : "0";
@@ -75,13 +75,16 @@ export function KpiStrip() {
   const totalMeta = summary?.totalMeta || (areas?.Mina?.meta ?? 0) + (areas?.Retaludamento?.meta ?? 0);
   const aderencia = summary?.aderencia || (totalMeta ? (totalRealizado / totalMeta) * 100 : 0);
 
-  const escavCount =
-    summary?.escavadeirasCount ||
+  const escavOperando =
+    summary?.totalEscavadeiras ||
     ["EX1200", "EX2500"].filter((e) => (metrics?.[e as "EX1200"]?.horasTrabalhadas ?? 0) > 0).length;
-  const perfCount =
-    summary?.perfuratrizesCount ||
-    ["Komatsu 730", "Komatsu 785"].filter((e) => (metrics?.[e as "Komatsu 730"]?.horasTrabalhadas ?? 0) > 0)
-      .length;
+  const escavTotal = FLEET_SIZE.EX1200 + FLEET_SIZE.EX2500; // 8
+  const camOperando =
+    summary?.totalCaminhoes ||
+    ["Komatsu 730", "Komatsu 785"].filter(
+      (e) => (metrics?.[e as "Komatsu 730"]?.horasTrabalhadas ?? 0) > 0,
+    ).length;
+  const camTotal = FLEET_SIZE["Komatsu 730"] + FLEET_SIZE["Komatsu 785"]; // 40
 
   return (
     <section className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
@@ -90,7 +93,7 @@ export function KpiStrip() {
         label="Produtividade"
         value={fmt(produtividade, 2)}
         unit="t/h"
-        hint="Média da frota"
+        hint="Ton movimentada / h escavadeiras"
         tone="green"
       />
       <KpiCard
@@ -98,7 +101,7 @@ export function KpiStrip() {
         label="Utilização (UT%)"
         value={fmt(ut)}
         unit="%"
-        hint="Operacional"
+        hint="Horas usadas / horas disponíveis"
         tone="cyan"
       />
       <KpiCard
@@ -106,29 +109,29 @@ export function KpiStrip() {
         label="Disp. Física (DF%)"
         value={fmt(df)}
         unit="%"
-        hint="Frota disponível"
+        hint="(Total - manutenção) / total"
         tone="blue"
       />
       <KpiCard
         icon={Mountain}
-        label="Frota CR"
+        label="Aderência"
         value={fmt(aderencia)}
         unit="%"
         hint={`${Math.round(totalRealizado)} / ${Math.round(totalMeta)} t`}
         tone="purple"
       />
       <KpiCard
-        icon={Truck}
+        icon={Shovel}
         label="Escavadeiras"
-        value={String(escavCount || 0)}
-        hint="EX / Pá Carregadeira"
+        value={`${escavOperando}/${escavTotal}`}
+        hint="EX1200 (5) + EX2500 (3)"
         tone="yellow"
       />
       <KpiCard
-        icon={Drill}
-        label="Perfuratrizes"
-        value={String(perfCount || 0)}
-        hint="Drills / Sondagens"
+        icon={Truck}
+        label="Caminhões"
+        value={`${camOperando}/${camTotal}`}
+        hint={`Frota total: ${FLEET_TOTAL} eq.`}
         tone="indigo"
       />
     </section>
