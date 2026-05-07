@@ -175,10 +175,10 @@ export function OpsCenter() {
   const syncStatus: "error" | "syncing" | "connected" | "idle" =
     syncError ? "error" : syncing ? "syncing" : source === "onedrive" ? "connected" : "idle";
   const syncStatusMeta = {
-    connected: { label: "ONEDRIVE CONECTADO", color: "mining-green", dot: "bg-mining-green" },
-    syncing: { label: "ATUALIZANDO…", color: "mining-yellow", dot: "bg-mining-yellow" },
-    error: { label: "ERRO DE SINCRONIZAÇÃO", color: "mining-red", dot: "bg-mining-red" },
-    idle: { label: "AGUARDANDO ONEDRIVE", color: "muted-foreground", dot: "bg-muted-foreground" },
+    connected: { label: "ONEDRIVE CONECTADO", box: "border-mining-green/40 text-mining-green", dot: "bg-mining-green" },
+    syncing: { label: "ATUALIZANDO…", box: "border-mining-yellow/40 text-mining-yellow", dot: "bg-mining-yellow" },
+    error: { label: "ERRO DE SINCRONIZAÇÃO", box: "border-mining-red/40 text-mining-red", dot: "bg-mining-red" },
+    idle: { label: "AGUARDANDO ONEDRIVE", box: "border-muted-foreground/30 text-muted-foreground", dot: "bg-muted-foreground" },
   }[syncStatus];
   const handleManualRefresh = async () => {
     await Promise.all([refreshWorkbook(), refresh()]);
@@ -339,7 +339,7 @@ export function OpsCenter() {
           <img src={logoUM} alt="Logo U&M" className="h-9 w-auto object-contain" />
           <div
             title={syncError ?? undefined}
-            className={`flex items-center gap-2 px-2.5 py-1 rounded-md border bg-black/40 border-${syncStatusMeta.color}/40 text-${syncStatusMeta.color}`}
+            className={`flex items-center gap-2 px-2.5 py-1 rounded-md border bg-black/40 ${syncStatusMeta.box}`}
           >
             <span className="relative flex h-2 w-2">
               <span className={`absolute inset-0 rounded-full ${syncStatusMeta.dot} ${syncStatus !== "idle" ? "animate-ping opacity-60" : ""}`} />
