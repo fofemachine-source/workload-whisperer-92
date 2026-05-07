@@ -75,6 +75,19 @@ export interface AggregateSummary {
   toneladaPorHora: number;
 }
 
+export interface FleetAggregate {
+  fleet: TargetEquipment;
+  category: "escavadeira" | "caminhao";
+  totalUnits: number;        // tamanho fixo da frota
+  ativos: number;            // unidades com horas trabalhadas > 0
+  emManutencao: number;      // unidades com horas de manutenção > 0
+  totalProducao: number;
+  totalHoras: number;
+  produtividade: number;     // produção / horas
+  df: number;                // disponibilidade física média (0-100)
+  ut: number;                // utilização média (0-100)
+}
+
 export interface GenericEquipmentRow {
   equipamento: string;
   category: "escavadeira" | "perfuratriz" | "caminhao" | "outro";
@@ -86,6 +99,7 @@ export interface GenericEquipmentRow {
   df: number;
   ut: number;
   source: string;
+  fleet?: TargetEquipment | null;
 }
 
 const norm = (s: unknown): string =>
@@ -150,6 +164,28 @@ function matchEquipment(label: string): TargetEquipment | null {
   if (/komatsu.*730|hd\W*730|\b730\b/.test(n)) return "Komatsu 730";
   if (/komatsu.*785|hd\W*785|\b785\b/.test(n)) return "Komatsu 785";
   return null;
+}
+
+/**
+ * Classifica TAGs (CR-xxxx, EH-xxxx) nas 4 frotas-alvo, replicando o cadastro:
+ * - EH-40xx => HITACHI EX1200; EH-50xx => HITACHI EX2500
+ * - CR-25xx => KOMATSU HD785;  CR-30xx/31xx => KOMATSU 730E
+ */
+function fleetByTag(label: string): TargetEquipment | null {
+  const n = norm(label).toUpperCase();
+  let m = n.match(/^EH[-\s]?(\d{2})/);
+  if (m) {
+    const p = m[1];
+    if (p.startsWith("40")) return "EX1200";
+    if (p.startsWith("50")) return "EX2500";
+  }
+  m = n.match(/^CR[-\s]?(\d{2})/);
+  if (m) {
+    const p = m[1];
+    if (p.startsWith("25")) return "Komatsu 785";
+    if (p.startsWith("30") || p.startsWith("31")) return "Komatsu 730";
+  }
+  return matchEquipment(label);
 }
 
 function classifyEquipment(label: string): GenericEquipmentRow["category"] {
@@ -305,6 +341,7 @@ export function processSheetValues(sheets: SheetValues[]): {
   rows: GenericEquipmentRow[];
   summary: AggregateSummary;
   primarySheet: string | null;
+  fleets: Record<TargetEquipment, FleetAggregate>;
 } {
   const acc: Record<string, EquipmentMetrics> = {};
   TARGET_EQUIPMENT.forEach((eq) => {
@@ -364,6 +401,7 @@ export function processSheetValues(sheets: SheetValues[]): {
             df: 0,
             ut: 0,
             source: sheet,
+            fleet: fleetByTag(label),
           };
           rowsByName.set(key, g);
         }
@@ -444,6 +482,44 @@ export function processSheetValues(sheets: SheetValues[]): {
     return g;
   });
 
+  // Agregação por frota-alvo (apenas caminhão e escavadeira)
+  const fleets = {} as Record<TargetEquipment, FleetAggregate>;
+  TARGET_EQUIPMENT.forEach((f) => {
+    fleets[f] = {
+      fleet: f,
+      category: ESCAVADEIRAS.includes(f) ? "escavadeira" : "caminhao",
+      totalUnits: FLEET_SIZE[f],
+      ativos: 0,
+      emManutencao: 0,
+      totalProducao: 0,
+      totalHoras: 0,
+      produtividade: 0,
+      df: 0,
+      ut: 0,
+    };
+  });
+  for (const r of rows) {
+    const f = r.fleet;
+    if (!f) continue;
+    const agg = fleets[f];
+    if (r.horasTrabalhadas > 0) agg.ativos++;
+    if (r.manutencao > 0) agg.emManutencao++;
+    agg.totalProducao += r.producao || 0;
+    agg.totalHoras += r.horasTrabalhadas || 0;
+  }
+  TARGET_EQUIPMENT.forEach((f) => {
+    const agg = fleets[f];
+    agg.produtividade = agg.totalHoras > 0 ? agg.totalProducao / agg.totalHoras : 0;
+    // DF = (totalUnits*H - manutenção*H) / (totalUnits*H) — aproximação por contagem (turno=12h)
+    const TURNO_H = 12;
+    const horasTotais = agg.totalUnits * TURNO_H;
+    const horasManut = agg.emManutencao * TURNO_H;
+    agg.df = horasTotais > 0 ? ((horasTotais - horasManut) / horasTotais) * 100 : 0;
+    // UT = horas utilizadas / horas disponíveis (totais - manutenção)
+    const horasDisp = horasTotais - horasManut;
+    agg.ut = horasDisp > 0 ? (agg.totalHoras / horasDisp) * 100 : 0;
+  });
+
   const filterPos = (arr: number[]) => arr.filter((x) => x > 0);
   const meanPos = (arr: number[]) => {
     const f = filterPos(arr);
@@ -489,5 +565,5 @@ export function processSheetValues(sheets: SheetValues[]): {
     toneladaPorHora,
   };
 
-  return { metrics: acc as Record<TargetEquipment, EquipmentMetrics>, areas, debug, rows, summary, primarySheet };
+  return { metrics: acc as Record<TargetEquipment, EquipmentMetrics>, areas, debug, rows, summary, primarySheet, fleets };
 }

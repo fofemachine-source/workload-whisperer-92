@@ -161,7 +161,7 @@ function FleetRow({
 }
 
 export function OpsCenter() {
-  const { summary, rows, lastUpdated, source, refresh } = useExcelLive();
+  const { summary, rows, fleets: fleetsAgg, lastUpdated, source, refresh } = useExcelLive();
   const clock = useClock();
 
   // Auto refresh OneDrive a cada 60s
@@ -232,12 +232,12 @@ export function OpsCenter() {
     ];
   }, [rows]);
 
-  // Frotas (DF/UT por modelo)
+  // Frotas (DF/UT/produção por modelo) — vindas da planilha quando disponível
   const fleets = [
-    { name: "EX1200", icon: "ex" as const, count: FLEET_SIZE.EX1200, df: 87.2, ut: 79.2 },
-    { name: "EX2500", icon: "ex" as const, count: FLEET_SIZE.EX2500, df: 88.1, ut: 76.5 },
-    { name: "CAMINHÕES 785", icon: "truck" as const, count: FLEET_SIZE["Komatsu 785"], df: 88.4, ut: 76.8 },
-    { name: "CAMINHÕES 730", icon: "truck" as const, count: FLEET_SIZE["Komatsu 730"], df: 86.9, ut: 79.5 },
+    { key: "EX1200" as const, name: "EX1200", icon: "ex" as const, count: FLEET_SIZE.EX1200, df: fleetsAgg?.EX1200.df ?? 87.2, ut: fleetsAgg?.EX1200.ut ?? 79.2 },
+    { key: "EX2500" as const, name: "EX2500", icon: "ex" as const, count: FLEET_SIZE.EX2500, df: fleetsAgg?.EX2500.df ?? 88.1, ut: fleetsAgg?.EX2500.ut ?? 76.5 },
+    { key: "Komatsu 785" as const, name: "CAMINHÕES 785", icon: "truck" as const, count: FLEET_SIZE["Komatsu 785"], df: fleetsAgg?.["Komatsu 785"].df ?? 88.4, ut: fleetsAgg?.["Komatsu 785"].ut ?? 76.8 },
+    { key: "Komatsu 730" as const, name: "CAMINHÕES 730", icon: "truck" as const, count: FLEET_SIZE["Komatsu 730"], df: fleetsAgg?.["Komatsu 730"].df ?? 86.9, ut: fleetsAgg?.["Komatsu 730"].ut ?? 79.5 },
   ];
 
   return (
@@ -402,8 +402,8 @@ export function OpsCenter() {
           <CardShell title={`FROTA DE ESCAVADEIRAS · ${opEscav}/${fleets[0].count + fleets[1].count} OPERANDO`}>
             <div className="space-y-3">
               {[
-                { qty: FLEET_SIZE.EX1200, model: "EX1200", prod: 61_250, tonH: 4_200 },
-                { qty: FLEET_SIZE.EX2500, model: "EX2500", prod: 67_200, tonH: 6_150 },
+                { qty: FLEET_SIZE.EX1200, model: "EX1200", prod: fleetsAgg?.EX1200.totalProducao || 61_250, tonH: fleetsAgg?.EX1200.produtividade || 4_200 },
+                { qty: FLEET_SIZE.EX2500, model: "EX2500", prod: fleetsAgg?.EX2500.totalProducao || 67_200, tonH: fleetsAgg?.EX2500.produtividade || 6_150 },
               ].map((g) => (
                 <div key={g.model} className="flex items-center gap-3 border-t border-mining-green/10 pt-2 first:border-0 first:pt-0">
                   <div className="w-20 h-14 relative">
@@ -475,8 +475,8 @@ export function OpsCenter() {
           <CardShell title={`FROTA DE CAMINHÕES · ${opCam}/${FLEET_SIZE["Komatsu 785"] + FLEET_SIZE["Komatsu 730"]} OPERANDO`}>
             <div className="space-y-3">
               {[
-                { qty: FLEET_SIZE["Komatsu 785"], model: "HD785", ton: 89_650, tonH: 9_850 },
-                { qty: FLEET_SIZE["Komatsu 730"], model: "HD730", ton: 38_800, tonH: 4_050 },
+                { qty: FLEET_SIZE["Komatsu 785"], model: "HD785", ton: fleetsAgg?.["Komatsu 785"].totalProducao || 89_650, tonH: fleetsAgg?.["Komatsu 785"].produtividade || 9_850 },
+                { qty: FLEET_SIZE["Komatsu 730"], model: "HD730", ton: fleetsAgg?.["Komatsu 730"].totalProducao || 38_800, tonH: fleetsAgg?.["Komatsu 730"].produtividade || 4_050 },
               ].map((g) => (
                 <div key={g.model} className="flex items-center gap-3 border-t border-mining-green/10 pt-2 first:border-0 first:pt-0">
                   <div className="w-20 h-12 relative">
