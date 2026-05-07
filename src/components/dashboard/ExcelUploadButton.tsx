@@ -39,10 +39,10 @@ export function ExcelUploadButton() {
         size="sm"
         onClick={onPick}
         disabled={localLoading}
-        className="gap-2 bg-mining-purple hover:bg-mining-purple/90 text-white shadow-[0_0_20px_-6px_hsl(var(--mining-purple))]"
+        className="gap-2 bg-mining-green hover:bg-mining-green/90 text-black font-bold shadow-[0_0_24px_-4px_hsl(var(--mining-green))]"
       >
         {localLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-        <span className="hidden sm:inline">Enviar Planilha</span>
+        <span className="hidden sm:inline">Upload Planilha</span>
       </Button>
       {localFile && (
         <div className="hidden md:flex items-center gap-2 px-2.5 py-1.5 rounded-lg border border-mining-green/30 bg-mining-green/5 text-mining-green text-[10px] font-mono">
