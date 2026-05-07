@@ -12,7 +12,16 @@ import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
 const msalInstance = new PublicClientApplication(msalConfig);
-msalInstance.initialize().then(() => {
+msalInstance.initialize().then(async () => {
+  try {
+    const redirectRes = await msalInstance.handleRedirectPromise();
+    if (redirectRes?.account) {
+      msalInstance.setActiveAccount(redirectRes.account);
+      console.log("[msal] login via redirect:", redirectRes.account.username);
+    }
+  } catch (e) {
+    console.error("[msal] handleRedirectPromise erro:", e);
+  }
   const accounts = msalInstance.getAllAccounts();
   if (accounts.length > 0) msalInstance.setActiveAccount(accounts[0]);
   msalInstance.addEventCallback((event) => {
