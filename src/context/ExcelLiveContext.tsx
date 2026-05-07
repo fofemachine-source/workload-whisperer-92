@@ -73,14 +73,17 @@ export function ExcelLiveProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // Local takes priority if present; otherwise fallback to OneDrive
-  const useLocal = !!local;
-  const metrics = useLocal ? local!.metrics : m.metrics;
-  const areas = useLocal ? local!.areas : m.areas;
-  const debug = useLocal ? local!.debug : m.debug;
-  const lastUpdated = useLocal ? new Date(local!.parsedAt) : m.lastUpdated;
-  const summary = useLocal ? local!.summary ?? null : null;
-  const rows = useLocal ? local!.rows ?? [] : [];
-  const fleets = useLocal ? local!.fleets ?? null : null;
+  // OneDrive takes priority when authenticated and a workbook was found;
+  // local upload acts as manual fallback.
+  const useOneDrive = isAuth && !!wb.file && !!m.metrics;
+  const useLocal = !useOneDrive && !!local;
+  const metrics = useOneDrive ? m.metrics : useLocal ? local!.metrics : null;
+  const areas = useOneDrive ? m.areas : useLocal ? local!.areas : null;
+  const debug = useOneDrive ? m.debug : useLocal ? local!.debug : [];
+  const lastUpdated = useOneDrive ? m.lastUpdated : useLocal ? new Date(local!.parsedAt) : null;
+  const summary = useOneDrive ? m.summary : useLocal ? local!.summary ?? null : null;
+  const rows = useOneDrive ? m.rows : useLocal ? local!.rows ?? [] : [];
+  const fleets = useOneDrive ? m.fleets : useLocal ? local!.fleets ?? null : null;
 
   const value: ExcelLiveValue = {
     isAuth,
@@ -90,16 +93,16 @@ export function ExcelLiveProvider({ children }: { children: ReactNode }) {
     workbookError: wb.error,
     metrics,
     areas,
-    metricsLoading: useLocal ? localLoading : m.loading,
-    metricsError: useLocal ? localError : m.error,
+    metricsLoading: useOneDrive ? m.loading : useLocal ? localLoading : false,
+    metricsError: useOneDrive ? m.error : useLocal ? localError : null,
     lastUpdated,
-    refresh: useLocal ? async () => {} : m.refresh,
+    refresh: useOneDrive ? m.refresh : async () => {},
     refreshWorkbook: wb.refresh,
     debug,
     summary,
     rows,
     fleets,
-    source: useLocal ? "local" : isAuth ? "onedrive" : "none",
+    source: useOneDrive ? "onedrive" : useLocal ? "local" : "none",
     localFile: local
       ? { name: local.fileName, sheetNames: local.sheetNames, parsedAt: local.parsedAt }
       : null,
