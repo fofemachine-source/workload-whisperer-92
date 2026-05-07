@@ -1,6 +1,6 @@
 import { useMsal, useIsAuthenticated } from "@azure/msal-react";
 import { Button } from "@/components/ui/button";
-import { LogIn, LogOut, Loader2 } from "lucide-react";
+import { LogIn, LogOut, Loader2, ExternalLink } from "lucide-react";
 import { loginRequest } from "@/auth/msalConfig";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -10,7 +10,21 @@ export function MicrosoftLoginButton() {
   const isAuth = useIsAuthenticated();
   const [busy, setBusy] = useState(false);
 
+  const inIframe = typeof window !== "undefined" && window.self !== window.top;
+
+  const openInNewTab = () => {
+    const url = `${window.location.origin}${window.location.pathname}?mslogin=1`;
+    window.open(url, "_blank", "noopener");
+    toast.message("Abrindo nova aba para login Microsoft", {
+      description: "Faça login com despacho.ca@uem.com.br e volte aqui.",
+    });
+  };
+
   const login = async () => {
+    if (inIframe) {
+      openInNewTab();
+      return;
+    }
     setBusy(true);
     try {
       try {
@@ -30,7 +44,11 @@ export function MicrosoftLoginButton() {
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       console.error("[msal] erro de login:", msg);
-      toast.error("Erro no login Microsoft", { description: msg });
+      if (/redirect_in_iframe/i.test(msg)) {
+        openInNewTab();
+      } else {
+        toast.error("Erro no login Microsoft", { description: msg });
+      }
     } finally {
       setBusy(false);
     }
@@ -57,8 +75,8 @@ export function MicrosoftLoginButton() {
 
   return (
     <Button size="sm" onClick={login} disabled={busy} className="gap-2 bg-mining-indigo hover:bg-mining-indigo/90">
-      {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogIn className="h-4 w-4" />}
-      Conectar Microsoft
+      {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : inIframe ? <ExternalLink className="h-4 w-4" /> : <LogIn className="h-4 w-4" />}
+      {inIframe ? "Conectar Microsoft (nova aba)" : "Conectar Microsoft"}
     </Button>
   );
 }
