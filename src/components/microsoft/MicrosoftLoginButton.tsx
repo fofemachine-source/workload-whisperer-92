@@ -11,13 +11,15 @@ export function MicrosoftLoginButton() {
   const [busy, setBusy] = useState(false);
 
   const inIframe = typeof window !== "undefined" && window.self !== window.top;
-  const isPreviewHost = typeof window !== "undefined" && /id-preview--/.test(window.location.host);
   const PUBLISHED_URL = "https://workload-whisperer-92.lovable.app";
+  // Qualquer host que não seja a URL publicada precisa redirecionar pra ela,
+  // pois o Azure só conhece a publicada como redirectUri.
+  const isPublishedHost =
+    typeof window !== "undefined" && window.location.origin === PUBLISHED_URL;
+  const needsExternalTab = inIframe || !isPublishedHost;
 
   const openInNewTab = () => {
-    // Sempre abre na URL PUBLICADA (a preview não está registrada como redirectUri no Azure)
-    const base = isPreviewHost ? PUBLISHED_URL : window.location.origin;
-    const url = `${base}/?mslogin=1`;
+    const url = `${PUBLISHED_URL}/?mslogin=1`;
     const win = window.open(url, "_blank", "noopener,noreferrer");
     if (!win) {
       toast.error("Popup bloqueado pelo navegador", {
@@ -34,7 +36,7 @@ export function MicrosoftLoginButton() {
   };
 
   const login = async () => {
-    if (inIframe) {
+    if (needsExternalTab) {
       openInNewTab();
       return;
     }
@@ -88,8 +90,8 @@ export function MicrosoftLoginButton() {
 
   return (
     <Button size="sm" onClick={login} disabled={busy} className="gap-2 bg-mining-indigo hover:bg-mining-indigo/90">
-      {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : inIframe ? <ExternalLink className="h-4 w-4" /> : <LogIn className="h-4 w-4" />}
-      {inIframe ? "Conectar Microsoft (nova aba)" : "Conectar Microsoft"}
+      {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : needsExternalTab ? <ExternalLink className="h-4 w-4" /> : <LogIn className="h-4 w-4" />}
+      {needsExternalTab ? "Conectar Microsoft (nova aba)" : "Conectar Microsoft"}
     </Button>
   );
 }
