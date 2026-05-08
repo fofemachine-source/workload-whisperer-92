@@ -522,8 +522,8 @@ export function OpsCenter() {
           </CardShell>
         </div>
 
-        {/* COLUNA ESQUERDA: ESCAVADEIRAS + CAMINHÕES */}
-        <div className="col-span-12 lg:col-span-3 flex flex-col gap-3">
+        {/* COLUNA ESQUERDA: ESCAVADEIRAS + CAMINHÕES + EQUIP OPERANDO + OPERAÇÃO AO VIVO */}
+        <div className="col-span-12 lg:col-span-6 flex flex-col gap-3">
           <CardShell title={`FROTA DE ESCAVADEIRAS · ${opEscav}/${fleets[0].count + fleets[1].count} OPERANDO`}>
             <div className="space-y-3">
               {[
@@ -573,9 +573,46 @@ export function OpsCenter() {
               ))}
             </div>
           </CardShell>
+
+          <CardShell title="EQUIPAMENTOS OPERANDO">
+            <div className="flex items-center justify-between h-full min-h-[120px]">
+              <div>
+                <p className="text-5xl font-mono font-bold text-mining-green text-glow-neon">
+                  {opTotal} <span className="text-foreground">/ {FLEET_TOTAL}</span>
+                </p>
+                <p className="mt-2 text-base font-mono text-muted-foreground">{pctOp.toFixed(1)}% DO TOTAL</p>
+              </div>
+              <div className="w-24 h-14 relative">
+                <AnimatedExcavator className="w-24 h-14" />
+              </div>
+            </div>
+          </CardShell>
+
+          <CardShell title="OPERAÇÃO AO VIVO">
+            <div className="relative h-52 overflow-hidden rounded-sm bg-gradient-to-b from-black via-black to-mining-green/5">
+              <div className="absolute inset-x-0 bottom-6 h-px bg-gradient-to-r from-transparent via-mining-green/40 to-transparent" />
+              <div className="absolute inset-x-0 bottom-3 h-px bg-gradient-to-r from-transparent via-mining-green/20 to-transparent" />
+              <div className="absolute left-3 bottom-4">
+                <AnimatedExcavator className="w-20 h-14" />
+              </div>
+              <div className="absolute inset-y-0 w-20 animate-truck-drive" style={{ animationDuration: "14s" }}>
+                <AnimatedTruck className="w-20 h-12 mt-[120px]" color={YELLOW} />
+              </div>
+              <div className="absolute inset-y-0 w-20 animate-truck-drive" style={{ animationDuration: "18s", animationDelay: "-6s" }}>
+                <AnimatedTruck className="w-20 h-12 mt-[120px]" color="#fb923c" />
+              </div>
+              <div className="absolute inset-y-0 w-20 animate-truck-drive" style={{ animationDuration: "22s", animationDelay: "-12s" }}>
+                <AnimatedTruck className="w-20 h-12 mt-[120px]" color={NEON} />
+              </div>
+              <div className="absolute top-2 right-2 flex items-center gap-1.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-mining-green animate-pulse" style={{ boxShadow: `0 0 8px ${NEON}` }} />
+                <span className="text-[9px] font-mono text-mining-green tracking-[0.2em]">LIVE</span>
+              </div>
+            </div>
+          </CardShell>
         </div>
 
-        {/* COLUNA CENTRAL: PRODUÇÃO TURNO + TONELADAS/H + RANKING */}
+        {/* COLUNA DIREITA: PRODUÇÃO TURNO + TONELADAS/H + RANKING */}
         <div className="col-span-12 lg:col-span-6 flex flex-col gap-3">
           <CardShell title="PRODUÇÃO DO TURNO (TONELADAS)">
             <div className="h-56">
@@ -646,46 +683,6 @@ export function OpsCenter() {
                   </div>
                 );
               })}
-            </div>
-          </CardShell>
-        </div>
-
-        {/* COLUNA DIREITA: EQUIPAMENTOS OPERANDO + OPERAÇÃO AO VIVO */}
-        <div className="col-span-12 lg:col-span-3 flex flex-col gap-3">
-          <CardShell title="EQUIPAMENTOS OPERANDO">
-            <div className="flex items-center justify-between h-full min-h-[120px]">
-              <div>
-                <p className="text-5xl font-mono font-bold text-mining-green text-glow-neon">
-                  {opTotal} <span className="text-foreground">/ {FLEET_TOTAL}</span>
-                </p>
-                <p className="mt-2 text-base font-mono text-muted-foreground">{pctOp.toFixed(1)}% DO TOTAL</p>
-              </div>
-              <div className="w-24 h-14 relative">
-                <AnimatedExcavator className="w-24 h-14" />
-              </div>
-            </div>
-          </CardShell>
-
-          <CardShell title="OPERAÇÃO AO VIVO">
-            <div className="relative h-52 overflow-hidden rounded-sm bg-gradient-to-b from-black via-black to-mining-green/5">
-              <div className="absolute inset-x-0 bottom-6 h-px bg-gradient-to-r from-transparent via-mining-green/40 to-transparent" />
-              <div className="absolute inset-x-0 bottom-3 h-px bg-gradient-to-r from-transparent via-mining-green/20 to-transparent" />
-              <div className="absolute left-3 bottom-4">
-                <AnimatedExcavator className="w-20 h-14" />
-              </div>
-              <div className="absolute inset-y-0 w-20 animate-truck-drive" style={{ animationDuration: "14s" }}>
-                <AnimatedTruck className="w-20 h-12 mt-[120px]" color={YELLOW} />
-              </div>
-              <div className="absolute inset-y-0 w-20 animate-truck-drive" style={{ animationDuration: "18s", animationDelay: "-6s" }}>
-                <AnimatedTruck className="w-20 h-12 mt-[120px]" color="#fb923c" />
-              </div>
-              <div className="absolute inset-y-0 w-20 animate-truck-drive" style={{ animationDuration: "22s", animationDelay: "-12s" }}>
-                <AnimatedTruck className="w-20 h-12 mt-[120px]" color={NEON} />
-              </div>
-              <div className="absolute top-2 right-2 flex items-center gap-1.5">
-                <span className="h-1.5 w-1.5 rounded-full bg-mining-green animate-pulse" style={{ boxShadow: `0 0 8px ${NEON}` }} />
-                <span className="text-[9px] font-mono text-mining-green tracking-[0.2em]">LIVE</span>
-              </div>
             </div>
           </CardShell>
         </div>
