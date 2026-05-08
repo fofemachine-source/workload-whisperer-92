@@ -153,15 +153,15 @@ function FleetRow({
         )}
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-mono font-bold text-foreground truncate">{name}</p>
-        <p className="text-[11px] font-mono text-muted-foreground">
+        <p className="text-lg font-mono font-bold text-foreground truncate">{name}</p>
+        <p className="text-sm font-mono text-muted-foreground">
           ({count}/{total})
         </p>
       </div>
       <Donut value={value} color={color} />
       <div className="text-right w-14">
-        <p className="text-[10px] font-mono text-muted-foreground uppercase">Meta</p>
-        <p className="text-xs font-mono text-foreground">{meta.toFixed(1)}%</p>
+        <p className="text-xs font-mono text-muted-foreground uppercase">Meta</p>
+        <p className="text-base font-mono text-foreground">{meta.toFixed(1)}%</p>
       </div>
     </div>
   );
@@ -563,13 +563,13 @@ export function OpsCenter() {
                     <AnimatedExcavator className="w-20 h-14" />
                   </div>
                   <div>
-                    <p className="text-base font-mono font-bold text-foreground"><span className="text-mining-green">{g.qty}x</span> {g.model}</p>
+                    <p className="text-xl font-mono font-bold text-foreground"><span className="text-mining-green">{g.qty}x</span> {g.model}</p>
                   </div>
-                  <div className="ml-auto text-right text-xs font-mono">
+                  <div className="ml-auto text-right text-sm font-mono">
                     <p className="text-muted-foreground">PRODUÇÃO</p>
-                    <p className="text-mining-green font-bold text-sm">{fmt(g.prod)} t</p>
+                    <p className="text-mining-green font-bold text-lg">{fmt(g.prod)} t</p>
                     <p className="text-muted-foreground mt-0.5">TON/H MÉDIA</p>
-                    <p className="text-mining-green font-bold text-sm">{fmt(g.tonH)} t/h</p>
+                    <p className="text-mining-green font-bold text-lg">{fmt(g.tonH)} t/h</p>
                   </div>
                 </div>
               ))}
@@ -585,7 +585,7 @@ export function OpsCenter() {
                 <p className="text-5xl font-mono font-bold text-mining-green text-glow-neon">
                   {opTotal} <span className="text-foreground">/ {FLEET_TOTAL}</span>
                 </p>
-                <p className="mt-2 text-sm font-mono text-muted-foreground">{pctOp.toFixed(1)}% DO TOTAL</p>
+                <p className="mt-2 text-base font-mono text-muted-foreground">{pctOp.toFixed(1)}% DO TOTAL</p>
               </div>
               <div className="w-24 h-14 relative">
                 <AnimatedExcavator className="w-24 h-14" />
@@ -695,13 +695,13 @@ export function OpsCenter() {
                     </div>
                   </div>
                   <div>
-                    <p className="text-base font-mono font-bold text-foreground"><span className="text-mining-green">{g.qty}x</span> {g.model}</p>
+                    <p className="text-xl font-mono font-bold text-foreground"><span className="text-mining-green">{g.qty}x</span> {g.model}</p>
                   </div>
-                  <div className="ml-auto text-right text-xs font-mono">
+                  <div className="ml-auto text-right text-sm font-mono">
                     <p className="text-muted-foreground">TONELADAS</p>
-                    <p className="text-mining-green font-bold text-sm">{fmt(g.ton)} t</p>
+                    <p className="text-mining-green font-bold text-lg">{fmt(g.ton)} t</p>
                     <p className="text-muted-foreground mt-0.5">TON/H MÉDIA</p>
-                    <p className="text-mining-green font-bold text-sm">{fmt(g.tonH)} t/h</p>
+                    <p className="text-mining-green font-bold text-lg">{fmt(g.tonH)} t/h</p>
                   </div>
                 </div>
               ))}
