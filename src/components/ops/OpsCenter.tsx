@@ -487,43 +487,38 @@ export function OpsCenter() {
           </CardShell>
         </div>
 
-        {/* DF POR FROTA */}
-        <div className="col-span-12 md:col-span-6 lg:col-span-3">
-          <CardShell title="% DISPONIBILIDADE FÍSICA POR FROTA">
-            {fleets.map((f) => (
-              <FleetRow
-                key={`df-${f.name}`}
-                icon={f.icon}
-                name={f.name}
-                count={f.count}
-                total={f.count}
-                value={f.df}
-                meta={85}
-              />
-            ))}
-          </CardShell>
-        </div>
-
-        {/* UT POR FROTA */}
-        <div className="col-span-12 md:col-span-6 lg:col-span-3">
-          <CardShell title="UTILIZAÇÃO POR FROTA">
-            {fleets.map((f) => (
-              <FleetRow
-                key={`ut-${f.name}`}
-                icon={f.icon}
-                name={f.name}
-                count={f.count}
-                total={f.count}
-                value={f.ut}
-                meta={85}
-                color={BLUE}
-              />
-            ))}
-          </CardShell>
-        </div>
-
-        {/* COLUNA ESQUERDA: ESCAVADEIRAS + CAMINHÕES + EQUIP OPERANDO + OPERAÇÃO AO VIVO */}
+        {/* COLUNA ESQUERDA: DF/UT + ESCAVADEIRAS + CAMINHÕES + EQUIP OPERANDO */}
         <div className="col-span-12 lg:col-span-6 flex flex-col gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <CardShell title="% DISPONIBILIDADE FÍSICA POR FROTA">
+              {fleets.map((f) => (
+                <FleetRow
+                  key={`df-${f.name}`}
+                  icon={f.icon}
+                  name={f.name}
+                  count={f.count}
+                  total={f.count}
+                  value={f.df}
+                  meta={85}
+                />
+              ))}
+            </CardShell>
+            <CardShell title="UTILIZAÇÃO POR FROTA">
+              {fleets.map((f) => (
+                <FleetRow
+                  key={`ut-${f.name}`}
+                  icon={f.icon}
+                  name={f.name}
+                  count={f.count}
+                  total={f.count}
+                  value={f.ut}
+                  meta={85}
+                  color={BLUE}
+                />
+              ))}
+            </CardShell>
+          </div>
+
           <CardShell title={`FROTA DE ESCAVADEIRAS · ${opEscav}/${fleets[0].count + fleets[1].count} OPERANDO`}>
             <div className="space-y-3">
               {[
@@ -587,55 +582,32 @@ export function OpsCenter() {
               </div>
             </div>
           </CardShell>
-
-          <CardShell title="OPERAÇÃO AO VIVO">
-            <div className="relative h-52 overflow-hidden rounded-sm bg-gradient-to-b from-black via-black to-mining-green/5">
-              <div className="absolute inset-x-0 bottom-6 h-px bg-gradient-to-r from-transparent via-mining-green/40 to-transparent" />
-              <div className="absolute inset-x-0 bottom-3 h-px bg-gradient-to-r from-transparent via-mining-green/20 to-transparent" />
-              <div className="absolute left-3 bottom-4">
-                <AnimatedExcavator className="w-20 h-14" />
-              </div>
-              <div className="absolute inset-y-0 w-20 animate-truck-drive" style={{ animationDuration: "14s" }}>
-                <AnimatedTruck className="w-20 h-12 mt-[120px]" color={YELLOW} />
-              </div>
-              <div className="absolute inset-y-0 w-20 animate-truck-drive" style={{ animationDuration: "18s", animationDelay: "-6s" }}>
-                <AnimatedTruck className="w-20 h-12 mt-[120px]" color="#fb923c" />
-              </div>
-              <div className="absolute inset-y-0 w-20 animate-truck-drive" style={{ animationDuration: "22s", animationDelay: "-12s" }}>
-                <AnimatedTruck className="w-20 h-12 mt-[120px]" color={NEON} />
-              </div>
-              <div className="absolute top-2 right-2 flex items-center gap-1.5">
-                <span className="h-1.5 w-1.5 rounded-full bg-mining-green animate-pulse" style={{ boxShadow: `0 0 8px ${NEON}` }} />
-                <span className="text-[9px] font-mono text-mining-green tracking-[0.2em]">LIVE</span>
-              </div>
-            </div>
-          </CardShell>
         </div>
 
-        {/* COLUNA DIREITA: PRODUÇÃO TURNO + TONELADAS/H + RANKING */}
+        {/* COLUNA DIREITA: RANKING + TONELADAS/H + PRODUÇÃO TURNO + OPERAÇÃO AO VIVO */}
         <div className="col-span-12 lg:col-span-6 flex flex-col gap-3">
-          <CardShell title="PRODUÇÃO DO TURNO (TONELADAS)">
-            <div className="h-56">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={productionSeries} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="prodFill" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor={NEON} stopOpacity={0.5} />
-                      <stop offset="100%" stopColor={NEON} stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid stroke="rgba(34,197,94,0.08)" />
-                  <XAxis dataKey="hora" stroke="#4ade80" tick={{ fontSize: 10, fontFamily: "monospace" }} />
-                  <YAxis stroke="#4ade80" tick={{ fontSize: 10, fontFamily: "monospace" }} />
-                  <Tooltip
-                    contentStyle={{ background: "#000", border: `1px solid ${NEON}`, fontFamily: "monospace", fontSize: 11 }}
-                    labelStyle={{ color: NEON }}
-                  />
-                  <Area type="monotone" dataKey="realizado" stroke={NEON} strokeWidth={2} fill="url(#prodFill)" name="Realizado" />
-                  <Line type="monotone" dataKey="meta" stroke="#9ca3af" strokeDasharray="4 4" strokeWidth={1.5} dot={false} name="Meta" />
-                  <Line type="monotone" dataKey="hd785" stroke={YELLOW} strokeWidth={2} dot={false} name="HD785" />
-                </AreaChart>
-              </ResponsiveContainer>
+          <CardShell title="RANKING DE PRODUTIVIDADE — ESCAVADEIRAS (T/H)">
+            <div className="space-y-1.5">
+              {ranking.map((r, i) => {
+                const max = ranking[0].value;
+                const pct = (r.value / max) * 100;
+                return (
+                  <div key={r.name} className="flex items-center gap-2 text-sm font-mono">
+                    <span className="w-5 text-muted-foreground text-right">{r.pos}</span>
+                    <span className="w-24 text-foreground">{r.name}</span>
+                    <div className="flex-1 h-3 bg-white/5 rounded-sm overflow-hidden">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${pct}%` }}
+                        transition={{ duration: 1, delay: i * 0.05 }}
+                        className="h-full rounded-sm"
+                        style={{ background: NEON, boxShadow: `0 0 8px ${NEON}` }}
+                      />
+                    </div>
+                    <span className="w-20 text-right text-mining-green font-bold">{fmt(r.value)} t/h</span>
+                  </div>
+                );
+              })}
             </div>
           </CardShell>
 
@@ -661,28 +633,51 @@ export function OpsCenter() {
             )}
           </CardShell>
 
-          <CardShell title="RANKING DE PRODUTIVIDADE — ESCAVADEIRAS (T/H)">
-            <div className="space-y-1.5">
-              {ranking.map((r, i) => {
-                const max = ranking[0].value;
-                const pct = (r.value / max) * 100;
-                return (
-                  <div key={r.name} className="flex items-center gap-2 text-sm font-mono">
-                    <span className="w-5 text-muted-foreground text-right">{r.pos}</span>
-                    <span className="w-24 text-foreground">{r.name}</span>
-                    <div className="flex-1 h-3 bg-white/5 rounded-sm overflow-hidden">
-                      <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: `${pct}%` }}
-                        transition={{ duration: 1, delay: i * 0.05 }}
-                        className="h-full rounded-sm"
-                        style={{ background: NEON, boxShadow: `0 0 8px ${NEON}` }}
-                      />
-                    </div>
-                    <span className="w-20 text-right text-mining-green font-bold">{fmt(r.value)} t/h</span>
-                  </div>
-                );
-              })}
+          <CardShell title="PRODUÇÃO DO TURNO (TONELADAS)">
+            <div className="h-56">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={productionSeries} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="prodFill" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={NEON} stopOpacity={0.5} />
+                      <stop offset="100%" stopColor={NEON} stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid stroke="rgba(34,197,94,0.08)" />
+                  <XAxis dataKey="hora" stroke="#4ade80" tick={{ fontSize: 10, fontFamily: "monospace" }} />
+                  <YAxis stroke="#4ade80" tick={{ fontSize: 10, fontFamily: "monospace" }} />
+                  <Tooltip
+                    contentStyle={{ background: "#000", border: `1px solid ${NEON}`, fontFamily: "monospace", fontSize: 11 }}
+                    labelStyle={{ color: NEON }}
+                  />
+                  <Area type="monotone" dataKey="realizado" stroke={NEON} strokeWidth={2} fill="url(#prodFill)" name="Realizado" />
+                  <Line type="monotone" dataKey="meta" stroke="#9ca3af" strokeDasharray="4 4" strokeWidth={1.5} dot={false} name="Meta" />
+                  <Line type="monotone" dataKey="hd785" stroke={YELLOW} strokeWidth={2} dot={false} name="HD785" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </CardShell>
+
+          <CardShell title="OPERAÇÃO AO VIVO">
+            <div className="relative h-52 overflow-hidden rounded-sm bg-gradient-to-b from-black via-black to-mining-green/5">
+              <div className="absolute inset-x-0 bottom-6 h-px bg-gradient-to-r from-transparent via-mining-green/40 to-transparent" />
+              <div className="absolute inset-x-0 bottom-3 h-px bg-gradient-to-r from-transparent via-mining-green/20 to-transparent" />
+              <div className="absolute left-3 bottom-4">
+                <AnimatedExcavator className="w-20 h-14" />
+              </div>
+              <div className="absolute inset-y-0 w-20 animate-truck-drive" style={{ animationDuration: "14s" }}>
+                <AnimatedTruck className="w-20 h-12 mt-[120px]" color={YELLOW} />
+              </div>
+              <div className="absolute inset-y-0 w-20 animate-truck-drive" style={{ animationDuration: "18s", animationDelay: "-6s" }}>
+                <AnimatedTruck className="w-20 h-12 mt-[120px]" color="#fb923c" />
+              </div>
+              <div className="absolute inset-y-0 w-20 animate-truck-drive" style={{ animationDuration: "22s", animationDelay: "-12s" }}>
+                <AnimatedTruck className="w-20 h-12 mt-[120px]" color={NEON} />
+              </div>
+              <div className="absolute top-2 right-2 flex items-center gap-1.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-mining-green animate-pulse" style={{ boxShadow: `0 0 8px ${NEON}` }} />
+                <span className="text-[9px] font-mono text-mining-green tracking-[0.2em]">LIVE</span>
+              </div>
             </div>
           </CardShell>
         </div>
