@@ -153,15 +153,15 @@ function FleetRow({
         )}
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-lg font-mono font-bold text-foreground truncate">{name}</p>
-        <p className="text-sm font-mono text-muted-foreground">
+        <p className="text-2xl font-mono font-bold text-foreground truncate">{name}</p>
+        <p className="text-base font-mono text-muted-foreground">
           ({count}/{total})
         </p>
       </div>
       <Donut value={value} color={color} />
-      <div className="text-right w-14">
-        <p className="text-xs font-mono text-muted-foreground uppercase">Meta</p>
-        <p className="text-base font-mono text-foreground">{meta.toFixed(1)}%</p>
+      <div className="text-right w-20 shrink-0">
+        <p className="text-sm font-mono text-muted-foreground uppercase">Meta</p>
+        <p className="text-lg font-mono text-foreground whitespace-nowrap">{meta.toFixed(1)}%</p>
       </div>
     </div>
   );
