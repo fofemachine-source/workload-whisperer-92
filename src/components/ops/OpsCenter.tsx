@@ -487,34 +487,6 @@ export function OpsCenter() {
           </CardShell>
         </div>
 
-        {/* GRÁFICO PRODUÇÃO TURNO */}
-        <div className="col-span-12 lg:col-span-6">
-          <CardShell title="PRODUÇÃO DO TURNO (TONELADAS)">
-            <div className="h-56">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={productionSeries} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="prodFill" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor={NEON} stopOpacity={0.5} />
-                      <stop offset="100%" stopColor={NEON} stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid stroke="rgba(34,197,94,0.08)" />
-                  <XAxis dataKey="hora" stroke="#4ade80" tick={{ fontSize: 10, fontFamily: "monospace" }} />
-                  <YAxis stroke="#4ade80" tick={{ fontSize: 10, fontFamily: "monospace" }} />
-                  <Tooltip
-                    contentStyle={{ background: "#000", border: `1px solid ${NEON}`, fontFamily: "monospace", fontSize: 11 }}
-                    labelStyle={{ color: NEON }}
-                  />
-                  <Area type="monotone" dataKey="realizado" stroke={NEON} strokeWidth={2} fill="url(#prodFill)" name="Realizado" />
-                  <Line type="monotone" dataKey="meta" stroke="#9ca3af" strokeDasharray="4 4" strokeWidth={1.5} dot={false} name="Meta" />
-                  <Line type="monotone" dataKey="hd785" stroke={YELLOW} strokeWidth={2} dot={false} name="HD785" />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </CardShell>
-        </div>
-
         {/* DF POR FROTA */}
         <div className="col-span-12 md:col-span-6 lg:col-span-3">
           <CardShell title="% DISPONIBILIDADE FÍSICA POR FROTA">
@@ -547,6 +519,34 @@ export function OpsCenter() {
                 color={BLUE}
               />
             ))}
+          </CardShell>
+        </div>
+
+        {/* GRÁFICO PRODUÇÃO TURNO */}
+        <div className="col-span-12 lg:col-span-6">
+          <CardShell title="PRODUÇÃO DO TURNO (TONELADAS)">
+            <div className="h-56">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={productionSeries} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="prodFill" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={NEON} stopOpacity={0.5} />
+                      <stop offset="100%" stopColor={NEON} stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid stroke="rgba(34,197,94,0.08)" />
+                  <XAxis dataKey="hora" stroke="#4ade80" tick={{ fontSize: 10, fontFamily: "monospace" }} />
+                  <YAxis stroke="#4ade80" tick={{ fontSize: 10, fontFamily: "monospace" }} />
+                  <Tooltip
+                    contentStyle={{ background: "#000", border: `1px solid ${NEON}`, fontFamily: "monospace", fontSize: 11 }}
+                    labelStyle={{ color: NEON }}
+                  />
+                  <Area type="monotone" dataKey="realizado" stroke={NEON} strokeWidth={2} fill="url(#prodFill)" name="Realizado" />
+                  <Line type="monotone" dataKey="meta" stroke="#9ca3af" strokeDasharray="4 4" strokeWidth={1.5} dot={false} name="Meta" />
+                  <Line type="monotone" dataKey="hd785" stroke={YELLOW} strokeWidth={2} dot={false} name="HD785" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
           </CardShell>
         </div>
 
