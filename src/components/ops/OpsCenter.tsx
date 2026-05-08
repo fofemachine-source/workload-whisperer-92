@@ -620,7 +620,7 @@ export function OpsCenter() {
         </div>
 
         {/* OPERAÇÃO AO VIVO — preenche espaço lateral */}
-        <div className="col-span-12 md:col-span-6 lg:col-span-3">
+        <div className="col-span-12 lg:col-span-9">
           <CardShell title="OPERAÇÃO AO VIVO">
             <div className="relative h-52 overflow-hidden rounded-sm bg-gradient-to-b from-black via-black to-mining-green/5">
               {/* chão */}
@@ -652,36 +652,8 @@ export function OpsCenter() {
           </CardShell>
         </div>
 
-        {/* RANKING */}
-        <div className="col-span-12 lg:col-span-6">
-          <CardShell title="RANKING DE PRODUTIVIDADE — ESCAVADEIRAS (T/H)">
-            <div className="space-y-1.5">
-              {ranking.map((r, i) => {
-                const max = ranking[0].value;
-                const pct = (r.value / max) * 100;
-                return (
-                  <div key={r.name} className="flex items-center gap-2 text-sm font-mono">
-                    <span className="w-5 text-muted-foreground text-right">{r.pos}</span>
-                    <span className="w-24 text-foreground">{r.name}</span>
-                    <div className="flex-1 h-3 bg-white/5 rounded-sm overflow-hidden">
-                      <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: `${pct}%` }}
-                        transition={{ duration: 1, delay: i * 0.05 }}
-                        className="h-full rounded-sm"
-                        style={{ background: NEON, boxShadow: `0 0 8px ${NEON}` }}
-                      />
-                    </div>
-                    <span className="w-20 text-right text-mining-green font-bold">{fmt(r.value)} t/h</span>
-                  </div>
-                );
-              })}
-            </div>
-          </CardShell>
-        </div>
-
-        {/* FROTA CAMINHÕES */}
-        <div className="col-span-12 md:col-span-6 lg:col-span-3">
+        {/* COLUNA DIREITA: FROTA CAMINHÕES + RANKING empilhados */}
+        <div className="col-span-12 lg:col-span-3 flex flex-col gap-3">
           <CardShell title={`FROTA DE CAMINHÕES · ${opCam}/${FLEET_SIZE["Komatsu 785"] + FLEET_SIZE["Komatsu 730"]} OPERANDO`}>
             <div className="space-y-3">
               {[
@@ -705,6 +677,31 @@ export function OpsCenter() {
                   </div>
                 </div>
               ))}
+            </div>
+          </CardShell>
+
+          <CardShell title="RANKING DE PRODUTIVIDADE — ESCAVADEIRAS (T/H)">
+            <div className="space-y-1.5">
+              {ranking.map((r, i) => {
+                const max = ranking[0].value;
+                const pct = (r.value / max) * 100;
+                return (
+                  <div key={r.name} className="flex items-center gap-2 text-xs font-mono">
+                    <span className="w-4 text-muted-foreground text-right">{r.pos}</span>
+                    <span className="w-16 text-foreground truncate">{r.name}</span>
+                    <div className="flex-1 h-2.5 bg-white/5 rounded-sm overflow-hidden">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${pct}%` }}
+                        transition={{ duration: 1, delay: i * 0.05 }}
+                        className="h-full rounded-sm"
+                        style={{ background: NEON, boxShadow: `0 0 8px ${NEON}` }}
+                      />
+                    </div>
+                    <span className="w-16 text-right text-mining-green font-bold">{fmt(r.value)} t/h</span>
+                  </div>
+                );
+              })}
             </div>
           </CardShell>
         </div>
