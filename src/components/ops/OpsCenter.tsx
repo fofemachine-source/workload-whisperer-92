@@ -522,36 +522,8 @@ export function OpsCenter() {
           </CardShell>
         </div>
 
-        {/* GRÁFICO PRODUÇÃO TURNO */}
-        <div className="col-span-12 lg:col-span-6">
-          <CardShell title="PRODUÇÃO DO TURNO (TONELADAS)">
-            <div className="h-56">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={productionSeries} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="prodFill" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor={NEON} stopOpacity={0.5} />
-                      <stop offset="100%" stopColor={NEON} stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid stroke="rgba(34,197,94,0.08)" />
-                  <XAxis dataKey="hora" stroke="#4ade80" tick={{ fontSize: 10, fontFamily: "monospace" }} />
-                  <YAxis stroke="#4ade80" tick={{ fontSize: 10, fontFamily: "monospace" }} />
-                  <Tooltip
-                    contentStyle={{ background: "#000", border: `1px solid ${NEON}`, fontFamily: "monospace", fontSize: 11 }}
-                    labelStyle={{ color: NEON }}
-                  />
-                  <Area type="monotone" dataKey="realizado" stroke={NEON} strokeWidth={2} fill="url(#prodFill)" name="Realizado" />
-                  <Line type="monotone" dataKey="meta" stroke="#9ca3af" strokeDasharray="4 4" strokeWidth={1.5} dot={false} name="Meta" />
-                  <Line type="monotone" dataKey="hd785" stroke={YELLOW} strokeWidth={2} dot={false} name="HD785" />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </CardShell>
-        </div>
-
-        {/* FROTA ESCAVADEIRAS */}
-        <div className="col-span-12 md:col-span-6 lg:col-span-3">
+        {/* COLUNA ESQUERDA: ESCAVADEIRAS + CAMINHÕES */}
+        <div className="col-span-12 lg:col-span-3 flex flex-col gap-3">
           <CardShell title={`FROTA DE ESCAVADEIRAS · ${opEscav}/${fleets[0].count + fleets[1].count} OPERANDO`}>
             <div className="space-y-3">
               {[
@@ -575,85 +547,7 @@ export function OpsCenter() {
               ))}
             </div>
           </CardShell>
-        </div>
 
-        {/* EQUIPAMENTOS OPERANDO — ao lado da Frota de Escavadeiras */}
-        <div className="col-span-12 md:col-span-6 lg:col-span-3">
-          <CardShell title="EQUIPAMENTOS OPERANDO">
-            <div className="flex items-center justify-between h-full min-h-[120px]">
-              <div>
-                <p className="text-5xl font-mono font-bold text-mining-green text-glow-neon">
-                  {opTotal} <span className="text-foreground">/ {FLEET_TOTAL}</span>
-                </p>
-                <p className="mt-2 text-base font-mono text-muted-foreground">{pctOp.toFixed(1)}% DO TOTAL</p>
-              </div>
-              <div className="w-24 h-14 relative">
-                <AnimatedExcavator className="w-24 h-14" />
-              </div>
-            </div>
-          </CardShell>
-        </div>
-
-        {/* TONELADAS POR HORA */}
-        <div className="col-span-12 lg:col-span-6">
-          <CardShell title="TONELADAS POR HORA">
-            <div className="h-52">
-              <ResponsiveContainer width="100%" height="100%">
-                <ComposedChart data={tonHSeries} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
-                  <CartesianGrid stroke="rgba(34,197,94,0.08)" />
-                  <XAxis dataKey="hora" stroke="#4ade80" tick={{ fontSize: 10, fontFamily: "monospace" }} />
-                  <YAxis stroke="#4ade80" tick={{ fontSize: 10, fontFamily: "monospace" }} />
-                  <Tooltip contentStyle={{ background: "#000", border: `1px solid ${NEON}`, fontSize: 11, fontFamily: "monospace" }} labelStyle={{ color: NEON }} />
-                  <Bar dataKey="tonH" fill={NEON} radius={[2, 2, 0, 0]} name="Ton/h" />
-                  <Line type="monotone" dataKey="meta" stroke={YELLOW} strokeDasharray="4 4" strokeWidth={1.5} dot={false} name="Meta" />
-                </ComposedChart>
-              </ResponsiveContainer>
-            </div>
-            {tonHCheck && (
-              <div className={`mt-2 px-2 py-1 text-[10px] font-mono rounded-sm border ${tonHCheck.ok ? "border-mining-green/40 text-mining-green/80 bg-mining-green/5" : "border-mining-yellow/60 text-mining-yellow bg-mining-yellow/10"}`}>
-                {tonHCheck.ok
-                  ? `✓ SOMA HORÁRIA ${tonHCheck.soma}t = TOTAL DIA ${tonHCheck.total}t`
-                  : `⚠ DIVERGÊNCIA: soma horária ${tonHCheck.soma}t vs total dia ${tonHCheck.total}t (Δ ${tonHCheck.diff > 0 ? "+" : ""}${tonHCheck.diff}t · ${tonHCheck.pct.toFixed(1)}%)`}
-              </div>
-            )}
-          </CardShell>
-        </div>
-
-        {/* OPERAÇÃO AO VIVO — preenche espaço lateral */}
-        <div className="col-span-12 lg:col-span-9">
-          <CardShell title="OPERAÇÃO AO VIVO">
-            <div className="relative h-52 overflow-hidden rounded-sm bg-gradient-to-b from-black via-black to-mining-green/5">
-              {/* chão */}
-              <div className="absolute inset-x-0 bottom-6 h-px bg-gradient-to-r from-transparent via-mining-green/40 to-transparent" />
-              <div className="absolute inset-x-0 bottom-3 h-px bg-gradient-to-r from-transparent via-mining-green/20 to-transparent" />
-
-              {/* escavadeira fixa operando */}
-              <div className="absolute left-3 bottom-4">
-                <AnimatedExcavator className="w-20 h-14" />
-              </div>
-
-              {/* caminhões cruzando em loop */}
-              <div className="absolute inset-y-0 w-20 animate-truck-drive" style={{ animationDuration: "14s" }}>
-                <AnimatedTruck className="w-20 h-12 mt-[120px]" color={YELLOW} />
-              </div>
-              <div className="absolute inset-y-0 w-20 animate-truck-drive" style={{ animationDuration: "18s", animationDelay: "-6s" }}>
-                <AnimatedTruck className="w-20 h-12 mt-[120px]" color="#fb923c" />
-              </div>
-              <div className="absolute inset-y-0 w-20 animate-truck-drive" style={{ animationDuration: "22s", animationDelay: "-12s" }}>
-                <AnimatedTruck className="w-20 h-12 mt-[120px]" color={NEON} />
-              </div>
-
-              {/* indicador */}
-              <div className="absolute top-2 right-2 flex items-center gap-1.5">
-                <span className="h-1.5 w-1.5 rounded-full bg-mining-green animate-pulse" style={{ boxShadow: `0 0 8px ${NEON}` }} />
-                <span className="text-[9px] font-mono text-mining-green tracking-[0.2em]">LIVE</span>
-              </div>
-            </div>
-          </CardShell>
-        </div>
-
-        {/* COLUNA DIREITA: FROTA CAMINHÕES + RANKING empilhados */}
-        <div className="col-span-12 lg:col-span-3 flex flex-col gap-3">
           <CardShell title={`FROTA DE CAMINHÕES · ${opCam}/${FLEET_SIZE["Komatsu 785"] + FLEET_SIZE["Komatsu 730"]} OPERANDO`}>
             <div className="space-y-3">
               {[
@@ -679,6 +573,56 @@ export function OpsCenter() {
               ))}
             </div>
           </CardShell>
+        </div>
+
+        {/* COLUNA CENTRAL: PRODUÇÃO TURNO + TONELADAS/H + RANKING */}
+        <div className="col-span-12 lg:col-span-6 flex flex-col gap-3">
+          <CardShell title="PRODUÇÃO DO TURNO (TONELADAS)">
+            <div className="h-56">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={productionSeries} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="prodFill" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={NEON} stopOpacity={0.5} />
+                      <stop offset="100%" stopColor={NEON} stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid stroke="rgba(34,197,94,0.08)" />
+                  <XAxis dataKey="hora" stroke="#4ade80" tick={{ fontSize: 10, fontFamily: "monospace" }} />
+                  <YAxis stroke="#4ade80" tick={{ fontSize: 10, fontFamily: "monospace" }} />
+                  <Tooltip
+                    contentStyle={{ background: "#000", border: `1px solid ${NEON}`, fontFamily: "monospace", fontSize: 11 }}
+                    labelStyle={{ color: NEON }}
+                  />
+                  <Area type="monotone" dataKey="realizado" stroke={NEON} strokeWidth={2} fill="url(#prodFill)" name="Realizado" />
+                  <Line type="monotone" dataKey="meta" stroke="#9ca3af" strokeDasharray="4 4" strokeWidth={1.5} dot={false} name="Meta" />
+                  <Line type="monotone" dataKey="hd785" stroke={YELLOW} strokeWidth={2} dot={false} name="HD785" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </CardShell>
+
+          <CardShell title="TONELADAS POR HORA">
+            <div className="h-52">
+              <ResponsiveContainer width="100%" height="100%">
+                <ComposedChart data={tonHSeries} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
+                  <CartesianGrid stroke="rgba(34,197,94,0.08)" />
+                  <XAxis dataKey="hora" stroke="#4ade80" tick={{ fontSize: 10, fontFamily: "monospace" }} />
+                  <YAxis stroke="#4ade80" tick={{ fontSize: 10, fontFamily: "monospace" }} />
+                  <Tooltip contentStyle={{ background: "#000", border: `1px solid ${NEON}`, fontSize: 11, fontFamily: "monospace" }} labelStyle={{ color: NEON }} />
+                  <Bar dataKey="tonH" fill={NEON} radius={[2, 2, 0, 0]} name="Ton/h" />
+                  <Line type="monotone" dataKey="meta" stroke={YELLOW} strokeDasharray="4 4" strokeWidth={1.5} dot={false} name="Meta" />
+                </ComposedChart>
+              </ResponsiveContainer>
+            </div>
+            {tonHCheck && (
+              <div className={`mt-2 px-2 py-1 text-[10px] font-mono rounded-sm border ${tonHCheck.ok ? "border-mining-green/40 text-mining-green/80 bg-mining-green/5" : "border-mining-yellow/60 text-mining-yellow bg-mining-yellow/10"}`}>
+                {tonHCheck.ok
+                  ? `✓ SOMA HORÁRIA ${tonHCheck.soma}t = TOTAL DIA ${tonHCheck.total}t`
+                  : `⚠ DIVERGÊNCIA: soma horária ${tonHCheck.soma}t vs total dia ${tonHCheck.total}t (Δ ${tonHCheck.diff > 0 ? "+" : ""}${tonHCheck.diff}t · ${tonHCheck.pct.toFixed(1)}%)`}
+              </div>
+            )}
+          </CardShell>
 
           <CardShell title="RANKING DE PRODUTIVIDADE — ESCAVADEIRAS (T/H)">
             <div className="space-y-1.5">
@@ -686,10 +630,10 @@ export function OpsCenter() {
                 const max = ranking[0].value;
                 const pct = (r.value / max) * 100;
                 return (
-                  <div key={r.name} className="flex items-center gap-2 text-xs font-mono">
-                    <span className="w-4 text-muted-foreground text-right">{r.pos}</span>
-                    <span className="w-16 text-foreground truncate">{r.name}</span>
-                    <div className="flex-1 h-2.5 bg-white/5 rounded-sm overflow-hidden">
+                  <div key={r.name} className="flex items-center gap-2 text-sm font-mono">
+                    <span className="w-5 text-muted-foreground text-right">{r.pos}</span>
+                    <span className="w-24 text-foreground">{r.name}</span>
+                    <div className="flex-1 h-3 bg-white/5 rounded-sm overflow-hidden">
                       <motion.div
                         initial={{ width: 0 }}
                         animate={{ width: `${pct}%` }}
@@ -698,10 +642,50 @@ export function OpsCenter() {
                         style={{ background: NEON, boxShadow: `0 0 8px ${NEON}` }}
                       />
                     </div>
-                    <span className="w-16 text-right text-mining-green font-bold">{fmt(r.value)} t/h</span>
+                    <span className="w-20 text-right text-mining-green font-bold">{fmt(r.value)} t/h</span>
                   </div>
                 );
               })}
+            </div>
+          </CardShell>
+        </div>
+
+        {/* COLUNA DIREITA: EQUIPAMENTOS OPERANDO + OPERAÇÃO AO VIVO */}
+        <div className="col-span-12 lg:col-span-3 flex flex-col gap-3">
+          <CardShell title="EQUIPAMENTOS OPERANDO">
+            <div className="flex items-center justify-between h-full min-h-[120px]">
+              <div>
+                <p className="text-5xl font-mono font-bold text-mining-green text-glow-neon">
+                  {opTotal} <span className="text-foreground">/ {FLEET_TOTAL}</span>
+                </p>
+                <p className="mt-2 text-base font-mono text-muted-foreground">{pctOp.toFixed(1)}% DO TOTAL</p>
+              </div>
+              <div className="w-24 h-14 relative">
+                <AnimatedExcavator className="w-24 h-14" />
+              </div>
+            </div>
+          </CardShell>
+
+          <CardShell title="OPERAÇÃO AO VIVO">
+            <div className="relative h-52 overflow-hidden rounded-sm bg-gradient-to-b from-black via-black to-mining-green/5">
+              <div className="absolute inset-x-0 bottom-6 h-px bg-gradient-to-r from-transparent via-mining-green/40 to-transparent" />
+              <div className="absolute inset-x-0 bottom-3 h-px bg-gradient-to-r from-transparent via-mining-green/20 to-transparent" />
+              <div className="absolute left-3 bottom-4">
+                <AnimatedExcavator className="w-20 h-14" />
+              </div>
+              <div className="absolute inset-y-0 w-20 animate-truck-drive" style={{ animationDuration: "14s" }}>
+                <AnimatedTruck className="w-20 h-12 mt-[120px]" color={YELLOW} />
+              </div>
+              <div className="absolute inset-y-0 w-20 animate-truck-drive" style={{ animationDuration: "18s", animationDelay: "-6s" }}>
+                <AnimatedTruck className="w-20 h-12 mt-[120px]" color="#fb923c" />
+              </div>
+              <div className="absolute inset-y-0 w-20 animate-truck-drive" style={{ animationDuration: "22s", animationDelay: "-12s" }}>
+                <AnimatedTruck className="w-20 h-12 mt-[120px]" color={NEON} />
+              </div>
+              <div className="absolute top-2 right-2 flex items-center gap-1.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-mining-green animate-pulse" style={{ boxShadow: `0 0 8px ${NEON}` }} />
+                <span className="text-[9px] font-mono text-mining-green tracking-[0.2em]">LIVE</span>
+              </div>
             </div>
           </CardShell>
         </div>
