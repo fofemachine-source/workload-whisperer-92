@@ -68,7 +68,7 @@ function CardShell({
       className={`relative bg-black/70 border border-mining-green/25 rounded-md overflow-hidden shadow-[0_0_24px_-12px_hsl(var(--mining-green)/0.6)] ${className}`}
     >
       <div className="px-3 py-1.5 border-b border-mining-green/20 bg-mining-green/5">
-        <p className="text-[10px] font-mono font-bold tracking-[0.18em] text-mining-green uppercase">
+        <p className="text-xs font-mono font-bold tracking-[0.18em] text-mining-green uppercase">
           {title}
         </p>
       </div>
@@ -116,7 +116,7 @@ function Donut({ value, color = NEON, label }: { value: number; color?: string; 
           style={{ filter: `drop-shadow(0 0 6px ${color})` }}
         />
       </svg>
-      <span className="text-[11px] font-mono font-bold" style={{ color }}>
+      <span className="text-[13px] font-mono font-bold" style={{ color }}>
         {v.toFixed(1)}%
       </span>
       {label && <span className="sr-only">{label}</span>}
@@ -153,15 +153,15 @@ function FleetRow({
         )}
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-[11px] font-mono font-bold text-foreground truncate">{name}</p>
-        <p className="text-[9px] font-mono text-muted-foreground">
+        <p className="text-sm font-mono font-bold text-foreground truncate">{name}</p>
+        <p className="text-[11px] font-mono text-muted-foreground">
           ({count}/{total})
         </p>
       </div>
       <Donut value={value} color={color} />
       <div className="text-right w-14">
-        <p className="text-[8px] font-mono text-muted-foreground uppercase">Meta</p>
-        <p className="text-[10px] font-mono text-foreground">{meta.toFixed(1)}%</p>
+        <p className="text-[10px] font-mono text-muted-foreground uppercase">Meta</p>
+        <p className="text-xs font-mono text-foreground">{meta.toFixed(1)}%</p>
       </div>
     </div>
   );
@@ -405,13 +405,13 @@ export function OpsCenter() {
           <CardShell title="PRODUÇÃO DO DIA">
             <div className="space-y-2">
               <div className="flex items-center justify-between gap-2">
-                <span className="text-[11px] font-mono text-muted-foreground uppercase tracking-wider">ACUMULADO DIA:</span>
-                <span className="text-2xl font-mono font-bold text-mining-blue">{fmt(summary?.acumuladoDia || producaoTurno)}</span>
+                <span className="text-sm font-mono text-muted-foreground uppercase tracking-wider">ACUMULADO DIA:</span>
+                <span className="text-3xl font-mono font-bold text-mining-blue">{fmt(summary?.acumuladoDia || producaoTurno)}</span>
               </div>
               <div className="h-px bg-mining-green/15" />
               <div className="flex items-center justify-between gap-2">
-                <span className="text-[11px] font-mono text-muted-foreground uppercase tracking-wider">PROJETADO DIA:</span>
-                <span className="text-2xl font-mono font-bold text-mining-green text-glow-neon">{fmt(summary?.projetadoDia || summary?.acumuladoDia || producaoTurno)}</span>
+                <span className="text-sm font-mono text-muted-foreground uppercase tracking-wider">PROJETADO DIA:</span>
+                <span className="text-3xl font-mono font-bold text-mining-green text-glow-neon">{fmt(summary?.projetadoDia || summary?.acumuladoDia || producaoTurno)}</span>
               </div>
             </div>
           </CardShell>
@@ -420,13 +420,13 @@ export function OpsCenter() {
           <CardShell title="RETALUDAMENTO">
             <div className="space-y-2">
               <div className="flex items-center justify-between gap-2">
-                <span className="text-[11px] font-mono text-muted-foreground uppercase tracking-wider">ACUMULADO DIA:</span>
-                <span className="text-2xl font-mono font-bold text-mining-blue">{fmt(acumuladoRetaludShown)}</span>
+                <span className="text-sm font-mono text-muted-foreground uppercase tracking-wider">ACUMULADO DIA:</span>
+                <span className="text-3xl font-mono font-bold text-mining-blue">{fmt(acumuladoRetaludShown)}</span>
               </div>
               <div className="h-px bg-mining-green/15" />
               <div className="flex items-center justify-between gap-2">
-                <span className="text-[11px] font-mono text-muted-foreground uppercase tracking-wider">PROJETADO DIA:</span>
-                <span className="text-2xl font-mono font-bold text-mining-green text-glow-neon">{fmt(projetadoRetaludShown)}</span>
+                <span className="text-sm font-mono text-muted-foreground uppercase tracking-wider">PROJETADO DIA:</span>
+                <span className="text-3xl font-mono font-bold text-mining-green text-glow-neon">{fmt(projetadoRetaludShown)}</span>
               </div>
               <div className="pt-1 flex items-center justify-between">
                 <span className="text-[9px] font-mono text-muted-foreground">
@@ -469,10 +469,10 @@ export function OpsCenter() {
         <div className="col-span-12 md:col-span-3">
           <CardShell title="PRODUÇÃO MENSAL">
             <div className="flex items-end justify-between">
-              <p className="text-3xl font-mono font-bold text-mining-green text-glow-neon">{fmt(producaoMensal)} <span className="text-base">t</span></p>
-              <p className="text-2xl font-mono font-bold text-foreground">{aderMensal.toFixed(1)}%</p>
+              <p className="text-4xl font-mono font-bold text-mining-green text-glow-neon">{fmt(producaoMensal)} <span className="text-lg">t</span></p>
+              <p className="text-3xl font-mono font-bold text-foreground">{aderMensal.toFixed(1)}%</p>
             </div>
-            <div className="mt-2 flex items-center justify-between text-[10px] font-mono text-muted-foreground">
+            <div className="mt-2 flex items-center justify-between text-xs font-mono text-muted-foreground">
               <span>META: {fmt(metaMensal)} t</span>
               <span>DA META</span>
             </div>
@@ -481,8 +481,8 @@ export function OpsCenter() {
         </div>
         <div className="col-span-12 md:col-span-3">
           <CardShell title="TONELADAS / HORA (MÉDIA DO TURNO)">
-            <p className="text-3xl font-mono font-bold text-mining-green text-glow-neon">{fmt(tonH)} <span className="text-base">t/h</span></p>
-            <div className="mt-3 text-[10px] font-mono text-muted-foreground">META: {fmt(metaTonH)} t/h</div>
+            <p className="text-4xl font-mono font-bold text-mining-green text-glow-neon">{fmt(tonH)} <span className="text-lg">t/h</span></p>
+            <div className="mt-3 text-xs font-mono text-muted-foreground">META: {fmt(metaTonH)} t/h</div>
             <div className="mt-1.5"><ProgressBar value={(tonH / metaTonH) * 100} color={BLUE} /></div>
           </CardShell>
         </div>
@@ -563,13 +563,13 @@ export function OpsCenter() {
                     <AnimatedExcavator className="w-20 h-14" />
                   </div>
                   <div>
-                    <p className="font-mono font-bold text-foreground"><span className="text-mining-green">{g.qty}x</span> {g.model}</p>
+                    <p className="text-base font-mono font-bold text-foreground"><span className="text-mining-green">{g.qty}x</span> {g.model}</p>
                   </div>
-                  <div className="ml-auto text-right text-[10px] font-mono">
+                  <div className="ml-auto text-right text-xs font-mono">
                     <p className="text-muted-foreground">PRODUÇÃO</p>
-                    <p className="text-mining-green font-bold">{fmt(g.prod)} t</p>
+                    <p className="text-mining-green font-bold text-sm">{fmt(g.prod)} t</p>
                     <p className="text-muted-foreground mt-0.5">TON/H MÉDIA</p>
-                    <p className="text-mining-green font-bold">{fmt(g.tonH)} t/h</p>
+                    <p className="text-mining-green font-bold text-sm">{fmt(g.tonH)} t/h</p>
                   </div>
                 </div>
               ))}
@@ -582,10 +582,10 @@ export function OpsCenter() {
           <CardShell title="EQUIPAMENTOS OPERANDO">
             <div className="flex items-center justify-between h-full min-h-[120px]">
               <div>
-                <p className="text-3xl font-mono font-bold text-mining-green text-glow-neon">
+                <p className="text-5xl font-mono font-bold text-mining-green text-glow-neon">
                   {opTotal} <span className="text-foreground">/ {FLEET_TOTAL}</span>
                 </p>
-                <p className="mt-2 text-[10px] font-mono text-muted-foreground">{pctOp.toFixed(1)}% DO TOTAL</p>
+                <p className="mt-2 text-sm font-mono text-muted-foreground">{pctOp.toFixed(1)}% DO TOTAL</p>
               </div>
               <div className="w-24 h-14 relative">
                 <AnimatedExcavator className="w-24 h-14" />
@@ -660,9 +660,9 @@ export function OpsCenter() {
                 const max = ranking[0].value;
                 const pct = (r.value / max) * 100;
                 return (
-                  <div key={r.name} className="flex items-center gap-2 text-[11px] font-mono">
-                    <span className="w-4 text-muted-foreground text-right">{r.pos}</span>
-                    <span className="w-20 text-foreground">{r.name}</span>
+                  <div key={r.name} className="flex items-center gap-2 text-sm font-mono">
+                    <span className="w-5 text-muted-foreground text-right">{r.pos}</span>
+                    <span className="w-24 text-foreground">{r.name}</span>
                     <div className="flex-1 h-3 bg-white/5 rounded-sm overflow-hidden">
                       <motion.div
                         initial={{ width: 0 }}
@@ -672,7 +672,7 @@ export function OpsCenter() {
                         style={{ background: NEON, boxShadow: `0 0 8px ${NEON}` }}
                       />
                     </div>
-                    <span className="w-16 text-right text-mining-green font-bold">{fmt(r.value)} t/h</span>
+                    <span className="w-20 text-right text-mining-green font-bold">{fmt(r.value)} t/h</span>
                   </div>
                 );
               })}
@@ -695,13 +695,13 @@ export function OpsCenter() {
                     </div>
                   </div>
                   <div>
-                    <p className="font-mono font-bold text-foreground"><span className="text-mining-green">{g.qty}x</span> {g.model}</p>
+                    <p className="text-base font-mono font-bold text-foreground"><span className="text-mining-green">{g.qty}x</span> {g.model}</p>
                   </div>
-                  <div className="ml-auto text-right text-[10px] font-mono">
+                  <div className="ml-auto text-right text-xs font-mono">
                     <p className="text-muted-foreground">TONELADAS</p>
-                    <p className="text-mining-green font-bold">{fmt(g.ton)} t</p>
+                    <p className="text-mining-green font-bold text-sm">{fmt(g.ton)} t</p>
                     <p className="text-muted-foreground mt-0.5">TON/H MÉDIA</p>
-                    <p className="text-mining-green font-bold">{fmt(g.tonH)} t/h</p>
+                    <p className="text-mining-green font-bold text-sm">{fmt(g.tonH)} t/h</p>
                   </div>
                 </div>
               ))}
