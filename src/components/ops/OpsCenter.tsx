@@ -68,7 +68,7 @@ function CardShell({
       className={`relative bg-black/70 border border-mining-green/25 rounded-md overflow-hidden shadow-[0_0_24px_-12px_hsl(var(--mining-green)/0.6)] ${className}`}
     >
       <div className="px-3 py-1.5 border-b border-mining-green/20 bg-mining-green/5">
-        <p className="text-[10px] font-mono font-bold tracking-[0.18em] text-mining-green uppercase">
+        <p className="text-xs font-mono font-bold tracking-[0.18em] text-mining-green uppercase">
           {title}
         </p>
       </div>
@@ -116,7 +116,7 @@ function Donut({ value, color = NEON, label }: { value: number; color?: string; 
           style={{ filter: `drop-shadow(0 0 6px ${color})` }}
         />
       </svg>
-      <span className="text-[11px] font-mono font-bold" style={{ color }}>
+      <span className="text-[13px] font-mono font-bold" style={{ color }}>
         {v.toFixed(1)}%
       </span>
       {label && <span className="sr-only">{label}</span>}
@@ -153,15 +153,15 @@ function FleetRow({
         )}
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-[11px] font-mono font-bold text-foreground truncate">{name}</p>
-        <p className="text-[9px] font-mono text-muted-foreground">
+        <p className="text-sm font-mono font-bold text-foreground truncate">{name}</p>
+        <p className="text-[11px] font-mono text-muted-foreground">
           ({count}/{total})
         </p>
       </div>
       <Donut value={value} color={color} />
       <div className="text-right w-14">
-        <p className="text-[8px] font-mono text-muted-foreground uppercase">Meta</p>
-        <p className="text-[10px] font-mono text-foreground">{meta.toFixed(1)}%</p>
+        <p className="text-[10px] font-mono text-muted-foreground uppercase">Meta</p>
+        <p className="text-xs font-mono text-foreground">{meta.toFixed(1)}%</p>
       </div>
     </div>
   );
