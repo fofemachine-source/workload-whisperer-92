@@ -172,16 +172,26 @@ export function OpsCenter() {
   const clock = useClock();
   const syncing = metricsLoading || workbookLoading;
   const syncError = workbookError || metricsError;
-  // Detecta se a planilha ativa não é de hoje (compara dia/mês/ano locais)
+  // Detecta se a planilha ativa não é de hoje. Prioriza a célula DATA: da aba
+  // PRODUÇÃO EH (verdade da operação); cai pra parsedAt se a célula não existir.
   const planilhaDesatualizada = useMemo(() => {
-    if (!lastUpdated) return false;
     const today = new Date();
+    const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+    if (summary?.dataPlanilha) return summary.dataPlanilha !== todayKey;
+    if (!lastUpdated) return false;
     return (
       lastUpdated.getFullYear() !== today.getFullYear() ||
       lastUpdated.getMonth() !== today.getMonth() ||
       lastUpdated.getDate() !== today.getDate()
     );
-  }, [lastUpdated, clock]);
+  }, [summary?.dataPlanilha, lastUpdated, clock]);
+  const dataPlanilhaLabel = useMemo(() => {
+    if (summary?.dataPlanilha) {
+      const [y, m, d] = summary.dataPlanilha.split("-");
+      return `${d}/${m}/${y}`;
+    }
+    return lastUpdated?.toLocaleDateString("pt-BR") ?? "—";
+  }, [summary?.dataPlanilha, lastUpdated]);
   const syncStatus: "error" | "syncing" | "connected" | "idle" =
     syncError ? "error" : syncing ? "syncing" : source === "onedrive" ? "connected" : "idle";
   const syncStatusMeta = {
@@ -417,8 +427,8 @@ export function OpsCenter() {
               ATENÇÃO — PLANILHA NÃO É DE HOJE
             </p>
             <p className="text-xs md:text-sm font-mono text-mining-red/90">
-              Os dados exibidos são de {lastUpdated?.toLocaleDateString("pt-BR")} ({lastUpdated?.toLocaleTimeString("pt-BR")}).
-              Hoje é {clock.toLocaleDateString("pt-BR")}. Faça upload da planilha atualizada ou conecte o OneDrive da conta que possui o arquivo.
+              Os dados da planilha são do dia {dataPlanilhaLabel}. Hoje é {clock.toLocaleDateString("pt-BR")}.
+              Conecte o OneDrive ou faça upload da planilha atualizada para puxar o ACUMULADO de hoje.
             </p>
           </div>
         </div>
