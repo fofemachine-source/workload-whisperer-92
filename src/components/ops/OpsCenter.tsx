@@ -172,6 +172,16 @@ export function OpsCenter() {
   const clock = useClock();
   const syncing = metricsLoading || workbookLoading;
   const syncError = workbookError || metricsError;
+  // Detecta se a planilha ativa não é de hoje (compara dia/mês/ano locais)
+  const planilhaDesatualizada = useMemo(() => {
+    if (!lastUpdated) return false;
+    const today = new Date();
+    return (
+      lastUpdated.getFullYear() !== today.getFullYear() ||
+      lastUpdated.getMonth() !== today.getMonth() ||
+      lastUpdated.getDate() !== today.getDate()
+    );
+  }, [lastUpdated, clock]);
   const syncStatus: "error" | "syncing" | "connected" | "idle" =
     syncError ? "error" : syncing ? "syncing" : source === "onedrive" ? "connected" : "idle";
   const syncStatusMeta = {
