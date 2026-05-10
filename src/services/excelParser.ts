@@ -80,6 +80,8 @@ export interface AggregateSummary {
   acumuladoMorro1?: number;
   projetadoMorro1?: number;
   hourlySeries?: HourlyProduction[];
+  /** ISO yyyy-mm-dd lido da célula DATA: na aba PRODUÇÃO EH (dia da operação) */
+  dataPlanilha?: string;
 }
 
 export interface HourlyProduction {
