@@ -508,6 +508,30 @@ function applyStructuredOverrides(
     }
     retaludDebug.anchors = retaludAnchors;
 
+    // --- Lê a célula DATA: no topo da aba PRODUÇÃO EH ---
+    // Ex.: A7 = "DATA:" e B7 = 10/05/2026. É a fonte de verdade do dia da operação.
+    for (let r = 0; r < Math.min(prodEh.values.length, HEADER_SCAN_ROWS); r++) {
+      const row = prodEh.values[r] ?? [];
+      for (let c = 0; c < row.length; c++) {
+        const lab = norm(row[c]);
+        if (/^data\s*:?$/.test(lab)) {
+          // Procura a primeira data válida nas próximas 5 colunas
+          for (let cc = c + 1; cc <= c + 5 && cc < row.length; cc++) {
+            const k = cellToDateKey(row[cc]);
+            if (k) {
+              summary.dataPlanilha = k;
+              break;
+            }
+          }
+        }
+        if (summary.dataPlanilha) break;
+      }
+      if (summary.dataPlanilha) break;
+    }
+    if (summary.dataPlanilha) {
+      console.log("[excelParser] DATA da planilha (PRODUÇÃO EH):", summary.dataPlanilha);
+    }
+
     // Build set of columns considered to belong to a RETALUDAMENTO block.
     // We expand 6 columns to the right of each anchor, which covers both the
     // mini "Turno/Acumulado/Projetado" box and the per-hour table header.
