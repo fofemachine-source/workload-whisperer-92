@@ -427,8 +427,8 @@ export function OpsCenter() {
               ATENÇÃO — PLANILHA NÃO É DE HOJE
             </p>
             <p className="text-xs md:text-sm font-mono text-mining-red/90">
-              Os dados exibidos são de {lastUpdated?.toLocaleDateString("pt-BR")} ({lastUpdated?.toLocaleTimeString("pt-BR")}).
-              Hoje é {clock.toLocaleDateString("pt-BR")}. Faça upload da planilha atualizada ou conecte o OneDrive da conta que possui o arquivo.
+              Os dados da planilha são do dia {dataPlanilhaLabel}. Hoje é {clock.toLocaleDateString("pt-BR")}.
+              Conecte o OneDrive ou faça upload da planilha atualizada para puxar o ACUMULADO de hoje.
             </p>
           </div>
         </div>
