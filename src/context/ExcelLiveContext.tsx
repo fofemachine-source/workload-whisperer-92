@@ -140,6 +140,7 @@ export function ExcelLiveProvider({ children }: { children: ReactNode }) {
           .from("spreadsheet_uploads")
           .insert({ file_name: file.name, file_path: filePath });
         if (insErr) throw insErr;
+        setLastCloudUpload({ fileName: file.name, uploadedAt: result.parsedAt });
         console.log("[cloudSync] planilha enviada para a nuvem:", filePath);
         toast.success("Planilha publicada para todos os painéis", { description: file.name });
       } catch (cloudErr) {
@@ -172,8 +173,8 @@ export function ExcelLiveProvider({ children }: { children: ReactNode }) {
   const oneDriveAvailable = isAuth && !!wb.file && !!m.metrics;
   const localAvailable = !!local;
   const localTime = local?.parsedAt ? new Date(local.parsedAt).getTime() : 0;
-  const oneDriveTime = m.lastUpdated ? m.lastUpdated.getTime() : 0;
-  const useOneDrive = oneDriveAvailable && (!localAvailable || oneDriveTime > localTime);
+  const oneDriveTime = wb.file?.lastModifiedDateTime ? new Date(wb.file.lastModifiedDateTime).getTime() : 0;
+  const useOneDrive = oneDriveAvailable && (!localAvailable || oneDriveTime >= localTime);
   const useLocal = !useOneDrive && localAvailable;
   if (useLocal) {
     console.log("[ExcelLive] fonte ativa: LOCAL", local?.fileName, "parsedAt=", local?.parsedAt);
