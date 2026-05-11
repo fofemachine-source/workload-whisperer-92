@@ -168,7 +168,7 @@ function FleetRow({
 }
 
 export function OpsCenter() {
-  const { summary, rows, fleets: fleetsAgg, lastUpdated, source, refresh, refreshWorkbook, metricsLoading, workbookLoading, file, worksheets, workbookError, metricsError } = useExcelLive();
+  const { summary, rows, fleets: fleetsAgg, lastUpdated, source, refresh, refreshWorkbook, metricsLoading, workbookLoading, file, worksheets, workbookError, metricsError, localFile, lastCloudUpload } = useExcelLive();
   const clock = useClock();
   const syncing = metricsLoading || workbookLoading;
   const syncError = workbookError || metricsError;
@@ -200,6 +200,11 @@ export function OpsCenter() {
     error: { label: "ERRO DE SINCRONIZAÇÃO", box: "border-mining-red/40 text-mining-red", dot: "bg-mining-red" },
     idle: { label: "AGUARDANDO ONEDRIVE", box: "border-muted-foreground/30 text-muted-foreground", dot: "bg-muted-foreground" },
   }[syncStatus];
+  const metasFixas = {
+    mensal: 1_351_096,
+    diaria: 43_584,
+    horaria: 1_816,
+  };
   const handleManualRefresh = async () => {
     await Promise.all([refreshWorkbook(), refresh()]);
   };
@@ -361,7 +366,7 @@ export function OpsCenter() {
         <h1 className="text-[11px] md:text-xs font-bold tracking-[0.2em] text-foreground text-glow-neon">
           PAINEL DE PRODUÇÃO OPERACIONAL
         </h1>
-        <div className="flex items-center gap-2 text-[9px] font-mono leading-tight">
+        <div className="flex items-center gap-2 text-[9px] font-mono leading-tight flex-wrap justify-end">
           <div className="flex items-center gap-1.5 text-foreground">
             <Calendar className="h-3 w-3 text-mining-green" />
             <div>
@@ -385,6 +390,19 @@ export function OpsCenter() {
                   {file.name} · {worksheets.length} aba(s)
                 </p>
               )}
+            </div>
+          </div>
+          <div className={`hidden xl:flex items-center gap-2 rounded-md border px-2 py-1 ${syncStatusMeta.box}`}>
+            <span className={`h-1.5 w-1.5 rounded-full ${syncStatusMeta.dot}`} />
+            <div>
+              <p className="text-[8px] tracking-[0.18em] uppercase">{syncStatusMeta.label}</p>
+              <p className="text-[8px] text-muted-foreground max-w-[190px] truncate">
+                {source === "onedrive"
+                  ? file?.name ?? "Arquivo conectado"
+                  : source === "local"
+                    ? `${localFile?.name ?? "Planilha local"}${lastCloudUpload ? " · enviado" : ""}`
+                    : "Sem planilha ativa"}
+              </p>
             </div>
           </div>
           <Button
@@ -472,6 +490,38 @@ export function OpsCenter() {
               <div className="mt-1.5"><ProgressBar value={(tonH / metaTonH) * 100} color={BLUE} /></div>
             </div>
           </CardShell>
+        </div>
+
+        <div className="col-span-12">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <CardShell title="META TOTAL MAIO">
+              <div className="flex items-end justify-between gap-3 min-h-[96px]">
+                <div>
+                  <p className="text-4xl font-mono font-bold text-mining-yellow">{fmt(metasFixas.mensal)}</p>
+                  <p className="mt-2 text-xs font-mono uppercase tracking-[0.18em] text-muted-foreground">toneladas</p>
+                </div>
+                <Mountain className="h-8 w-8 text-mining-yellow/70" />
+              </div>
+            </CardShell>
+            <CardShell title="META DIÁRIA">
+              <div className="flex items-end justify-between gap-3 min-h-[96px]">
+                <div>
+                  <p className="text-4xl font-mono font-bold text-mining-blue">{fmt(metasFixas.diaria)}</p>
+                  <p className="mt-2 text-xs font-mono uppercase tracking-[0.18em] text-muted-foreground">toneladas / dia</p>
+                </div>
+                <Activity className="h-8 w-8 text-mining-blue/70" />
+              </div>
+            </CardShell>
+            <CardShell title="META HORÁRIA">
+              <div className="flex items-end justify-between gap-3 min-h-[96px]">
+                <div>
+                  <p className="text-4xl font-mono font-bold text-mining-green">{fmt(metasFixas.horaria)}</p>
+                  <p className="mt-2 text-xs font-mono uppercase tracking-[0.18em] text-muted-foreground">toneladas / hora</p>
+                </div>
+                <RefreshCw className="h-8 w-8 text-mining-green/70" />
+              </div>
+            </CardShell>
+          </div>
         </div>
 
         {/* COLUNA ESQUERDA: DF/UT + ESCAVADEIRAS + CAMINHÕES + EQUIP OPERANDO */}
