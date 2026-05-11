@@ -93,11 +93,11 @@ export function useExcelMetrics(file: DriveItem | null, worksheets: WorksheetInf
     if (timer.current) window.clearInterval(timer.current);
     if (file) {
       timer.current = window.setInterval(() => {
-        if (document.visibilityState === "visible") load(false);
+        if (document.visibilityState === "visible") load(true);
       }, POLL_MS);
     }
     const onVis = () => {
-      if (document.visibilityState === "visible") load(false);
+      if (document.visibilityState === "visible") load(true);
     };
     document.addEventListener("visibilitychange", onVis);
     return () => {
