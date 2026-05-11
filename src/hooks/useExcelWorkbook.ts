@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useMsal } from "@azure/msal-react";
-import { createGraphClient, findExcelFile, listWorksheets, DriveItem, WorksheetInfo } from "@/services/graphService";
-import { EXCEL_FILE_NAME } from "@/auth/msalConfig";
+import { createGraphClient, findExcelFile, resolveSharedFile, listWorksheets, DriveItem, WorksheetInfo } from "@/services/graphService";
+import { EXCEL_FILE_NAME, EXCEL_SHARE_URL } from "@/auth/msalConfig";
 
 const FILE_POLL_MS = 30_000;
 
@@ -27,9 +27,15 @@ export function useExcelWorkbook(enabled: boolean): ExcelWorkbookState {
     setError(null);
     try {
       const client = createGraphClient(instance, accounts[0]);
-      const found = await findExcelFile(client, EXCEL_FILE_NAME);
+      let found = await findExcelFile(client, EXCEL_FILE_NAME);
+      if (!found && EXCEL_SHARE_URL) {
+        console.log("[graph] tentando resolver via URL de compartilhamento…");
+        found = await resolveSharedFile(client, EXCEL_SHARE_URL);
+      }
       if (!found) {
-        throw new Error(`Arquivo "${EXCEL_FILE_NAME}" não encontrado no OneDrive nem em itens compartilhados.`);
+        throw new Error(
+          `Arquivo "${EXCEL_FILE_NAME}" não encontrado. Verifique se a conta logada tem acesso ao link compartilhado.`,
+        );
       }
       setFile((prev) => {
         if (prev && prev.id === found.id && prev.lastModifiedDateTime === found.lastModifiedDateTime) {
