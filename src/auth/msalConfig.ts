@@ -35,3 +35,9 @@ export const SHAREPOINT_URL =
   import.meta.env.VITE_SHAREPOINT_URL || "https://uemmineracao-my.sharepoint.com";
 
 export const EXCEL_FILE_NAME = "CONTROLE DE PRODUÇÃO.xlsx";
+
+// URL de compartilhamento direto do OneDrive (planilha mora em outra conta).
+// Usada como fallback quando a busca /me/drive e sharedWithMe não acharem o arquivo.
+export const EXCEL_SHARE_URL =
+  import.meta.env.VITE_EXCEL_SHARE_URL ||
+  "https://uemmineracao-my.sharepoint.com/:x:/g/personal/despacho_ca_uem_com_br/IQCT87IsjabnQ6n-XVkDOw29AQyRKhI9W6MDjvgZSG_Mo2o?e=P0WJY9";
