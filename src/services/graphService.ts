@@ -59,6 +59,35 @@ export async function findExcelFile(client: Client, fileName: string): Promise<D
   return null;
 }
 
+/**
+ * Codifica uma URL de compartilhamento do OneDrive/SharePoint no formato
+ * "u!<base64url>" exigido pelo endpoint /shares/{shareId}/driveItem do Graph.
+ */
+export function encodeShareUrl(url: string): string {
+  const b64 = typeof window !== "undefined" ? window.btoa(url) : Buffer.from(url).toString("base64");
+  return "u!" + b64.replace(/=+$/, "").replace(/\//g, "_").replace(/\+/g, "-");
+}
+
+/**
+ * Resolve uma URL de compartilhamento (SharePoint/OneDrive) para um DriveItem
+ * completo (com driveId), permitindo acessar planilhas que não estão na
+ * conta logada nem em sharedWithMe.
+ */
+export async function resolveSharedFile(client: Client, shareUrl: string): Promise<DriveItem | null> {
+  try {
+    const shareId = encodeShareUrl(shareUrl);
+    // expand driveItem para já trazer parentReference (driveId)
+    const res = await client
+      .api(`/shares/${shareId}/driveItem`)
+      .select("id,name,webUrl,size,lastModifiedDateTime,parentReference")
+      .get();
+    return res as DriveItem;
+  } catch (err) {
+    console.warn("[graph] resolveSharedFile falhou:", err);
+    return null;
+  }
+}
+
 export interface WorksheetInfo {
   id: string;
   name: string;

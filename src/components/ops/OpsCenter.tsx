@@ -354,26 +354,26 @@ export function OpsCenter() {
       <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(800px_400px_at_20%_0%,hsl(var(--mining-green)/0.12),transparent),radial-gradient(700px_400px_at_80%_100%,hsl(var(--mining-blue)/0.10),transparent)]" />
 
       {/* TOP BAR */}
-      <header className="relative z-10 flex items-center justify-between px-4 py-1.5 border-b border-mining-green/20 bg-black/60 backdrop-blur-sm">
-        <div className="flex items-center gap-3">
-          <img src={logoUM} alt="Logo U&M" className="h-7 w-auto object-contain" />
+      <header className="relative z-10 flex items-center justify-between px-3 py-0.5 border-b border-mining-green/20 bg-black/60 backdrop-blur-sm">
+        <div className="flex items-center gap-2">
+          <img src={logoUM} alt="Logo U&M" className="h-5 w-auto object-contain" />
         </div>
-        <h1 className="text-sm md:text-base font-bold tracking-[0.2em] text-foreground text-glow-neon">
+        <h1 className="text-[11px] md:text-xs font-bold tracking-[0.2em] text-foreground text-glow-neon">
           PAINEL DE PRODUÇÃO OPERACIONAL
         </h1>
-        <div className="flex items-center gap-3 text-[10px] font-mono">
-          <div className="flex items-center gap-2 text-foreground">
+        <div className="flex items-center gap-2 text-[9px] font-mono leading-tight">
+          <div className="flex items-center gap-1.5 text-foreground">
             <Calendar className="h-3 w-3 text-mining-green" />
             <div>
               <p>{clock.toLocaleDateString("pt-BR")}</p>
               <p className="text-mining-green">{clock.toLocaleTimeString("pt-BR")}</p>
             </div>
           </div>
-          <div className="border-l border-mining-green/20 pl-3">
+          <div className="border-l border-mining-green/20 pl-2">
             <p className="text-muted-foreground">TURNO ATUAL</p>
             <p className="text-mining-green font-bold">DIA</p>
           </div>
-          <div className="border-l border-mining-green/20 pl-3 flex items-center gap-2">
+          <div className="border-l border-mining-green/20 pl-2 flex items-center gap-1.5">
             <RefreshCw className={`h-3 w-3 text-mining-green ${syncing ? "animate-spin" : ""}`} style={syncing ? undefined : { animationDuration: "4s" }} />
             <div>
               <p className="text-muted-foreground">ÚLTIMO REFRESH</p>
@@ -381,7 +381,7 @@ export function OpsCenter() {
                 {lastUpdated ? lastUpdated.toLocaleTimeString("pt-BR") : "—"}
               </p>
               {source === "onedrive" && file && (
-                <p className="text-[9px] text-muted-foreground truncate max-w-[180px]">
+                <p className="text-[8px] text-muted-foreground truncate max-w-[140px]">
                   {file.name} · {worksheets.length} aba(s)
                 </p>
               )}
@@ -392,9 +392,9 @@ export function OpsCenter() {
             size="sm"
             onClick={handleManualRefresh}
             disabled={syncing}
-            className="gap-2 border-mining-green/40 text-mining-green hover:bg-mining-green/10 h-7 text-[11px]"
+            className="gap-1.5 border-mining-green/40 text-mining-green hover:bg-mining-green/10 h-6 px-2 text-[10px]"
           >
-            <RefreshCw className={`h-3.5 w-3.5 ${syncing ? "animate-spin" : ""}`} />
+            <RefreshCw className={`h-3 w-3 ${syncing ? "animate-spin" : ""}`} />
             Atualizar agora
           </Button>
           <MicrosoftLoginButton />
