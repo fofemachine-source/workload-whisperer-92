@@ -354,44 +354,27 @@ export function OpsCenter() {
       <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(800px_400px_at_20%_0%,hsl(var(--mining-green)/0.12),transparent),radial-gradient(700px_400px_at_80%_100%,hsl(var(--mining-blue)/0.10),transparent)]" />
 
       {/* TOP BAR */}
-      <header className="relative z-10 flex items-center justify-between px-5 py-3 border-b border-mining-green/20 bg-black/60 backdrop-blur-sm">
+      <header className="relative z-10 flex items-center justify-between px-4 py-1.5 border-b border-mining-green/20 bg-black/60 backdrop-blur-sm">
         <div className="flex items-center gap-3">
-          <img src={logoUM} alt="Logo U&M" className="h-9 w-auto object-contain" />
-          <div
-            title={syncError ?? undefined}
-            className={`flex items-center gap-2 px-2.5 py-1 rounded-md border bg-black/40 ${syncStatusMeta.box}`}
-          >
-            <span className="relative flex h-2 w-2">
-              <span className={`absolute inset-0 rounded-full ${syncStatusMeta.dot} ${syncStatus !== "idle" ? "animate-ping opacity-60" : ""}`} />
-              <span className={`relative h-2 w-2 rounded-full ${syncStatusMeta.dot}`} />
-            </span>
-            <span className="text-[10px] font-mono font-bold tracking-wider">
-              {syncStatusMeta.label}
-            </span>
-            {lastUpdated && (
-              <span className="text-[10px] font-mono text-muted-foreground border-l border-current/30 pl-2 ml-1">
-                ATUALIZADO {lastUpdated.toLocaleTimeString("pt-BR")}
-              </span>
-            )}
-          </div>
+          <img src={logoUM} alt="Logo U&M" className="h-7 w-auto object-contain" />
         </div>
-        <h1 className="text-lg md:text-2xl font-bold tracking-[0.2em] text-foreground text-glow-neon">
+        <h1 className="text-sm md:text-base font-bold tracking-[0.2em] text-foreground text-glow-neon">
           PAINEL DE PRODUÇÃO OPERACIONAL
         </h1>
-        <div className="flex items-center gap-4 text-[10px] font-mono">
+        <div className="flex items-center gap-3 text-[10px] font-mono">
           <div className="flex items-center gap-2 text-foreground">
-            <Calendar className="h-3.5 w-3.5 text-mining-green" />
+            <Calendar className="h-3 w-3 text-mining-green" />
             <div>
               <p>{clock.toLocaleDateString("pt-BR")}</p>
               <p className="text-mining-green">{clock.toLocaleTimeString("pt-BR")}</p>
             </div>
           </div>
-          <div className="border-l border-mining-green/20 pl-4">
+          <div className="border-l border-mining-green/20 pl-3">
             <p className="text-muted-foreground">TURNO ATUAL</p>
             <p className="text-mining-green font-bold">DIA</p>
           </div>
-          <div className="border-l border-mining-green/20 pl-4 flex items-center gap-2">
-            <RefreshCw className={`h-3.5 w-3.5 text-mining-green ${syncing ? "animate-spin" : ""}`} style={syncing ? undefined : { animationDuration: "4s" }} />
+          <div className="border-l border-mining-green/20 pl-3 flex items-center gap-2">
+            <RefreshCw className={`h-3 w-3 text-mining-green ${syncing ? "animate-spin" : ""}`} style={syncing ? undefined : { animationDuration: "4s" }} />
             <div>
               <p className="text-muted-foreground">ÚLTIMO REFRESH</p>
               <p className="text-mining-green">
@@ -409,9 +392,9 @@ export function OpsCenter() {
             size="sm"
             onClick={handleManualRefresh}
             disabled={syncing}
-            className="gap-2 border-mining-green/40 text-mining-green hover:bg-mining-green/10 h-9"
+            className="gap-2 border-mining-green/40 text-mining-green hover:bg-mining-green/10 h-7 text-[11px]"
           >
-            <RefreshCw className={`h-4 w-4 ${syncing ? "animate-spin" : ""}`} />
+            <RefreshCw className={`h-3.5 w-3.5 ${syncing ? "animate-spin" : ""}`} />
             Atualizar agora
           </Button>
           <MicrosoftLoginButton />
@@ -436,9 +419,9 @@ export function OpsCenter() {
 
       <main className="relative z-10 p-3 md:p-4 grid grid-cols-12 gap-3">
         {/* CARDS PRINCIPAIS — linha 1 */}
-        <div className="col-span-12 md:col-span-3">
-          <CardShell title="MINA">
-            <div className="space-y-2">
+        <div className="col-span-12 md:col-span-3 flex">
+          <CardShell title="MINA" className="flex-1 flex flex-col">
+            <div className="space-y-2 flex-1 flex flex-col justify-center">
               <div className="flex items-center justify-between gap-2">
                 <span className="text-base font-mono text-muted-foreground uppercase tracking-wider">ACUMULADO DIA:</span>
                 <span className="text-4xl font-mono font-bold text-mining-blue">{fmt(summary?.acumuladoDia || producaoTurno)}</span>
@@ -451,9 +434,9 @@ export function OpsCenter() {
             </div>
           </CardShell>
         </div>
-        <div className="col-span-12 md:col-span-3">
-          <CardShell title="RETALUDAMENTO">
-            <div className="space-y-2">
+        <div className="col-span-12 md:col-span-3 flex">
+          <CardShell title="RETALUDAMENTO" className="flex-1 flex flex-col">
+            <div className="space-y-2 flex-1 flex flex-col justify-center">
               <div className="flex items-center justify-between gap-2">
                 <span className="text-base font-mono text-muted-foreground uppercase tracking-wider">ACUMULADO DIA:</span>
                 <span className="text-4xl font-mono font-bold text-mining-blue">{fmt(acumuladoRetaludShown)}</span>
@@ -463,46 +446,12 @@ export function OpsCenter() {
                 <span className="text-base font-mono text-muted-foreground uppercase tracking-wider">PROJETADO DIA:</span>
                 <span className="text-4xl font-mono font-bold text-mining-green text-glow-neon">{fmt(projetadoRetaludShown)}</span>
               </div>
-              <div className="pt-1 flex items-center justify-between">
-                <span className="text-[9px] font-mono text-muted-foreground">
-                  {retaludOverride ? "lançamento manual" : "auto"}
-                </span>
-                <Dialog open={retaludOpen} onOpenChange={setRetaludOpen}>
-                  <DialogTrigger asChild>
-                    <Button variant="ghost" size="sm" className="h-6 px-2 text-mining-green hover:bg-mining-green/10 gap-1">
-                      <Pencil className="h-3 w-3" /> <span className="text-[10px] font-mono">Lançar</span>
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-sm">
-                    <DialogHeader>
-                      <DialogTitle>Lançar Retaludamento manual</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-3">
-                      <div className="space-y-1">
-                        <Label htmlFor="ret-ac">Acumulado Dia (t)</Label>
-                        <Input id="ret-ac" type="number" inputMode="decimal" value={retaludForm.acumulado}
-                          onChange={(e) => setRetaludForm((s) => ({ ...s, acumulado: e.target.value }))} />
-                      </div>
-                      <div className="space-y-1">
-                        <Label htmlFor="ret-pr">Projetado Dia (t)</Label>
-                        <Input id="ret-pr" type="number" inputMode="decimal" value={retaludForm.projetado}
-                          onChange={(e) => setRetaludForm((s) => ({ ...s, projetado: e.target.value }))} />
-                      </div>
-                    </div>
-                    <DialogFooter className="gap-2">
-                      {retaludOverride && (
-                        <Button variant="ghost" onClick={clearRetalud}>Voltar pra automático</Button>
-                      )}
-                      <Button onClick={saveRetalud}>Salvar</Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
-              </div>
             </div>
           </CardShell>
         </div>
-        <div className="col-span-12 md:col-span-3">
-          <CardShell title="PRODUÇÃO MENSAL">
+        <div className="col-span-12 md:col-span-3 flex">
+          <CardShell title="PRODUÇÃO MENSAL" className="flex-1 flex flex-col">
+            <div className="flex-1 flex flex-col justify-center">
             <div className="flex items-end justify-between">
               <p className="text-5xl font-mono font-bold text-mining-green text-glow-neon">{fmt(producaoMensal)} <span className="text-xl">t</span></p>
               <p className="text-4xl font-mono font-bold text-foreground">{aderMensal.toFixed(1)}%</p>
@@ -512,13 +461,16 @@ export function OpsCenter() {
               <span>DA META</span>
             </div>
             <div className="mt-1.5"><ProgressBar value={aderMensal} /></div>
+            </div>
           </CardShell>
         </div>
-        <div className="col-span-12 md:col-span-3">
-          <CardShell title="TONELADAS / HORA (MÉDIA DO TURNO)">
-            <p className="text-5xl font-mono font-bold text-mining-green text-glow-neon">{fmt(tonH)} <span className="text-xl">t/h</span></p>
-            <div className="mt-3 text-sm font-mono text-muted-foreground">META: {fmt(metaTonH)} t/h</div>
-            <div className="mt-1.5"><ProgressBar value={(tonH / metaTonH) * 100} color={BLUE} /></div>
+        <div className="col-span-12 md:col-span-3 flex">
+          <CardShell title="TONELADAS / HORA (MÉDIA DO TURNO)" className="flex-1 flex flex-col">
+            <div className="flex-1 flex flex-col justify-center">
+              <p className="text-5xl font-mono font-bold text-mining-green text-glow-neon">{fmt(tonH)} <span className="text-xl">t/h</span></p>
+              <div className="mt-3 text-sm font-mono text-muted-foreground">META: {fmt(metaTonH)} t/h</div>
+              <div className="mt-1.5"><ProgressBar value={(tonH / metaTonH) * 100} color={BLUE} /></div>
+            </div>
           </CardShell>
         </div>
 
