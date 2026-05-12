@@ -364,24 +364,6 @@ export function OpsCenter() {
               )}
             </div>
           </div>
-          <div
-            className={`hidden xl:flex items-center gap-2 rounded-md border px-2 py-1 ${syncStatusMeta.box}`}
-            title={syncError ?? undefined}
-          >
-            <span className={`h-1.5 w-1.5 rounded-full ${syncStatusMeta.dot}`} />
-            <div>
-              <p className="text-[8px] tracking-[0.18em] uppercase">{syncStatusMeta.label}</p>
-              <p className="text-[8px] text-muted-foreground max-w-[190px] truncate">
-                {syncError
-                  ? syncError
-                  : source === "onedrive"
-                  ? file?.name ?? "Arquivo conectado"
-                  : source === "local"
-                    ? `${localFile?.name ?? "Planilha local"}${lastCloudUpload ? " · enviado" : ""}`
-                    : "Sem planilha ativa"}
-              </p>
-            </div>
-          </div>
           <Button
             variant="outline"
             size="sm"
@@ -396,21 +378,6 @@ export function OpsCenter() {
           <ExcelUploadButton />
         </div>
       </header>
-
-      {planilhaDesatualizada && (
-        <div className="relative z-10 mx-3 md:mx-4 mt-3 rounded-md border-2 border-mining-red/60 bg-mining-red/10 px-4 py-3 flex items-center gap-3 animate-pulse">
-          <div className="h-3 w-3 rounded-full bg-mining-red shadow-[0_0_12px_hsl(var(--mining-red))]" />
-          <div className="flex-1">
-            <p className="text-sm md:text-base font-mono font-bold tracking-wider text-mining-red uppercase">
-              ATENÇÃO — PLANILHA NÃO É DE HOJE
-            </p>
-            <p className="text-xs md:text-sm font-mono text-mining-red/90">
-              Os dados da planilha são do dia {dataPlanilhaLabel}. Hoje é {clock.toLocaleDateString("pt-BR")}.
-              Conecte o OneDrive ou faça upload da planilha atualizada para puxar o ACUMULADO de hoje.
-            </p>
-          </div>
-        </div>
-      )}
 
       <main className="relative z-10 p-3 md:p-4 grid grid-cols-12 gap-3">
         {/* LINHA 1: 4 cards principais */}
