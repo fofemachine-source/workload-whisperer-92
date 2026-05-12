@@ -492,7 +492,7 @@ export function OpsCenter() {
                   <p className="mt-3 text-4xl font-mono font-bold text-mining-yellow">{fmt(metasFixas.mensal)}</p>
                 </div>
                 <div className="mt-3">
-                  <p className="text-[11px] font-mono uppercase tracking-[0.18em] text-muted-foreground">{shareMetaMina.toFixed(1)}% da meta</p>
+                  <p className="text-base font-mono uppercase tracking-[0.18em] text-muted-foreground">{shareMetaMina.toFixed(1)}% da meta</p>
                   <div className="mt-2"><ProgressBar value={shareMetaMina} color={YELLOW} /></div>
                 </div>
               </div>
@@ -502,7 +502,7 @@ export function OpsCenter() {
                   <p className="mt-3 text-4xl font-mono font-bold text-mining-yellow">{fmt(metaMensalRetalud)}</p>
                 </div>
                 <div className="mt-3">
-                  <p className="text-[11px] font-mono uppercase tracking-[0.18em] text-muted-foreground">{shareMetaRetalud.toFixed(1)}% da meta</p>
+                  <p className="text-base font-mono uppercase tracking-[0.18em] text-muted-foreground">{shareMetaRetalud.toFixed(1)}% da meta</p>
                   <div className="mt-2"><ProgressBar value={shareMetaRetalud} color={YELLOW} /></div>
                 </div>
               </div>
