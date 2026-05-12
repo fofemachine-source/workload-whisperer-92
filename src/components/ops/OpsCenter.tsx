@@ -411,7 +411,7 @@ export function OpsCenter() {
       )}
 
       <main className="relative z-10 p-3 md:p-4 grid grid-cols-12 gap-3">
-        {/* CARDS PRINCIPAIS — linha 1 */}
+        {/* LINHA 1: MINA + GRÁFICO PRODUÇÃO DO TURNO */}
         <div className="col-span-12 md:col-span-6 flex">
           <CardShell title="MINA · RETALUDAMENTO" className="flex-1 flex flex-col">
             <div className="grid grid-cols-2 divide-x divide-mining-green/20 flex-1">
@@ -442,34 +442,10 @@ export function OpsCenter() {
             </div>
           </CardShell>
         </div>
-        <div className="col-span-12 md:col-span-3 flex">
-          <CardShell title="PRODUÇÃO MENSAL" className="flex-1 flex flex-col">
-            <div className="flex-1 flex flex-col justify-center">
-            <div className="flex items-end justify-between">
-              <p className="text-5xl font-mono font-bold text-mining-green text-glow-neon">{fmt(producaoMensal)} <span className="text-xl">t</span></p>
-              <p className="text-4xl font-mono font-bold text-foreground">{aderMensal.toFixed(1)}%</p>
-            </div>
-            <div className="mt-2 flex items-center justify-between text-sm font-mono text-muted-foreground">
-              <span>META: {fmt(metaMensal)} t</span>
-              <span>DA META</span>
-            </div>
-            <div className="mt-1.5"><ProgressBar value={aderMensal} /></div>
-            </div>
-          </CardShell>
-        </div>
-        <div className="col-span-12 md:col-span-3 flex">
-          <CardShell title="TONELADAS / HORA (MÉDIA DO TURNO)" className="flex-1 flex flex-col">
-            <div className="flex-1 flex flex-col justify-center">
-              <p className="text-5xl font-mono font-bold text-mining-green text-glow-neon">{fmt(tonH)} <span className="text-xl">t/h</span></p>
-              <div className="mt-3 text-sm font-mono text-muted-foreground">META: {fmt(metaTonH)} t/h</div>
-              <div className="mt-1.5"><ProgressBar value={(tonH / metaTonH) * 100} color={BLUE} /></div>
-            </div>
-          </CardShell>
-        </div>
 
-        <div className="col-span-12">
-          <CardShell title="PRODUÇÃO DO TURNO (TONELADAS)">
-            <div className="h-56">
+        <div className="col-span-12 md:col-span-6 flex">
+          <CardShell title="PRODUÇÃO DO TURNO (TONELADAS)" className="flex-1 flex flex-col">
+            <div className="flex-1 h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={productionSeries} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
                   <defs>
@@ -490,6 +466,32 @@ export function OpsCenter() {
                   <Line type="monotone" dataKey="hd785" stroke={YELLOW} strokeWidth={2} dot={false} name="HD785" />
                 </AreaChart>
               </ResponsiveContainer>
+            </div>
+          </CardShell>
+        </div>
+
+        {/* LINHA 2: PRODUÇÃO MENSAL + TONELADAS/HORA */}
+        <div className="col-span-12 md:col-span-6 flex">
+          <CardShell title="PRODUÇÃO MENSAL" className="flex-1 flex flex-col">
+            <div className="flex-1 flex flex-col justify-center">
+            <div className="flex items-end justify-between">
+              <p className="text-5xl font-mono font-bold text-mining-green text-glow-neon">{fmt(producaoMensal)} <span className="text-xl">t</span></p>
+              <p className="text-4xl font-mono font-bold text-foreground">{aderMensal.toFixed(1)}%</p>
+            </div>
+            <div className="mt-2 flex items-center justify-between text-sm font-mono text-muted-foreground">
+              <span>META: {fmt(metaMensal)} t</span>
+              <span>DA META</span>
+            </div>
+            <div className="mt-1.5"><ProgressBar value={aderMensal} /></div>
+            </div>
+          </CardShell>
+        </div>
+        <div className="col-span-12 md:col-span-6 flex">
+          <CardShell title="TONELADAS / HORA (MÉDIA DO TURNO)" className="flex-1 flex flex-col">
+            <div className="flex-1 flex flex-col justify-center">
+              <p className="text-5xl font-mono font-bold text-mining-green text-glow-neon">{fmt(tonH)} <span className="text-xl">t/h</span></p>
+              <div className="mt-3 text-sm font-mono text-muted-foreground">META: {fmt(metaTonH)} t/h</div>
+              <div className="mt-1.5"><ProgressBar value={(tonH / metaTonH) * 100} color={BLUE} /></div>
             </div>
           </CardShell>
         </div>
