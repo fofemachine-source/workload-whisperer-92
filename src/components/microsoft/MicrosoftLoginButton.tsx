@@ -75,9 +75,14 @@ export function MicrosoftLoginButton() {
   }
 
   return (
-    <Button size="sm" onClick={login} disabled={busy} className="gap-2 bg-mining-indigo hover:bg-mining-indigo/90">
-      {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : needsRedirect ? <ExternalLink className="h-4 w-4" /> : <LogIn className="h-4 w-4" />}
-      {needsRedirect ? "Conectar Microsoft" : "Conectar Microsoft"}
+    <Button
+      variant="outline"
+      onClick={login}
+      disabled={busy}
+      className="gap-1.5 h-6 px-2 text-[10px] border-mining-indigo/40 text-mining-indigo hover:bg-mining-indigo/10 bg-transparent"
+    >
+      {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : needsRedirect ? <ExternalLink className="h-3 w-3" /> : <LogIn className="h-3 w-3" />}
+      Conectar Microsoft
     </Button>
   );
 }
