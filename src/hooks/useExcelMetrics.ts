@@ -16,7 +16,8 @@ import {
 } from "@/services/excelParser";
 import { DriveItem, WorksheetInfo } from "@/services/graphService";
 
-const POLL_MS = 30_000;
+// Sincroniza os dados do workbook a cada 20 minutos.
+const POLL_MS = 20 * 60_000;
 
 export interface ExcelMetricsState {
   loading: boolean;
