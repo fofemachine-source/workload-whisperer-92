@@ -629,6 +629,43 @@ function applyStructuredOverrides(
       }
     }
 
+    // --- Ranking de produtividade por escavadeira (EH-XXXX) ---
+    // Lê o cabeçalho da aba PRODUÇÃO EH, identifica colunas cujo título começa
+    // com "EH-", soma a produção das linhas de hora e divide pelo número de
+    // horas com valor > 0. Mesma lógica do script operacional aprovado.
+    if (headerRowIdx >= 0) {
+      const headerRow = prodEh.values[headerRowIdx] ?? [];
+      const ehCols: { nome: string; col: number }[] = [];
+      for (let c = 0; c < headerRow.length; c++) {
+        const nome = String(headerRow[c] ?? "").trim().toUpperCase();
+        if (/^EH-\d+/.test(nome)) ehCols.push({ nome, col: c });
+      }
+      if (ehCols.length) {
+        const startR = headerRowIdx + 1;
+        const endR = totalRowIdx > 0 ? totalRowIdx : prodEh.values.length;
+        const ranking: EhRankingItem[] = ehCols.map(({ nome, col }) => {
+          let producao = 0;
+          let horas = 0;
+          for (let r = startR; r < endR; r++) {
+            const row = prodEh.values[r] ?? [];
+            const hraw = row[0];
+            const hnum = typeof hraw === "number" ? hraw : Number(String(hraw ?? "").trim());
+            if (!Number.isFinite(hnum) || hnum < 0 || hnum > 23) continue;
+            const v = toNumber(row[col]);
+            if (v > 0) {
+              producao += v;
+              horas += 1;
+            }
+          }
+          const tph = horas > 0 ? producao / horas : 0;
+          return { equipamento: nome, producao: Math.round(producao), horas, tph: Math.round(tph) };
+        });
+        ranking.sort((a, b) => b.tph - a.tph);
+        summary.ehRanking = ranking;
+        console.log("[excelParser] ranking EH (PRODUÇÃO EH):", ranking);
+      }
+    }
+
     // Helper: read first numeric cell to the right of column `c` within `span`.
     const numRight = (row: unknown[], c: number, span = 5): number => {
       for (let cc = c + 1; cc <= c + span && cc < row.length; cc++) {
