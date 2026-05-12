@@ -2,6 +2,8 @@ import { useEffect, useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import {
   Bar,
+  Area,
+  AreaChart,
   XAxis,
   YAxis,
   CartesianGrid,
