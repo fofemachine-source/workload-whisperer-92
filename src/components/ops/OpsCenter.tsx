@@ -543,69 +543,6 @@ export function OpsCenter() {
             </CardShell>
           </div>
 
-          <CardShell title={`FROTA DE ESCAVADEIRAS · ${opEscav}/${fleets[0].count + fleets[1].count} OPERANDO`}>
-            <div className="space-y-3">
-              {[
-                { qty: FLEET_SIZE.EX1200, model: "EX1200", prod: fleetsAgg?.EX1200.totalProducao || 61_250, tonH: fleetsAgg?.EX1200.produtividade || 4_200 },
-                { qty: FLEET_SIZE.EX2500, model: "EX2500", prod: fleetsAgg?.EX2500.totalProducao || 67_200, tonH: fleetsAgg?.EX2500.produtividade || 6_150 },
-              ].map((g) => (
-                <div key={g.model} className="flex items-center gap-3 border-t border-mining-green/10 pt-2 first:border-0 first:pt-0">
-                  <div className="w-20 h-14 relative">
-                    <AnimatedExcavator className="w-20 h-14" />
-                  </div>
-                  <div>
-                    <p className="text-xl font-mono font-bold text-foreground"><span className="text-mining-green">{g.qty}x</span> {g.model}</p>
-                  </div>
-                  <div className="ml-auto text-right text-sm font-mono">
-                    <p className="text-muted-foreground">PRODUÇÃO</p>
-                    <p className="text-mining-green font-bold text-lg">{fmt(g.prod)} t</p>
-                    <p className="text-muted-foreground mt-0.5">TON/H MÉDIA</p>
-                    <p className="text-mining-green font-bold text-lg">{fmt(g.tonH)} t/h</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardShell>
-
-          <CardShell title={`FROTA DE CAMINHÕES · ${opCam}/${FLEET_SIZE["Komatsu 785"] + FLEET_SIZE["Komatsu 730"]} OPERANDO`}>
-            <div className="space-y-3">
-              {[
-                { qty: FLEET_SIZE["Komatsu 785"], model: "HD785", ton: fleetsAgg?.["Komatsu 785"].totalProducao || 89_650, tonH: fleetsAgg?.["Komatsu 785"].produtividade || 9_850 },
-                { qty: FLEET_SIZE["Komatsu 730"], model: "HD730", ton: fleetsAgg?.["Komatsu 730"].totalProducao || 38_800, tonH: fleetsAgg?.["Komatsu 730"].produtividade || 4_050 },
-              ].map((g) => (
-                <div key={g.model} className="flex items-center gap-3 border-t border-mining-green/10 pt-2 first:border-0 first:pt-0">
-                  <div className="w-20 h-12 relative">
-                    <div className="animate-truck-bounce">
-                      <AnimatedTruck className="w-20 h-12" />
-                    </div>
-                  </div>
-                  <div>
-                    <p className="text-xl font-mono font-bold text-foreground"><span className="text-mining-green">{g.qty}x</span> {g.model}</p>
-                  </div>
-                  <div className="ml-auto text-right text-sm font-mono">
-                    <p className="text-muted-foreground">TONELADAS</p>
-                    <p className="text-mining-green font-bold text-lg">{fmt(g.ton)} t</p>
-                    <p className="text-muted-foreground mt-0.5">TON/H MÉDIA</p>
-                    <p className="text-mining-green font-bold text-lg">{fmt(g.tonH)} t/h</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardShell>
-
-          <CardShell title="EQUIPAMENTOS OPERANDO">
-            <div className="flex items-center justify-between h-full min-h-[120px]">
-              <div>
-                <p className="text-5xl font-mono font-bold text-mining-green text-glow-neon">
-                  {opTotal} <span className="text-foreground">/ {FLEET_TOTAL}</span>
-                </p>
-                <p className="mt-2 text-base font-mono text-muted-foreground">{pctOp.toFixed(1)}% DO TOTAL</p>
-              </div>
-              <div className="w-24 h-14 relative">
-                <AnimatedExcavator className="w-24 h-14" />
-              </div>
-            </div>
-          </CardShell>
         </div>
 
         {/* COLUNA DIREITA: RANKING + TONELADAS/H + PRODUÇÃO TURNO + OPERAÇÃO AO VIVO */}
@@ -629,38 +566,6 @@ export function OpsCenter() {
             </div>
           </CardShell>
 
-          <CardShell title="META HORÁRIA">
-            <div className="flex items-end justify-between gap-3 min-h-[96px]">
-              <div>
-                <p className="text-4xl font-mono font-bold text-mining-green">{fmt(metasFixas.horaria)}</p>
-                <p className="mt-2 text-xs font-mono uppercase tracking-[0.18em] text-muted-foreground">toneladas / hora</p>
-              </div>
-              <RefreshCw className="h-8 w-8 text-mining-green/70" />
-            </div>
-          </CardShell>
-
-          <CardShell title="OPERAÇÃO AO VIVO">
-            <div className="relative h-52 overflow-hidden rounded-sm bg-gradient-to-b from-black via-black to-mining-green/5">
-              <div className="absolute inset-x-0 bottom-6 h-px bg-gradient-to-r from-transparent via-mining-green/40 to-transparent" />
-              <div className="absolute inset-x-0 bottom-3 h-px bg-gradient-to-r from-transparent via-mining-green/20 to-transparent" />
-              <div className="absolute left-3 bottom-4">
-                <AnimatedExcavator className="w-20 h-14" />
-              </div>
-              <div className="absolute inset-y-0 w-20 animate-truck-drive" style={{ animationDuration: "14s" }}>
-                <AnimatedTruck className="w-20 h-12 mt-[120px]" color={YELLOW} />
-              </div>
-              <div className="absolute inset-y-0 w-20 animate-truck-drive" style={{ animationDuration: "18s", animationDelay: "-6s" }}>
-                <AnimatedTruck className="w-20 h-12 mt-[120px]" color="#fb923c" />
-              </div>
-              <div className="absolute inset-y-0 w-20 animate-truck-drive" style={{ animationDuration: "22s", animationDelay: "-12s" }}>
-                <AnimatedTruck className="w-20 h-12 mt-[120px]" color={NEON} />
-              </div>
-              <div className="absolute top-2 right-2 flex items-center gap-1.5">
-                <span className="h-1.5 w-1.5 rounded-full bg-mining-green animate-pulse" style={{ boxShadow: `0 0 8px ${NEON}` }} />
-                <span className="text-[9px] font-mono text-mining-green tracking-[0.2em]">LIVE</span>
-              </div>
-            </div>
-          </CardShell>
         </div>
 
         {/* FAIXA DE CAMINHÕES ANIMADA — banda inferior */}
