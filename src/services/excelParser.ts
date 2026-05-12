@@ -89,7 +89,7 @@ export interface AggregateSummary {
 export interface EhRankingItem {
   equipamento: string;
   producao: number;
-  horas: number;
+  horas: number; // mantido p/ compat: agora representa o horímetro final
   tph: number;
 }
 
@@ -630,9 +630,10 @@ function applyStructuredOverrides(
     }
 
     // --- Ranking de produtividade por escavadeira (EH-XXXX) ---
-    // Lê o cabeçalho da aba PRODUÇÃO EH, identifica colunas cujo título começa
-    // com "EH-", soma a produção das linhas de hora e divide pelo número de
-    // horas com valor > 0. Mesma lógica do script operacional aprovado.
+    // T/H = PRODUÇÃO TOTAL ÷ HORÍMETRO FINAL
+    // Soma toda a produção da coluna EH-XXXX e divide pelo MAIOR horímetro
+    // encontrado na primeira coluna (col 0). Lógica conforme script
+    // operacional aprovado pelo despacho.
     if (headerRowIdx >= 0) {
       const headerRow = prodEh.values[headerRowIdx] ?? [];
       const ehCols: { nome: string; col: number }[] = [];
@@ -645,20 +646,23 @@ function applyStructuredOverrides(
         const endR = totalRowIdx > 0 ? totalRowIdx : prodEh.values.length;
         const ranking: EhRankingItem[] = ehCols.map(({ nome, col }) => {
           let producao = 0;
-          let horas = 0;
+          let maiorHorimetro = 0;
           for (let r = startR; r < endR; r++) {
             const row = prodEh.values[r] ?? [];
-            const hraw = row[0];
-            const hnum = typeof hraw === "number" ? hraw : Number(String(hraw ?? "").trim());
-            if (!Number.isFinite(hnum) || hnum < 0 || hnum > 23) continue;
-            const v = toNumber(row[col]);
-            if (v > 0) {
-              producao += v;
-              horas += 1;
+            const horimetro = toNumber(row[0]);
+            if (Number.isFinite(horimetro) && horimetro > maiorHorimetro) {
+              maiorHorimetro = horimetro;
             }
+            const v = toNumber(row[col]);
+            if (Number.isFinite(v) && v > 0) producao += v;
           }
-          const tph = horas > 0 ? producao / horas : 0;
-          return { equipamento: nome, producao: Math.round(producao), horas, tph: Math.round(tph) };
+          const tph = maiorHorimetro > 0 ? producao / maiorHorimetro : 0;
+          return {
+            equipamento: nome,
+            producao: Math.round(producao),
+            horas: maiorHorimetro,
+            tph: Math.round(tph),
+          };
         });
         ranking.sort((a, b) => b.tph - a.tph);
         summary.ehRanking = ranking;
