@@ -550,6 +550,10 @@ function applyStructuredOverrides(
       // up to 9 equipamentos and TOTAL — 12+ columns).
       for (let k = a.col; k <= a.col + 12; k++) retaludCols.add(k);
     }
+    const retaludStartCol = retaludAnchors.length
+      ? Math.min(...retaludAnchors.map((anchor) => anchor.col))
+      : Number.POSITIVE_INFINITY;
+    retaludDebug.retaludStartCol = Number.isFinite(retaludStartCol) ? retaludStartCol : null;
 
     // --- Locate "TOTAL" header columns precisely ---
     // The header row (usually row index 7 / row 8 in Excel) has "TOTAL" once
@@ -680,24 +684,27 @@ function applyStructuredOverrides(
     };
 
     // --- Pass 1: scan TOP rows for "Acumulado dia"/"Projetado dia" labels ---
-    // Decide which bucket (Mina vs Retaludamento) by column membership.
+    // O box-resumo do RETALUDAMENTO costuma ter o rótulo 1 coluna à esquerda do
+    // cabeçalho "RETALUDAMENTO"; por isso usamos também retaludStartCol-1.
     const turnoRetalud: number[] = [];
     for (let r = 0; r < Math.min(prodEh.values.length, HEADER_SCAN_ROWS); r++) {
       const row = prodEh.values[r] ?? [];
       for (let c = 0; c < row.length; c++) {
         const lab = norm(row[c]);
-        const isRetaludCol = retaludCols.has(c);
+        const isRetaludCol =
+          retaludCols.has(c) ||
+          (Number.isFinite(retaludStartCol) && c >= retaludStartCol - 1);
         if (/acumulado\s*dia/.test(lab)) {
           const v = numRight(row, c);
           if (v > 0) {
-            if (isRetaludCol) { if (!producaoRetalud) producaoRetalud = v; }
-            else { if (!producaoDia) producaoDia = v; }
+            if (isRetaludCol) producaoRetalud = v;
+            else producaoDia = v;
           }
         } else if (/projetad[oa]\s*dia/.test(lab)) {
           const v = numRight(row, c);
           if (v > 0) {
-            if (isRetaludCol) { if (!projetadoRetalud) projetadoRetalud = v; }
-            else { if (!projetadoDia) projetadoDia = v; }
+            if (isRetaludCol) projetadoRetalud = v;
+            else projetadoDia = v;
           }
         } else if (isRetaludCol && /^turno\s*[12]\s*:?$/.test(lab)) {
           const v = numRight(row, c);
