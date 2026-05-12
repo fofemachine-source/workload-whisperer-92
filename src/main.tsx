@@ -19,7 +19,7 @@ if (typeof Node !== "undefined") {
   Node.prototype.insertBefore = function <T extends Node>(newNode: T, referenceNode: Node | null): T {
     if (referenceNode && referenceNode.parentNode !== this) {
       console.warn("[dom-guard] insertBefore -> appendChild fallback");
-      return originalRemoveChild.call(this, newNode) ? newNode : (this.appendChild(newNode) as T);
+      return this.appendChild(newNode) as T;
     }
     return originalInsertBefore.call(this, newNode, referenceNode) as T;
   } as typeof Node.prototype.insertBefore;
