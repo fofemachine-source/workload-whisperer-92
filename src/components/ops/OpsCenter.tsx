@@ -297,7 +297,10 @@ export function OpsCenter() {
   }, [summary]);
 
   const ranking = useMemo(() => {
-    const escav = (rows || []).filter((r) => r.category === "escavadeira" && r.produtividade > 0);
+    const all = (rows || []).filter((r) => r.category === "escavadeira" && r.produtividade > 0);
+    // Preferir dados da aba "PORTAL Novo" quando disponível
+    const portal = all.filter((r) => /portal/i.test(r.source || ""));
+    const escav = portal.length >= 4 ? portal : all;
     if (escav.length >= 4) {
       return escav
         .sort((a, b) => b.produtividade - a.produtividade)
@@ -439,6 +442,10 @@ export function OpsCenter() {
         {/* LINHA 2: META TOTAL MAIO + TONELADAS POR HORA */}
         <div className="col-span-12 lg:col-span-6 flex">
           <CardShell title="META MENSAL" className="flex-1 flex flex-col">
+            <div className="mb-3 flex items-baseline justify-between">
+              <p className="text-[11px] font-mono uppercase tracking-[0.18em] text-muted-foreground">Total</p>
+              <p className="text-3xl font-mono font-bold text-mining-yellow">{fmt(metasFixas.mensal)} <span className="text-sm text-muted-foreground">t</span></p>
+            </div>
             <div className="grid gap-6 grid-cols-2 min-h-[132px] flex-1">
               <div className="flex flex-col justify-between">
                 <div>
