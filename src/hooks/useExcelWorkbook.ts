@@ -12,8 +12,8 @@ import {
 import { EXCEL_FILE_NAME, EXCEL_SHARE_URL } from "@/auth/msalConfig";
 import { SheetValues } from "@/services/excelParser";
 
-// Atualização automática a cada 20 minutos (conforme requisito operacional).
-const FILE_POLL_MS = 20 * 60_000;
+// Atualização automática a cada 3 minutos para refletir edições recentes na planilha.
+const FILE_POLL_MS = 3 * 60_000;
 
 export interface ExcelWorkbookState {
   loading: boolean;
@@ -104,7 +104,11 @@ export function useExcelWorkbook(enabled: boolean): ExcelWorkbookState {
       const durationMs = Math.round(performance.now() - startedAt);
       setLastSyncMs(durationMs);
       setLastSyncAt(new Date());
-      console.log("[ExcelLive] fonte ativa: ONEDRIVE", resolved.name, `(${names.length} aba(s))`);
+      console.log(
+        "[ExcelLive] fonte ativa: ONEDRIVE",
+        resolved.name,
+        `(${names.length} aba(s)) lastModified=${resolved.lastModifiedDateTime ?? "?"}`,
+      );
       console.log(`[ExcelLive] sincronização concluída em ${durationMs}ms`);
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);

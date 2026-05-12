@@ -191,7 +191,17 @@ export async function downloadDriveItemContent(
     : driveId
     ? `/drives/${driveId}/items/${itemId}/content`
     : `/me/drive/items/${itemId}/content`;
-  const res = (await client.api(path).responseType("arraybuffer" as never).get()) as ArrayBuffer | Blob;
+  // Cache-bust: o endpoint /content redireciona para uma URL pré-assinada que
+  // pode ficar em cache (browser/CDN). Adicionamos um query param volátil e
+  // headers no-cache para garantir conteúdo fresco a cada sync.
+  const bust = `nocache=${Date.now()}`;
+  const pathWithBust = path.includes("?") ? `${path}&${bust}` : `${path}?${bust}`;
+  const res = (await client
+    .api(pathWithBust)
+    .header("Cache-Control", "no-cache, no-store, must-revalidate")
+    .header("Pragma", "no-cache")
+    .responseType("arraybuffer" as never)
+    .get()) as ArrayBuffer | Blob;
   if (res instanceof ArrayBuffer) return res;
   if (res instanceof Blob) return await res.arrayBuffer();
   // Alguns ambientes retornam Uint8Array
