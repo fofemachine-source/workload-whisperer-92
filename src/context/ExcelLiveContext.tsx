@@ -40,6 +40,8 @@ interface ExcelLiveValue {
   clearLocalExcel: () => void;
   cloudSyncing: boolean;
   lastCloudUpload: { fileName: string; uploadedAt: string } | null;
+  lastSyncMs: number | null;
+  lastSyncAt: Date | null;
 }
 
 const Ctx = createContext<ExcelLiveValue | null>(null);
@@ -214,6 +216,8 @@ export function ExcelLiveProvider({ children }: { children: ReactNode }) {
     clearLocalExcel,
     cloudSyncing,
     lastCloudUpload,
+    lastSyncMs: useOneDrive ? wb.lastSyncMs : null,
+    lastSyncAt: useOneDrive ? wb.lastSyncAt : useLocal && local ? new Date(local.parsedAt) : null,
   };
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
