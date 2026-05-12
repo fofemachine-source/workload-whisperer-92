@@ -46,10 +46,6 @@ function MicrosoftLoginButtonConnected() {
   };
 
   const login = async () => {
-    if (!authSupported) {
-      toast.error("Login Microsoft indisponível nesta TV");
-      return;
-    }
     if (needsRedirect) {
       goToPublished();
       return;
@@ -68,7 +64,6 @@ function MicrosoftLoginButtonConnected() {
   };
 
   const logout = async () => {
-    if (!authSupported) return;
     setBusy(true);
     try {
       LOCAL_EXCEL_STORAGE_KEYS.forEach((key) => localStorage.removeItem(key));
