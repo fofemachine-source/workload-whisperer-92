@@ -29,29 +29,68 @@ export interface DriveItem {
   lastModifiedDateTime?: string;
 }
 
+const normalizeName = (s: string) =>
+  (s ?? "")
+    .normalize("NFC")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+
 /**
  * Search for a file by name across the user's OneDrive (including SharePoint shared items).
  */
 export async function findExcelFile(client: Client, fileName: string): Promise<DriveItem | null> {
-  // Strategy: search /me/drive first, then sharedWithMe
-  const encoded = encodeURIComponent(`'${fileName}'`);
+  const target = normalizeName(fileName);
+
+  // 1) Direct path lookup at OneDrive root — most reliable when the user owns the file.
   try {
+    const direct = await client
+      .api(`/me/drive/root:/${encodeURIComponent(fileName)}`)
+      .select("id,name,webUrl,size,lastModifiedDateTime,parentReference")
+      .get();
+    if (direct?.id) {
+      console.log("[graph] arquivo encontrado em /me/drive/root:", direct.name);
+      return direct as DriveItem;
+    }
+  } catch (err) {
+    console.warn("[graph] direct path lookup falhou (vai cair na busca):", (err as Error)?.message);
+  }
+
+  // 2) Search by name and pick only an exact (Unicode-normalized) match.
+  try {
+    const encoded = encodeURIComponent(`'${fileName}'`);
     const res = await client.api(`/me/drive/root/search(q=${encoded})`).get();
-    const match = (res.value as DriveItem[]).find(
-      (i) => i.name?.toLowerCase() === fileName.toLowerCase(),
-    );
-    if (match) return match;
-    if (res.value?.length) return res.value[0] as DriveItem;
+    const list = (res.value ?? []) as DriveItem[];
+    const match = list.find((i) => normalizeName(i.name ?? "") === target);
+    if (match) {
+      console.log("[graph] arquivo encontrado via search exato:", match.name);
+      return match;
+    }
+    // Fallback de busca: contém "controle de produ" e termina com .xlsx
+    const loose = list.find((i) => {
+      const n = normalizeName(i.name ?? "");
+      return n.includes("controle de produ") && n.endsWith(".xlsx");
+    });
+    if (loose) {
+      console.log("[graph] arquivo encontrado via search loose:", loose.name);
+      return loose;
+    }
+    console.warn("[graph] search retornou", list.length, "resultados, nenhum bate com", fileName);
   } catch (err) {
     console.warn("[graph] /me/drive search failed", err);
   }
 
+  // 3) sharedWithMe — para quando a planilha mora em outra conta.
   try {
     const shared = await client.api("/me/drive/sharedWithMe").get();
-    const match = (shared.value as DriveItem[]).find((i) =>
-      i.name?.toLowerCase().includes("controle de produ"),
-    );
-    if (match) return match;
+    const list = (shared.value ?? []) as DriveItem[];
+    const match =
+      list.find((i) => normalizeName(i.name ?? "") === target) ||
+      list.find((i) => normalizeName(i.name ?? "").includes("controle de produ"));
+    if (match) {
+      console.log("[graph] arquivo encontrado em sharedWithMe:", match.name);
+      return match;
+    }
   } catch (err) {
     console.warn("[graph] sharedWithMe failed", err);
   }
