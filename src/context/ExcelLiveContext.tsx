@@ -47,7 +47,7 @@ const Ctx = createContext<ExcelLiveValue | null>(null);
 export function ExcelLiveProvider({ children }: { children: ReactNode }) {
   const isAuth = useIsAuthenticated();
   const wb = useExcelWorkbook(isAuth);
-  const m = useExcelMetrics(wb.file, wb.worksheets);
+  const m = useExcelMetrics(wb.file, wb.sheetValues);
 
   const [local, setLocal] = useState<LocalExcelResult | null>(() => loadPersistedLocalExcel());
   const [localLoading, setLocalLoading] = useState(false);
