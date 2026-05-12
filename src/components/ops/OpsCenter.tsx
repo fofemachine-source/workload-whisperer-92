@@ -442,15 +442,11 @@ export function OpsCenter() {
         {/* LINHA 2: META TOTAL MAIO + TONELADAS POR HORA */}
         <div className="col-span-12 lg:col-span-6 flex">
           <CardShell title="META MENSAL" className="flex-1 flex flex-col">
-            <div className="mb-3 flex items-baseline justify-between">
-              <p className="text-[11px] font-mono uppercase tracking-[0.18em] text-muted-foreground">Total</p>
-              <p className="text-3xl font-mono font-bold text-mining-yellow">{fmt(metasFixas.mensal)} <span className="text-sm text-muted-foreground">t</span></p>
-            </div>
             <div className="grid gap-6 grid-cols-2 min-h-[132px] flex-1">
               <div className="flex flex-col justify-between">
                 <div>
                   <p className="text-xs font-mono uppercase tracking-[0.18em] text-muted-foreground">Mina</p>
-                  <p className="mt-3 text-4xl font-mono font-bold text-mining-yellow">{fmt(metaMensalMina)}</p>
+                  <p className="mt-3 text-4xl font-mono font-bold text-mining-yellow">{fmt(metasFixas.mensal)}</p>
                 </div>
                 <div className="mt-3">
                   <p className="text-[11px] font-mono uppercase tracking-[0.18em] text-muted-foreground">{shareMetaMina.toFixed(1)}% da meta</p>
