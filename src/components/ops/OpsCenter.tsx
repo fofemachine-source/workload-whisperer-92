@@ -297,7 +297,10 @@ export function OpsCenter() {
   }, [summary]);
 
   const ranking = useMemo(() => {
-    const escav = (rows || []).filter((r) => r.category === "escavadeira" && r.produtividade > 0);
+    const all = (rows || []).filter((r) => r.category === "escavadeira" && r.produtividade > 0);
+    // Preferir dados da aba "PORTAL Novo" quando disponível
+    const portal = all.filter((r) => /portal/i.test(r.source || ""));
+    const escav = portal.length >= 4 ? portal : all;
     if (escav.length >= 4) {
       return escav
         .sort((a, b) => b.produtividade - a.produtividade)
