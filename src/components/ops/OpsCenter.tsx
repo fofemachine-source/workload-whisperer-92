@@ -1,14 +1,14 @@
 import { useEffect, useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import {
-  AreaChart,
-  Area,
+  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
   Line,
+  ComposedChart,
 } from "recharts";
 import {
   Calendar,
