@@ -3,7 +3,6 @@ import { motion } from "framer-motion";
 import {
   AreaChart,
   Area,
-  BarChart,
   Bar,
   XAxis,
   YAxis,
@@ -12,27 +11,17 @@ import {
   ResponsiveContainer,
   Line,
   ComposedChart,
-  Cell,
 } from "recharts";
 import {
   Activity,
   Calendar,
   RefreshCw,
-  Shield,
-  Settings,
-  DollarSign,
-  Leaf,
-  Mountain,
 } from "lucide-react";
 import { useExcelLive } from "@/context/ExcelLiveContext";
 import { FLEET_SIZE, FLEET_TOTAL } from "@/services/excelParser";
 import { ExcelUploadButton } from "@/components/dashboard/ExcelUploadButton";
 import { MicrosoftLoginButton } from "@/components/microsoft/MicrosoftLoginButton";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
-import { Pencil } from "lucide-react";
 import { AnimatedTruck } from "./AnimatedTruck";
 import logoUM from "@/assets/logo-um.png";
 import { AnimatedExcavator } from "./AnimatedExcavator";
