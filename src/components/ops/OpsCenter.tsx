@@ -350,7 +350,7 @@ export function OpsCenter() {
       { pos: 7, name: "EX1200-05", value: 3980 },
       { pos: 8, name: "EX2500-03", value: 3760 },
     ];
-  }, [rows]);
+  }, [rows, summary]);
 
   // Frotas (DF/UT/produção por modelo) — vindas da planilha quando disponível
   const fleets = [
