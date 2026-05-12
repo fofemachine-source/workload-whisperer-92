@@ -593,16 +593,6 @@ export function OpsCenter() {
 
         {/* COLUNA DIREITA: RANKING + TONELADAS/H + PRODUÇÃO TURNO + OPERAÇÃO AO VIVO */}
         <div className="col-span-12 lg:col-span-6 flex flex-col gap-3">
-          <CardShell title="META HORÁRIA">
-            <div className="flex items-end justify-between gap-3 min-h-[96px]">
-              <div>
-                <p className="text-4xl font-mono font-bold text-mining-green">{fmt(metasFixas.horaria)}</p>
-                <p className="mt-2 text-xs font-mono uppercase tracking-[0.18em] text-muted-foreground">toneladas / hora</p>
-              </div>
-              <RefreshCw className="h-8 w-8 text-mining-green/70" />
-            </div>
-          </CardShell>
-
           <CardShell title="PRODUÇÃO DO TURNO (TONELADAS)">
             <div className="h-56">
               <ResponsiveContainer width="100%" height="100%">
@@ -625,6 +615,16 @@ export function OpsCenter() {
                   <Line type="monotone" dataKey="hd785" stroke={YELLOW} strokeWidth={2} dot={false} name="HD785" />
                 </AreaChart>
               </ResponsiveContainer>
+            </div>
+          </CardShell>
+
+          <CardShell title="META HORÁRIA">
+            <div className="flex items-end justify-between gap-3 min-h-[96px]">
+              <div>
+                <p className="text-4xl font-mono font-bold text-mining-green">{fmt(metasFixas.horaria)}</p>
+                <p className="mt-2 text-xs font-mono uppercase tracking-[0.18em] text-muted-foreground">toneladas / hora</p>
+              </div>
+              <RefreshCw className="h-8 w-8 text-mining-green/70" />
             </div>
           </CardShell>
 
