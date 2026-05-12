@@ -13,6 +13,7 @@ import {
 } from "@/services/localExcelParser";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { isMicrosoftAuthSupported } from "@/lib/browserSupport";
 
 interface ExcelLiveValue {
   isAuth: boolean;
@@ -47,6 +48,13 @@ interface ExcelLiveValue {
 const Ctx = createContext<ExcelLiveValue | null>(null);
 
 export function ExcelLiveProvider({ children }: { children: ReactNode }) {
+  const authSupported = isMicrosoftAuthSupported();
+  if (!authSupported) return <ExcelLiveProviderFallback>{children}</ExcelLiveProviderFallback>;
+
+  return <ExcelLiveProviderConnected>{children}</ExcelLiveProviderConnected>;
+}
+
+function ExcelLiveProviderConnected({ children }: { children: ReactNode }) {
   const isAuth = useIsAuthenticated();
   const wb = useExcelWorkbook(isAuth);
   const m = useExcelMetrics(wb.file, wb.sheetValues);
@@ -239,6 +247,156 @@ export function ExcelLiveProvider({ children }: { children: ReactNode }) {
     lastCloudUpload,
     lastSyncMs: useOneDrive ? wb.lastSyncMs : null,
     lastSyncAt: useOneDrive ? wb.lastSyncAt : useLocal && local ? new Date(local.parsedAt) : null,
+  };
+
+  return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
+}
+
+function ExcelLiveProviderFallback({ children }: { children: ReactNode }) {
+  const [local, setLocal] = useState<LocalExcelResult | null>(() => loadPersistedLocalExcel());
+  const [localLoading, setLocalLoading] = useState(false);
+  const [localError, setLocalError] = useState<string | null>(null);
+  const [cloudSyncing, setCloudSyncing] = useState(false);
+  const [lastCloudUpload, setLastCloudUpload] = useState<{ fileName: string; uploadedAt: string } | null>(null);
+
+  const fetchAndParseFromCloud = useCallback(async (filePath: string, fileName: string, uploadedAt: string, silent = false) => {
+    setCloudSyncing(true);
+    try {
+      const { data, error } = await supabase.storage.from("spreadsheets").download(filePath);
+      if (error || !data) throw error ?? new Error("Falha no download");
+      const file = new File([data], fileName, { type: data.type });
+      const result = await parseLocalExcel(file);
+      setLocal(result);
+      persistLocalExcel(result);
+      setLastCloudUpload({ fileName, uploadedAt });
+      if (!silent) {
+        toast.success("Planilha sincronizada", { description: `${fileName} · ${new Date(uploadedAt).toLocaleTimeString("pt-BR")}` });
+      }
+    } catch (e) {
+      console.error("[cloudSync] erro ao baixar/parsear:", e);
+    } finally {
+      setCloudSyncing(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data, error } = await supabase
+        .from("spreadsheet_uploads")
+        .select("*")
+        .order("uploaded_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (cancelled || error || !data) return;
+      const localTime = local?.parsedAt ? new Date(local.parsedAt).getTime() : 0;
+      const cloudTime = new Date(data.uploaded_at).getTime();
+      if (cloudTime > localTime) {
+        await fetchAndParseFromCloud(data.file_path, data.file_name, data.uploaded_at, true);
+      } else {
+        setLastCloudUpload({ fileName: data.file_name, uploadedAt: data.uploaded_at });
+      }
+    })();
+
+    const channel = supabase
+      .channel("spreadsheet-uploads")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "spreadsheet_uploads" },
+        (payload) => {
+          const row = payload.new as { file_path: string; file_name: string; uploaded_at: string };
+          fetchAndParseFromCloud(row.file_path, row.file_name, row.uploaded_at, false);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      cancelled = true;
+      supabase.removeChannel(channel);
+    };
+  }, [fetchAndParseFromCloud, local?.parsedAt]);
+
+  const uploadLocalExcel = useCallback(async (file: File) => {
+    setLocalLoading(true);
+    setLocalError(null);
+    try {
+      const result = await parseLocalExcel(file);
+      setLocal(result);
+      persistLocalExcel(result);
+
+      setCloudSyncing(true);
+      try {
+        const ext = file.name.split(".").pop() || "xlsx";
+        const filePath = `live/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+        const { error: upErr } = await supabase.storage
+          .from("spreadsheets")
+          .upload(filePath, file, { upsert: false, contentType: file.type || undefined });
+        if (upErr) throw upErr;
+        const { error: insErr } = await supabase
+          .from("spreadsheet_uploads")
+          .insert({ file_name: file.name, file_path: filePath });
+        if (insErr) throw insErr;
+        setLastCloudUpload({ fileName: file.name, uploadedAt: result.parsedAt });
+        toast.success("Planilha publicada para todos os painéis", { description: file.name });
+      } catch (cloudErr) {
+        console.error("[cloudSync] erro ao publicar:", cloudErr);
+        toast.error("Falha ao publicar na nuvem", {
+          description: cloudErr instanceof Error ? cloudErr.message : String(cloudErr),
+        });
+      } finally {
+        setCloudSyncing(false);
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      setLocalError(msg);
+      console.error("[localExcel] erro ao parsear/publicar:", msg);
+      toast.error("Erro ao processar planilha", { description: msg });
+    } finally {
+      setLocalLoading(false);
+    }
+  }, []);
+
+  const clearLocalExcel = useCallback(() => {
+    clearPersistedLocalExcel();
+    setLocal(null);
+    setLocalError(null);
+  }, []);
+
+  const value: ExcelLiveValue = {
+    isAuth: false,
+    file: null,
+    worksheets: [],
+    workbookLoading: false,
+    workbookError: null,
+    metrics: local?.metrics ?? null,
+    areas: local?.areas
+      ? {
+          ...local.areas,
+          Retaludamento: {
+            ...local.areas.Retaludamento,
+            meta: 853_680,
+          },
+        }
+      : null,
+    metricsLoading: localLoading,
+    metricsError: localError,
+    lastUpdated: local ? new Date(local.parsedAt) : null,
+    refresh: async () => {},
+    refreshWorkbook: async () => {},
+    debug: local?.debug ?? [],
+    summary: local?.summary ?? null,
+    rows: local?.rows ?? [],
+    fleets: local?.fleets ?? null,
+    source: local ? "local" : "none",
+    localFile: local ? { name: local.fileName, sheetNames: local.sheetNames, parsedAt: local.parsedAt } : null,
+    localError,
+    localLoading,
+    uploadLocalExcel,
+    clearLocalExcel,
+    cloudSyncing,
+    lastCloudUpload,
+    lastSyncMs: null,
+    lastSyncAt: local ? new Date(local.parsedAt) : null,
   };
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

@@ -9,10 +9,17 @@ import { isMicrosoftAuthSupported } from "@/lib/browserSupport";
 const LOCAL_EXCEL_STORAGE_KEYS = ["lovable.localExcel.v1", "lovable.localExcel.v2", "lovable.localExcel.v3"];
 
 export function MicrosoftLoginButton() {
+  const authSupported = isMicrosoftAuthSupported();
+
+  if (!authSupported) return null;
+
+  return <MicrosoftLoginButtonConnected />;
+}
+
+function MicrosoftLoginButtonConnected() {
   const { instance, accounts } = useMsal();
   const isAuth = useIsAuthenticated();
   const [busy, setBusy] = useState(false);
-  const authSupported = isMicrosoftAuthSupported();
 
   const inIframe = typeof window !== "undefined" && window.self !== window.top;
   const PUBLISHED_URL = "https://workload-whisperer-92.lovable.app";
@@ -39,10 +46,6 @@ export function MicrosoftLoginButton() {
   };
 
   const login = async () => {
-    if (!authSupported) {
-      toast.error("Login Microsoft indisponível nesta TV");
-      return;
-    }
     if (needsRedirect) {
       goToPublished();
       return;
@@ -61,7 +64,6 @@ export function MicrosoftLoginButton() {
   };
 
   const logout = async () => {
-    if (!authSupported) return;
     setBusy(true);
     try {
       LOCAL_EXCEL_STORAGE_KEYS.forEach((key) => localStorage.removeItem(key));
@@ -70,8 +72,6 @@ export function MicrosoftLoginButton() {
       setBusy(false);
     }
   };
-
-  if (!authSupported) return null;
 
   if (isAuth) {
     return (
