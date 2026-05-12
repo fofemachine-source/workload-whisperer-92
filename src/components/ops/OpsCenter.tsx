@@ -490,7 +490,7 @@ export function OpsCenter() {
                 </div>
                 <div className="mt-3">
                   <p className="text-[11px] font-mono uppercase tracking-[0.18em] text-muted-foreground">{shareMetaRetalud.toFixed(1)}% da meta</p>
-                  <div className="mt-2"><ProgressBar value={shareMetaRetalud} color={NEON} /></div>
+                  <div className="mt-2"><ProgressBar value={shareMetaRetalud} color={YELLOW} /></div>
                 </div>
               </div>
             </div>
