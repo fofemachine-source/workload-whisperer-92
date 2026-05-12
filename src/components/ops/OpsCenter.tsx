@@ -24,6 +24,7 @@ import { Button } from "@/components/ui/button";
 import { AnimatedTruck } from "./AnimatedTruck";
 import logoUM from "@/assets/logo-um.png";
 import { AnimatedExcavator } from "./AnimatedExcavator";
+import { supportsDateTimeFormatParts } from "@/lib/browserSupport";
 
 const NEON = "#22c55e";
 const NEON_DIM = "#15803d";
@@ -161,6 +162,13 @@ export function OpsCenter() {
   const syncing = metricsLoading || workbookLoading;
   const syncError = workbookError || metricsError;
   const operationNow = useMemo(() => {
+    if (!supportsDateTimeFormatParts()) {
+      const localNow = new Date(clock.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
+      return {
+        todayKey: `${localNow.getFullYear()}-${String(localNow.getMonth() + 1).padStart(2, "0")}-${String(localNow.getDate()).padStart(2, "0")}`,
+        currentHour: localNow.getHours(),
+      };
+    }
     const parts = new Intl.DateTimeFormat("en-CA", {
       timeZone: "America/Sao_Paulo",
       year: "numeric",
