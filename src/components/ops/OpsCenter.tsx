@@ -215,29 +215,6 @@ export function OpsCenter() {
       return null;
     }
   });
-  const [retaludOpen, setRetaludOpen] = useState(false);
-  const [retaludForm, setRetaludForm] = useState({ acumulado: "", projetado: "" });
-  useEffect(() => {
-    if (retaludOpen) {
-      setRetaludForm({
-        acumulado: retaludOverride?.acumulado?.toString() ?? "",
-        projetado: retaludOverride?.projetado?.toString() ?? "",
-      });
-    }
-  }, [retaludOpen, retaludOverride]);
-  const saveRetalud = () => {
-    const a = Number(retaludForm.acumulado.replace(",", ".")) || 0;
-    const p = Number(retaludForm.projetado.replace(",", ".")) || a;
-    const next = { acumulado: a, projetado: p };
-    setRetaludOverride(next);
-    localStorage.setItem(RETALUD_KEY, JSON.stringify(next));
-    setRetaludOpen(false);
-  };
-  const clearRetalud = () => {
-    localStorage.removeItem(RETALUD_KEY);
-    setRetaludOverride(null);
-    setRetaludOpen(false);
-  };
   // Planilha sempre vence quando tem valor; override manual é apenas fallback.
   const acumuladoRetaludShown = (summary?.acumuladoRetalud && summary.acumuladoRetalud > 0)
     ? summary.acumuladoRetalud
