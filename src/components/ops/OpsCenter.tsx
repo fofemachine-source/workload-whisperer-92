@@ -160,12 +160,14 @@ export function OpsCenter() {
   const clock = useClock();
   const syncing = metricsLoading || workbookLoading;
   const syncError = workbookError || metricsError;
+  const todayKey = useMemo(() => {
+    return `${clock.getFullYear()}-${String(clock.getMonth() + 1).padStart(2, "0")}-${String(clock.getDate()).padStart(2, "0")}`;
+  }, [clock]);
   // Detecta se a planilha ativa não é de hoje. Prioriza a célula DATA: da aba
   // PRODUÇÃO EH (verdade da operação); cai pra parsedAt se a célula não existir.
   const planilhaDesatualizada = useMemo(() => {
-    const today = new Date();
-    const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
     if (summary?.dataPlanilha) return summary.dataPlanilha !== todayKey;
+    const today = new Date();
     if (!lastUpdated) return false;
     return (
       lastUpdated.getFullYear() !== today.getFullYear() ||
@@ -193,8 +195,15 @@ export function OpsCenter() {
     diaria: 43_584,
     horaria: 1_816,
   };
-  const baseMetaMina = areas?.Mina?.meta || summary?.projetadoDia || 0;
-  const baseMetaRetalud = areas?.Retaludamento?.meta || summary?.projetadoRetalud || 0;
+  const recomputeProjectedForToday = useCallback((acumulado: number, fallback: number) => {
+    if (!summary?.dataPlanilha || summary.dataPlanilha !== todayKey || acumulado <= 0) {
+      return fallback > 0 ? fallback : acumulado;
+    }
+    const elapsedHours = clock.getHours();
+    if (elapsedHours <= 0) return fallback > 0 ? fallback : acumulado;
+    return acumulado * (24 / elapsedHours);
+  }, [summary?.dataPlanilha, todayKey, clock]);
+  const projectedMinaShown = recomputeProjectedForToday(summary?.acumuladoDia || 0, summary?.projetadoDia || 0);
   const totalBaseMeta = baseMetaMina + baseMetaRetalud;
   const metaMensalMina = totalBaseMeta > 0 ? Math.round(metasFixas.mensal * (baseMetaMina / totalBaseMeta)) : Math.round(metasFixas.mensal / 2);
   const metaMensalRetalud = metasFixas.mensal - metaMensalMina;
@@ -219,9 +228,12 @@ export function OpsCenter() {
   const acumuladoRetaludShown = (summary?.acumuladoRetalud && summary.acumuladoRetalud > 0)
     ? summary.acumuladoRetalud
     : (retaludOverride?.acumulado ?? 0);
-  const projetadoRetaludShown = (summary?.projetadoRetalud && summary.projetadoRetalud > 0)
+  const projetoRetaludBase = (summary?.projetadoRetalud && summary.projetadoRetalud > 0)
     ? summary.projetadoRetalud
     : (retaludOverride?.projetado ?? acumuladoRetaludShown);
+  const projetadoRetaludShown = recomputeProjectedForToday(acumuladoRetaludShown, projetoRetaludBase);
+  const baseMetaMina = areas?.Mina?.meta || projectedMinaShown || 0;
+  const baseMetaRetalud = areas?.Retaludamento?.meta || projetadoRetaludShown || 0;
 
   // Auto refresh OneDrive a cada 60s
   useEffect(() => {
@@ -268,7 +280,7 @@ export function OpsCenter() {
   const tonHSeries = useMemo(() => {
     const real = summary?.hourlySeries;
     // Meta hora-a-hora = projetado / 24 (fallback metaTonH)
-    const projetado = summary?.projetadoDia || 0;
+    const projetado = projectedMinaShown || 0;
     const metaHora = projetado > 0 ? projetado / 24 : metaTonH;
     if (real && real.length) {
       return real.map((p) => ({
@@ -283,7 +295,7 @@ export function OpsCenter() {
       tonH: 0,
       meta: Math.round(metaHora),
     }));
-  }, [summary, metaTonH]);
+  }, [summary, metaTonH, projectedMinaShown]);
 
   const tonHCheck = useMemo(() => {
     const real = summary?.hourlySeries;
@@ -394,7 +406,7 @@ export function OpsCenter() {
               <div className="h-px bg-mining-green/15" />
               <div className="flex items-center justify-between gap-2">
                 <span className="text-xs font-mono text-muted-foreground uppercase tracking-wider">PROJETADO DIA:</span>
-                <span className="text-3xl font-mono font-bold text-mining-green text-glow-neon">{fmt(summary?.projetadoDia || summary?.acumuladoDia || producaoTurno)}</span>
+                <span className="text-3xl font-mono font-bold text-mining-green text-glow-neon">{fmt(projectedMinaShown || summary?.acumuladoDia || producaoTurno)}</span>
               </div>
             </div>
           </CardShell>
