@@ -3,7 +3,6 @@ import { motion } from "framer-motion";
 import {
   AreaChart,
   Area,
-  BarChart,
   Bar,
   XAxis,
   YAxis,
@@ -12,27 +11,16 @@ import {
   ResponsiveContainer,
   Line,
   ComposedChart,
-  Cell,
 } from "recharts";
 import {
-  Activity,
   Calendar,
   RefreshCw,
-  Shield,
-  Settings,
-  DollarSign,
-  Leaf,
-  Mountain,
 } from "lucide-react";
 import { useExcelLive } from "@/context/ExcelLiveContext";
 import { FLEET_SIZE, FLEET_TOTAL } from "@/services/excelParser";
 import { ExcelUploadButton } from "@/components/dashboard/ExcelUploadButton";
 import { MicrosoftLoginButton } from "@/components/microsoft/MicrosoftLoginButton";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
-import { Pencil } from "lucide-react";
 import { AnimatedTruck } from "./AnimatedTruck";
 import logoUM from "@/assets/logo-um.png";
 import { AnimatedExcavator } from "./AnimatedExcavator";
@@ -168,7 +156,7 @@ function FleetRow({
 }
 
 export function OpsCenter() {
-  const { summary, rows, fleets: fleetsAgg, lastUpdated, source, refresh, refreshWorkbook, metricsLoading, workbookLoading, file, worksheets, workbookError, metricsError, localFile, lastCloudUpload } = useExcelLive();
+  const { summary, rows, fleets: fleetsAgg, areas, lastUpdated, source, refresh, refreshWorkbook, metricsLoading, workbookLoading, file, worksheets, workbookError, metricsError, localFile, lastCloudUpload } = useExcelLive();
   const clock = useClock();
   const syncing = metricsLoading || workbookLoading;
   const syncError = workbookError || metricsError;
@@ -205,6 +193,13 @@ export function OpsCenter() {
     diaria: 43_584,
     horaria: 1_816,
   };
+  const baseMetaMina = areas?.Mina?.meta || summary?.projetadoDia || 0;
+  const baseMetaRetalud = areas?.Retaludamento?.meta || summary?.projetadoRetalud || 0;
+  const totalBaseMeta = baseMetaMina + baseMetaRetalud;
+  const metaMensalMina = totalBaseMeta > 0 ? Math.round(metasFixas.mensal * (baseMetaMina / totalBaseMeta)) : Math.round(metasFixas.mensal / 2);
+  const metaMensalRetalud = metasFixas.mensal - metaMensalMina;
+  const shareMetaMina = metasFixas.mensal > 0 ? (metaMensalMina / metasFixas.mensal) * 100 : 0;
+  const shareMetaRetalud = metasFixas.mensal > 0 ? (metaMensalRetalud / metasFixas.mensal) * 100 : 0;
   const handleManualRefresh = async () => {
     await Promise.all([refreshWorkbook(), refresh()]);
   };
@@ -220,29 +215,6 @@ export function OpsCenter() {
       return null;
     }
   });
-  const [retaludOpen, setRetaludOpen] = useState(false);
-  const [retaludForm, setRetaludForm] = useState({ acumulado: "", projetado: "" });
-  useEffect(() => {
-    if (retaludOpen) {
-      setRetaludForm({
-        acumulado: retaludOverride?.acumulado?.toString() ?? "",
-        projetado: retaludOverride?.projetado?.toString() ?? "",
-      });
-    }
-  }, [retaludOpen, retaludOverride]);
-  const saveRetalud = () => {
-    const a = Number(retaludForm.acumulado.replace(",", ".")) || 0;
-    const p = Number(retaludForm.projetado.replace(",", ".")) || a;
-    const next = { acumulado: a, projetado: p };
-    setRetaludOverride(next);
-    localStorage.setItem(RETALUD_KEY, JSON.stringify(next));
-    setRetaludOpen(false);
-  };
-  const clearRetalud = () => {
-    localStorage.removeItem(RETALUD_KEY);
-    setRetaludOverride(null);
-    setRetaludOpen(false);
-  };
   // Planilha sempre vence quando tem valor; override manual é apenas fallback.
   const acumuladoRetaludShown = (summary?.acumuladoRetalud && summary.acumuladoRetalud > 0)
     ? summary.acumuladoRetalud
@@ -498,23 +470,29 @@ export function OpsCenter() {
         </div>
 
         <div className="col-span-12">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <CardShell title="META TOTAL MAIO">
-              <div className="flex items-end justify-between gap-3 min-h-[96px]">
-                <div>
-                  <p className="text-4xl font-mono font-bold text-mining-yellow">{fmt(metasFixas.mensal)}</p>
-                  <p className="mt-2 text-xs font-mono uppercase tracking-[0.18em] text-muted-foreground">toneladas</p>
+              <div className="grid gap-4 md:grid-cols-2 min-h-[132px]">
+                <div className="flex flex-col justify-between border border-mining-yellow/20 rounded-sm px-3 py-3 bg-mining-yellow/5">
+                  <div>
+                    <p className="text-xs font-mono uppercase tracking-[0.18em] text-muted-foreground">Mina</p>
+                    <p className="mt-3 text-4xl font-mono font-bold text-mining-yellow">{fmt(metaMensalMina)}</p>
+                  </div>
+                  <div className="mt-3">
+                    <p className="text-[11px] font-mono uppercase tracking-[0.18em] text-muted-foreground">{shareMetaMina.toFixed(1)}% da meta</p>
+                    <div className="mt-2"><ProgressBar value={shareMetaMina} color={YELLOW} /></div>
+                  </div>
                 </div>
-                <Mountain className="h-8 w-8 text-mining-yellow/70" />
-              </div>
-            </CardShell>
-            <CardShell title="META DIÁRIA">
-              <div className="flex items-end justify-between gap-3 min-h-[96px]">
-                <div>
-                  <p className="text-4xl font-mono font-bold text-mining-blue">{fmt(metasFixas.diaria)}</p>
-                  <p className="mt-2 text-xs font-mono uppercase tracking-[0.18em] text-muted-foreground">toneladas / dia</p>
+                <div className="flex flex-col justify-between border border-mining-green/20 rounded-sm px-3 py-3 bg-mining-green/5">
+                  <div>
+                    <p className="text-xs font-mono uppercase tracking-[0.18em] text-muted-foreground">Retaludamento</p>
+                    <p className="mt-3 text-4xl font-mono font-bold text-mining-green">{fmt(metaMensalRetalud)}</p>
+                  </div>
+                  <div className="mt-3">
+                    <p className="text-[11px] font-mono uppercase tracking-[0.18em] text-muted-foreground">{shareMetaRetalud.toFixed(1)}% da meta</p>
+                    <div className="mt-2"><ProgressBar value={shareMetaRetalud} color={NEON} /></div>
+                  </div>
                 </div>
-                <Activity className="h-8 w-8 text-mining-blue/70" />
               </div>
             </CardShell>
             <CardShell title="META HORÁRIA">

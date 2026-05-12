@@ -27,6 +27,7 @@ export interface DriveItem {
   parentReference?: { driveId?: string; path?: string };
   size?: number;
   lastModifiedDateTime?: string;
+  shareId?: string;
 }
 
 const normalizeName = (s: string) =>
@@ -107,24 +108,34 @@ export function encodeShareUrl(url: string): string {
   return "u!" + b64.replace(/=+$/, "").replace(/\//g, "_").replace(/\+/g, "-");
 }
 
+function getShareUrlCandidates(url: string): string[] {
+  const trimmed = url.trim();
+  if (!trimmed) return [];
+  const withoutQuery = trimmed.split("?")[0];
+  return Array.from(new Set([trimmed, withoutQuery]));
+}
+
 /**
  * Resolve uma URL de compartilhamento (SharePoint/OneDrive) para um DriveItem
  * completo (com driveId), permitindo acessar planilhas que não estão na
  * conta logada nem em sharedWithMe.
  */
 export async function resolveSharedFile(client: Client, shareUrl: string): Promise<DriveItem | null> {
-  try {
-    const shareId = encodeShareUrl(shareUrl);
-    // expand driveItem para já trazer parentReference (driveId)
-    const res = await client
-      .api(`/shares/${shareId}/driveItem`)
-      .select("id,name,webUrl,size,lastModifiedDateTime,parentReference")
-      .get();
-    return res as DriveItem;
-  } catch (err) {
-    console.warn("[graph] resolveSharedFile falhou:", err);
-    return null;
+  for (const candidate of getShareUrlCandidates(shareUrl)) {
+    try {
+      const shareId = encodeShareUrl(candidate);
+      const res = await client
+        .api(`/shares/${shareId}/driveItem`)
+        .select("id,name,webUrl,size,lastModifiedDateTime,parentReference")
+        .get();
+      console.log("[graph] arquivo resolvido via link compartilhado:", res?.name);
+      return { ...(res as DriveItem), shareId };
+    } catch (err) {
+      console.warn("[graph] resolveSharedFile falhou para candidato:", candidate, err);
+    }
   }
+
+  return null;
 }
 
 export interface WorksheetInfo {
@@ -138,8 +149,11 @@ export async function listWorksheets(
   client: Client,
   driveId: string,
   itemId: string,
+  shareId?: string,
 ): Promise<WorksheetInfo[]> {
-  const path = driveId
+  const path = shareId
+    ? `/shares/${shareId}/driveItem/workbook/worksheets`
+    : driveId
     ? `/drives/${driveId}/items/${itemId}/workbook/worksheets`
     : `/me/drive/items/${itemId}/workbook/worksheets`;
   const res = await client.api(path).get();
@@ -151,8 +165,11 @@ export async function getUsedRange(
   driveId: string,
   itemId: string,
   worksheetName: string,
+  shareId?: string,
 ): Promise<{ values: unknown[][]; address: string; rowCount: number; columnCount: number }> {
-  const path = driveId
+  const path = shareId
+    ? `/shares/${shareId}/driveItem/workbook/worksheets('${encodeURIComponent(worksheetName)}')/usedRange(valuesOnly=true)`
+    : driveId
     ? `/drives/${driveId}/items/${itemId}/workbook/worksheets('${encodeURIComponent(worksheetName)}')/usedRange(valuesOnly=true)`
     : `/me/drive/items/${itemId}/workbook/worksheets('${encodeURIComponent(worksheetName)}')/usedRange(valuesOnly=true)`;
   return await client.api(path).get();

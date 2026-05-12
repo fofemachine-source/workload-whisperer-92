@@ -58,12 +58,13 @@ export function useExcelMetrics(file: DriveItem | null, worksheets: WorksheetInf
     try {
       const client = createGraphClient(instance, accounts[0]);
       const driveId = file.parentReference?.driveId ?? "";
+      const shareId = file.shareId;
       // Fetch all sheet values in parallel, then run the same structured parser
       // used for local uploads (Horimetros / Paradas / PRODUÇÃO EH rules).
       const sheetValues: SheetValues[] = await Promise.all(
         worksheets.map(async (w) => {
           try {
-            const r = await getUsedRange(client, driveId, file.id, w.name);
+            const r = await getUsedRange(client, driveId, file.id, w.name, shareId);
             return { name: w.name, values: (r?.values ?? []) as unknown[][] };
           } catch (err) {
             console.warn(`[excel] erro ao ler aba ${w.name}`, err);

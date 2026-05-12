@@ -31,7 +31,7 @@ export function useExcelWorkbook(enabled: boolean): ExcelWorkbookState {
       const tryListSheets = async (item: typeof found) => {
         if (!item) throw new Error("Arquivo nulo");
         const driveId = item.parentReference?.driveId ?? "";
-        return await listWorksheets(client, driveId, item.id);
+        return await listWorksheets(client, driveId, item.id, item.shareId);
       };
       let sheets: Awaited<ReturnType<typeof listWorksheets>> | null = null;
       if (found) {
@@ -42,10 +42,13 @@ export function useExcelWorkbook(enabled: boolean): ExcelWorkbookState {
           found = null;
         }
       }
-      if (!found && EXCEL_SHARE_URL) {
+      if (EXCEL_SHARE_URL) {
         console.log("[graph] tentando resolver via URL de compartilhamento…");
-        found = await resolveSharedFile(client, EXCEL_SHARE_URL);
-        if (found) sheets = await tryListSheets(found);
+        const sharedItem = await resolveSharedFile(client, EXCEL_SHARE_URL);
+        if (sharedItem) {
+          found = sharedItem;
+          sheets = await tryListSheets(sharedItem);
+        }
       }
       if (!found || !sheets) {
         throw new Error(
