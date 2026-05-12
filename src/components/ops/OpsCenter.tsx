@@ -431,12 +431,12 @@ export function OpsCenter() {
           <CardShell title="MINA" className="flex-1 flex flex-col">
             <div className="space-y-2 flex-1 flex flex-col justify-center">
               <div className="flex items-center justify-between gap-2">
-                <span className="text-xs font-mono text-muted-foreground uppercase tracking-wider">ACUMULADO DIA:</span>
+                <span className="text-base font-mono text-muted-foreground uppercase tracking-wider">ACUMULADO DIA:</span>
                 <span className="text-3xl font-mono font-bold text-mining-blue">{fmt(summary?.acumuladoDia || producaoTurno)}</span>
               </div>
               <div className="h-px bg-mining-green/15" />
               <div className="flex items-center justify-between gap-2">
-                <span className="text-xs font-mono text-muted-foreground uppercase tracking-wider">PROJETADO DIA:</span>
+                <span className="text-base font-mono text-muted-foreground uppercase tracking-wider">PROJETADO DIA:</span>
                 <span className="text-3xl font-mono font-bold text-mining-green text-glow-neon">{fmt(projectedMinaShown || summary?.acumuladoDia || producaoTurno)}</span>
               </div>
             </div>
@@ -446,12 +446,12 @@ export function OpsCenter() {
           <CardShell title="RETALUDAMENTO" className="flex-1 flex flex-col">
             <div className="space-y-2 flex-1 flex flex-col justify-center">
               <div className="flex items-center justify-between gap-2">
-                <span className="text-xs font-mono text-muted-foreground uppercase tracking-wider">ACUMULADO DIA:</span>
+                <span className="text-base font-mono text-muted-foreground uppercase tracking-wider">ACUMULADO DIA:</span>
                 <span className="text-3xl font-mono font-bold text-mining-blue">{fmt(acumuladoRetaludShown)}</span>
               </div>
               <div className="h-px bg-mining-green/15" />
               <div className="flex items-center justify-between gap-2">
-                <span className="text-xs font-mono text-muted-foreground uppercase tracking-wider">PROJETADO DIA:</span>
+                <span className="text-base font-mono text-muted-foreground uppercase tracking-wider">PROJETADO DIA:</span>
                 <span className="text-3xl font-mono font-bold text-mining-green text-glow-neon">{fmt(projetadoRetaludShown)}</span>
               </div>
             </div>
@@ -464,7 +464,7 @@ export function OpsCenter() {
                 <p className="text-4xl font-mono font-bold text-mining-green text-glow-neon">{fmt(producaoMensal)} <span className="text-lg">t</span></p>
                 <p className="text-3xl font-mono font-bold text-foreground">{aderMensal.toFixed(1)}%</p>
               </div>
-              <div className="mt-2 flex items-center justify-between text-xs font-mono text-muted-foreground">
+              <div className="mt-2 flex items-center justify-between text-sm font-mono text-muted-foreground">
                 <span>META: {fmt(metaMensal)} t</span>
                 <span>DA META</span>
               </div>
@@ -476,7 +476,7 @@ export function OpsCenter() {
           <CardShell title="TONELADAS / HORA (MÉDIA DO TURNO)" className="flex-1 flex flex-col">
             <div className="flex-1 flex flex-col justify-center">
               <p className="text-4xl font-mono font-bold text-mining-green text-glow-neon">{fmt(tonH)} <span className="text-lg">t/h</span></p>
-              <div className="mt-3 text-xs font-mono text-muted-foreground">META: {fmt(metaTonH)} t/h</div>
+              <div className="mt-3 text-sm font-mono text-muted-foreground">META: {fmt(metaTonH)} t/h</div>
               <div className="mt-1.5"><ProgressBar value={(tonH / metaTonH) * 100} color={BLUE} /></div>
             </div>
           </CardShell>
