@@ -21,6 +21,8 @@ export interface ExcelWorkbookState {
   file: DriveItem | null;
   worksheets: WorksheetInfo[];
   sheetValues: SheetValues[];
+  lastSyncMs: number | null;
+  lastSyncAt: Date | null;
   refresh: () => Promise<void>;
 }
 
@@ -46,12 +48,15 @@ export function useExcelWorkbook(enabled: boolean): ExcelWorkbookState {
   const [file, setFile] = useState<DriveItem | null>(null);
   const [worksheets, setWorksheets] = useState<WorksheetInfo[]>([]);
   const [sheetValues, setSheetValues] = useState<SheetValues[]>([]);
+  const [lastSyncMs, setLastSyncMs] = useState<number | null>(null);
+  const [lastSyncAt, setLastSyncAt] = useState<Date | null>(null);
   const timer = useRef<number | null>(null);
 
   const load = useCallback(async () => {
     if (!enabled || accounts.length === 0) return;
     setLoading(true);
     setError(null);
+    const startedAt = performance.now();
     try {
       const client = createGraphClient(instance, accounts[0]);
 
@@ -96,8 +101,11 @@ export function useExcelWorkbook(enabled: boolean): ExcelWorkbookState {
       setWorksheets(synthesizedWorksheets);
       setSheetValues(sheets);
 
+      const durationMs = Math.round(performance.now() - startedAt);
+      setLastSyncMs(durationMs);
+      setLastSyncAt(new Date());
       console.log("[ExcelLive] fonte ativa: ONEDRIVE", resolved.name, `(${names.length} aba(s))`);
-      console.log("[ExcelLive] sincronização concluída", new Date().toLocaleTimeString());
+      console.log(`[ExcelLive] sincronização concluída em ${durationMs}ms`);
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       console.error("[graph] erro ao baixar/parsear workbook:", msg);
@@ -125,5 +133,5 @@ export function useExcelWorkbook(enabled: boolean): ExcelWorkbookState {
     };
   }, [load, enabled]);
 
-  return { loading, error, file, worksheets, sheetValues, refresh: load };
+  return { loading, error, file, worksheets, sheetValues, lastSyncMs, lastSyncAt, refresh: load };
 }

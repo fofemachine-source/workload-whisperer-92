@@ -9,7 +9,7 @@ import { MicrosoftLoginButton } from "@/components/microsoft/MicrosoftLoginButto
 import { toast } from "sonner";
 
 export function CommandTopBar() {
-  const { lastUpdated, metricsLoading, workbookLoading, source, localFile, refresh, refreshWorkbook, debug, file, worksheets, cloudSyncing, lastCloudUpload } = useExcelLive();
+  const { lastUpdated, metricsLoading, workbookLoading, source, localFile, refresh, refreshWorkbook, debug, file, worksheets, cloudSyncing, lastCloudUpload, lastSyncMs, lastSyncAt } = useExcelLive();
   const [date, setDate] = useState(() => format(new Date(), "yyyy-MM-dd"));
   const loading = metricsLoading || workbookLoading;
   const [refreshCount, setRefreshCount] = useState(0);
@@ -108,11 +108,22 @@ export function CommandTopBar() {
         <CheckCircle2 className="h-3 w-3 text-mining-green" />
         <span>
           {source === "onedrive"
-            ? "FONTE: ONEDRIVE (auto a cada 30s)"
+            ? "FONTE: ONEDRIVE · auto a cada 20 min"
             : source === "local"
-            ? "FONTE: PLANILHA LOCAL"
+            ? "FONTE: PLANILHA LOCAL (fallback)"
             : "AGUARDANDO CONEXÃO OU UPLOAD"}
         </span>
+        {lastSyncAt && (
+          <>
+            <span className="text-mining-blue/40">·</span>
+            <span className="text-mining-cyan">
+              SYNC: {lastSyncAt.toLocaleTimeString("pt-BR")}
+              {lastSyncMs !== null && (
+                <span className="text-mining-yellow"> ({lastSyncMs < 1000 ? `${lastSyncMs}ms` : `${(lastSyncMs / 1000).toFixed(2)}s`})</span>
+              )}
+            </span>
+          </>
+        )}
         <span className="text-mining-blue/40">·</span>
         {cloudSyncing ? (
           <span className="flex items-center gap-1 text-mining-yellow">
