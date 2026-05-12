@@ -89,7 +89,7 @@ export interface AggregateSummary {
 export interface EhRankingItem {
   equipamento: string;
   producao: number;
-  horas: number;
+  horas: number; // mantido p/ compat: agora representa o horímetro final
   tph: number;
 }
 
