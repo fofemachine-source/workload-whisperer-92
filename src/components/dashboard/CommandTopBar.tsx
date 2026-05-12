@@ -108,10 +108,10 @@ export function CommandTopBar() {
         <CheckCircle2 className="h-3 w-3 text-mining-green" />
         <span>
           {source === "onedrive"
-            ? "FONTE: ONEDRIVE · auto a cada 20 min"
+            ? "FONTE: ONEDRIVE · auto a cada 1 min"
             : source === "local"
             ? "FONTE: PLANILHA LOCAL (fallback)"
-            : "AGUARDANDO CONEXÃO OU UPLOAD"}
+            : "AGUARDANDO SINCRONIZAÇÃO DO ONEDRIVE"}
         </span>
         {lastSyncAt && (
           <>
