@@ -1,6 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from "react";
-import { useMsal, useIsAuthenticated } from "@azure/msal-react";
-import { createGraphClient, getUsedRange } from "@/services/graphService";
+import { useIsAuthenticated } from "@azure/msal-react";
 import {
   processSheetValues,
   EquipmentMetrics,
@@ -14,7 +13,7 @@ import {
   FleetAggregate,
   SheetValues,
 } from "@/services/excelParser";
-import { DriveItem, WorksheetInfo } from "@/services/graphService";
+import { DriveItem } from "@/services/graphService";
 
 // Sincroniza os dados do workbook a cada 20 minutos.
 const POLL_MS = 20 * 60_000;
@@ -32,8 +31,7 @@ export interface ExcelMetricsState {
   refresh: () => Promise<void>;
 }
 
-export function useExcelMetrics(file: DriveItem | null, worksheets: WorksheetInfo[]): ExcelMetricsState {
-  const { instance, accounts } = useMsal();
+export function useExcelMetrics(file: DriveItem | null, sheetValues: SheetValues[]): ExcelMetricsState {
   const isAuth = useIsAuthenticated();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -48,8 +46,8 @@ export function useExcelMetrics(file: DriveItem | null, worksheets: WorksheetInf
   const lastFingerprint = useRef<string>("");
 
   const load = useCallback(async (force = false) => {
-    if (!isAuth || !file || !worksheets.length || accounts.length === 0) return;
-    const fingerprint = `${file.id}|${file.lastModifiedDateTime ?? ""}|${worksheets.map((w) => w.id).join(",")}`;
+    if (!isAuth || !file || !sheetValues.length) return;
+    const fingerprint = `${file.id}|${file.lastModifiedDateTime ?? ""}|${sheetValues.map((s) => s.name).join(",")}`;
     if (!force && fingerprint === lastFingerprint.current) {
       console.log("[excel] sem alteração detectada, pulando fetch");
       return;
@@ -57,22 +55,9 @@ export function useExcelMetrics(file: DriveItem | null, worksheets: WorksheetInf
     setLoading(true);
     setError(null);
     try {
-      const client = createGraphClient(instance, accounts[0]);
-      const driveId = file.parentReference?.driveId ?? "";
-      const shareId = file.shareId;
-      // Fetch all sheet values in parallel, then run the same structured parser
-      // used for local uploads (Horimetros / Paradas / PRODUÇÃO EH rules).
-      const sheetValues: SheetValues[] = await Promise.all(
-        worksheets.map(async (w) => {
-          try {
-            const r = await getUsedRange(client, driveId, file.id, w.name, shareId);
-            return { name: w.name, values: (r?.values ?? []) as unknown[][] };
-          } catch (err) {
-            console.warn(`[excel] erro ao ler aba ${w.name}`, err);
-            return { name: w.name, values: [] as unknown[][] };
-          }
-        }),
-      );
+      // sheetValues já vêm parseados localmente (XLSX.read no useExcelWorkbook),
+      // pois o endpoint /workbook/worksheets do Graph não funciona em planilhas
+      // compartilhadas fora da conta logada.
       const parsed = processSheetValues(sheetValues);
       setMetrics(parsed.metrics);
       setAreas(parsed.areas);
@@ -88,7 +73,7 @@ export function useExcelMetrics(file: DriveItem | null, worksheets: WorksheetInf
     } finally {
       setLoading(false);
     }
-  }, [isAuth, file, worksheets, instance, accounts]);
+  }, [isAuth, file, sheetValues]);
 
   useEffect(() => {
     load(true);
