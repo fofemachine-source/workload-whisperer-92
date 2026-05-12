@@ -12,8 +12,8 @@ import {
 import { EXCEL_FILE_NAME, EXCEL_SHARE_URL } from "@/auth/msalConfig";
 import { SheetValues } from "@/services/excelParser";
 
-// Atualização automática a cada 3 minutos para refletir edições recentes na planilha.
-const FILE_POLL_MS = 3 * 60_000;
+// Atualização automática a cada 1 minuto para refletir edições recentes na planilha.
+const FILE_POLL_MS = 60_000;
 
 export interface ExcelWorkbookState {
   loading: boolean;
@@ -51,14 +51,17 @@ export function useExcelWorkbook(enabled: boolean): ExcelWorkbookState {
   const [lastSyncMs, setLastSyncMs] = useState<number | null>(null);
   const [lastSyncAt, setLastSyncAt] = useState<Date | null>(null);
   const timer = useRef<number | null>(null);
+  const inFlight = useRef(false);
+  const account = accounts[0] ?? instance.getActiveAccount() ?? instance.getAllAccounts()[0] ?? null;
 
   const load = useCallback(async () => {
-    if (!enabled || accounts.length === 0) return;
+    if (!enabled || !account || inFlight.current) return;
+    inFlight.current = true;
     setLoading(true);
     setError(null);
     const startedAt = performance.now();
     try {
-      const client = createGraphClient(instance, accounts[0]);
+      const client = createGraphClient(instance, account);
 
       // 1) Resolve metadados do arquivo: prioriza o link compartilhado oficial
       //    (planilha mora em outra conta) e usa busca em /me/drive como fallback.
@@ -115,20 +118,21 @@ export function useExcelWorkbook(enabled: boolean): ExcelWorkbookState {
       console.error("[graph] erro ao baixar/parsear workbook:", msg);
       setError(msg);
     } finally {
+      inFlight.current = false;
       setLoading(false);
     }
-  }, [enabled, instance, accounts]);
+  }, [enabled, instance, account]);
 
   useEffect(() => {
-    load();
+    void load();
     if (timer.current) window.clearInterval(timer.current);
     if (enabled) {
       timer.current = window.setInterval(() => {
-        if (document.visibilityState === "visible") load();
+        void load();
       }, FILE_POLL_MS);
     }
     const onVis = () => {
-      if (document.visibilityState === "visible") load();
+      if (document.visibilityState === "visible") void load();
     };
     document.addEventListener("visibilitychange", onVis);
     return () => {
