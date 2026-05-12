@@ -168,13 +168,11 @@ export function ExcelLiveProvider({ children }: { children: ReactNode }) {
     setLocalError(null);
   }, []);
 
-  // A fonte mais RECENTE vence. Tanto OneDrive quanto upload local usam o
-  // mesmo parser (processSheetValues), então a comparação é justa.
+  // Após login, OneDrive deve ser a fonte principal. Upload/local fica apenas
+  // como fallback quando a leitura remota ainda não estiver disponível.
   const oneDriveAvailable = isAuth && !!wb.file && !!m.metrics;
   const localAvailable = !!local;
-  const localTime = local?.parsedAt ? new Date(local.parsedAt).getTime() : 0;
-  const oneDriveTime = wb.file?.lastModifiedDateTime ? new Date(wb.file.lastModifiedDateTime).getTime() : 0;
-  const useOneDrive = oneDriveAvailable && (!localAvailable || oneDriveTime >= localTime);
+  const useOneDrive = oneDriveAvailable;
   const useLocal = !useOneDrive && localAvailable;
   if (useLocal) {
     console.log("[ExcelLive] fonte ativa: LOCAL", local?.fileName, "parsedAt=", local?.parsedAt);
