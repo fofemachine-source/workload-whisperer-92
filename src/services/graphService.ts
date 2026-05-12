@@ -174,3 +174,28 @@ export async function getUsedRange(
     : `/me/drive/items/${itemId}/workbook/worksheets('${encodeURIComponent(worksheetName)}')/usedRange(valuesOnly=true)`;
   return await client.api(path).get();
 }
+
+/**
+ * Baixa o conteúdo binário do arquivo (.xlsx) via Microsoft Graph Drive API.
+ * Funciona tanto para arquivos próprios (drives/items) quanto para
+ * arquivos compartilhados (shares/{shareId}/driveItem/content).
+ */
+export async function downloadDriveItemContent(
+  client: Client,
+  driveId: string,
+  itemId: string,
+  shareId?: string,
+): Promise<ArrayBuffer> {
+  const path = shareId
+    ? `/shares/${shareId}/driveItem/content`
+    : driveId
+    ? `/drives/${driveId}/items/${itemId}/content`
+    : `/me/drive/items/${itemId}/content`;
+  const res = (await client.api(path).responseType("arraybuffer" as never).get()) as ArrayBuffer | Blob;
+  if (res instanceof ArrayBuffer) return res;
+  if (res instanceof Blob) return await res.arrayBuffer();
+  // Alguns ambientes retornam Uint8Array
+  // @ts-expect-error fallback runtime
+  if (res?.buffer) return (res as Uint8Array).buffer;
+  throw new Error("Resposta inesperada ao baixar conteúdo do arquivo via Graph");
+}
