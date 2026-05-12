@@ -634,43 +634,28 @@ function applyStructuredOverrides(
     }
 
     // --- Ranking de produtividade por escavadeira (EH-XXXX) ---
-    // T/H = PRODUÇÃO TOTAL ÷ HORÍMETRO FINAL
-    // Soma toda a produção da coluna EH-XXXX e divide pelo MAIOR horímetro
-    // encontrado na primeira coluna (col 0). Lógica conforme script
-    // operacional aprovado pelo despacho.
-    if (headerRowIdx >= 0) {
-      const headerRow = prodEh.values[headerRowIdx] ?? [];
-      const ehCols: { nome: string; col: number }[] = [];
-      for (let c = 0; c < headerRow.length; c++) {
-        const nome = String(headerRow[c] ?? "").trim().toUpperCase();
-        if (/^EH-\d+/.test(nome)) ehCols.push({ nome, col: c });
-      }
-      if (ehCols.length) {
-        const startR = headerRowIdx + 1;
-        const endR = totalRowIdx > 0 ? totalRowIdx : prodEh.values.length;
-        const ranking: EhRankingItem[] = ehCols.map(({ nome, col }) => {
-          let producao = 0;
-          let maiorHorimetro = 0;
-          for (let r = startR; r < endR; r++) {
-            const row = prodEh.values[r] ?? [];
-            const horimetro = toNumber(row[0]);
-            if (Number.isFinite(horimetro) && horimetro > maiorHorimetro) {
-              maiorHorimetro = horimetro;
-            }
-            const v = toNumber(row[col]);
-            if (Number.isFinite(v) && v > 0) producao += v;
-          }
-          const tph = maiorHorimetro > 0 ? producao / maiorHorimetro : 0;
-          return {
-            equipamento: nome,
-            producao: Math.round(producao),
-            horas: maiorHorimetro,
-            tph: Math.round(tph),
-          };
+    // Lê DIRETAMENTE o bloco "TON/H" da aba PRODUÇÃO EH (abaixo da linha TOTAL),
+    // onde cada linha tem: col A = "EH-XXXX", col B = valor t/h, col C = "t/h".
+    {
+      const ranking: EhRankingItem[] = [];
+      const startR = totalRowIdx > 0 ? totalRowIdx + 1 : 0;
+      for (let r = startR; r < prodEh.values.length; r++) {
+        const row = prodEh.values[r] ?? [];
+        const nome = String(row[0] ?? "").trim().toUpperCase();
+        if (!/^EH-\d+/.test(nome)) continue;
+        const tph = toNumber(row[1]);
+        if (!Number.isFinite(tph) || tph < 0) continue;
+        ranking.push({
+          equipamento: nome,
+          producao: 0,
+          horas: 0,
+          tph: Math.round(tph),
         });
+      }
+      if (ranking.length) {
         ranking.sort((a, b) => b.tph - a.tph);
         summary.ehRanking = ranking;
-        console.log("[excelParser] ranking EH (PRODUÇÃO EH):", ranking);
+        console.log("[excelParser] ranking EH (bloco TON/H):", ranking);
       }
     }
 
