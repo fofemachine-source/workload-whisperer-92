@@ -5,6 +5,8 @@ import { loginRequest } from "@/auth/msalConfig";
 import { useState } from "react";
 import { toast } from "sonner";
 
+const LOCAL_EXCEL_STORAGE_KEYS = ["lovable.localExcel.v1", "lovable.localExcel.v2", "lovable.localExcel.v3"];
+
 export function MicrosoftLoginButton() {
   const { instance, accounts } = useMsal();
   const isAuth = useIsAuthenticated();
@@ -55,6 +57,7 @@ export function MicrosoftLoginButton() {
   const logout = async () => {
     setBusy(true);
     try {
+      LOCAL_EXCEL_STORAGE_KEYS.forEach((key) => localStorage.removeItem(key));
       await instance.logoutPopup({ postLogoutRedirectUri: window.location.origin, mainWindowRedirectUri: window.location.origin });
     } finally {
       setBusy(false);
