@@ -493,23 +493,29 @@ export function OpsCenter() {
         </div>
 
         <div className="col-span-12">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <CardShell title="META TOTAL MAIO">
-              <div className="flex items-end justify-between gap-3 min-h-[96px]">
-                <div>
-                  <p className="text-4xl font-mono font-bold text-mining-yellow">{fmt(metasFixas.mensal)}</p>
-                  <p className="mt-2 text-xs font-mono uppercase tracking-[0.18em] text-muted-foreground">toneladas</p>
+              <div className="grid gap-4 md:grid-cols-2 min-h-[132px]">
+                <div className="flex flex-col justify-between border border-mining-yellow/20 rounded-sm px-3 py-3 bg-mining-yellow/5">
+                  <div>
+                    <p className="text-xs font-mono uppercase tracking-[0.18em] text-muted-foreground">Mina</p>
+                    <p className="mt-3 text-4xl font-mono font-bold text-mining-yellow">{fmt(metaMensalMina)}</p>
+                  </div>
+                  <div className="mt-3">
+                    <p className="text-[11px] font-mono uppercase tracking-[0.18em] text-muted-foreground">{shareMetaMina.toFixed(1)}% da meta</p>
+                    <div className="mt-2"><ProgressBar value={shareMetaMina} color={YELLOW} /></div>
+                  </div>
                 </div>
-                <Mountain className="h-8 w-8 text-mining-yellow/70" />
-              </div>
-            </CardShell>
-            <CardShell title="META DIÁRIA">
-              <div className="flex items-end justify-between gap-3 min-h-[96px]">
-                <div>
-                  <p className="text-4xl font-mono font-bold text-mining-blue">{fmt(metasFixas.diaria)}</p>
-                  <p className="mt-2 text-xs font-mono uppercase tracking-[0.18em] text-muted-foreground">toneladas / dia</p>
+                <div className="flex flex-col justify-between border border-mining-green/20 rounded-sm px-3 py-3 bg-mining-green/5">
+                  <div>
+                    <p className="text-xs font-mono uppercase tracking-[0.18em] text-muted-foreground">Retaludamento</p>
+                    <p className="mt-3 text-4xl font-mono font-bold text-mining-green">{fmt(metaMensalRetalud)}</p>
+                  </div>
+                  <div className="mt-3">
+                    <p className="text-[11px] font-mono uppercase tracking-[0.18em] text-muted-foreground">{shareMetaRetalud.toFixed(1)}% da meta</p>
+                    <div className="mt-2"><ProgressBar value={shareMetaRetalud} color={NEON} /></div>
+                  </div>
                 </div>
-                <Activity className="h-8 w-8 text-mining-blue/70" />
               </div>
             </CardShell>
             <CardShell title="META HORÁRIA">
