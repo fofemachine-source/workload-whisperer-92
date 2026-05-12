@@ -323,6 +323,13 @@ export function OpsCenter() {
   }, [summary]);
 
   const ranking = useMemo(() => {
+    // 1) Preferir ranking calculado direto da aba PRODUÇÃO EH (fonte oficial).
+    const eh = summary?.ehRanking ?? [];
+    if (eh.length >= 1) {
+      return eh
+        .slice(0, 8)
+        .map((r, i) => ({ pos: i + 1, name: r.equipamento, value: r.tph }));
+    }
     const all = (rows || []).filter((r) => r.category === "escavadeira" && r.produtividade > 0);
     // Preferir dados da aba "PORTAL Novo" quando disponível
     const portal = all.filter((r) => /portal/i.test(r.source || ""));
