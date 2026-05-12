@@ -3,7 +3,8 @@ import { useMsal } from "@azure/msal-react";
 import { createGraphClient, findExcelFile, resolveSharedFile, listWorksheets, DriveItem, WorksheetInfo } from "@/services/graphService";
 import { EXCEL_FILE_NAME, EXCEL_SHARE_URL } from "@/auth/msalConfig";
 
-const FILE_POLL_MS = 30_000;
+// Atualização automática a cada 20 minutos (conforme requisito operacional).
+const FILE_POLL_MS = 20 * 60_000;
 
 export interface ExcelWorkbookState {
   loading: boolean;
