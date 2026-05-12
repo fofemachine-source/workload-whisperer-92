@@ -515,8 +515,8 @@ export function OpsCenter() {
 
         {/* COLUNA ESQUERDA: DF/UT + ESCAVADEIRAS + CAMINHÕES + EQUIP OPERANDO */}
         <div className="col-span-12 lg:col-span-6 flex flex-col gap-3">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <CardShell title="% DISPONIBILIDADE FÍSICA POR FROTA">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 flex-1">
+            <CardShell title="% DISPONIBILIDADE FÍSICA POR FROTA" className="h-full">
               {fleets.map((f) => (
                 <FleetRow
                   key={`df-${f.name}`}
@@ -529,7 +529,7 @@ export function OpsCenter() {
                 />
               ))}
             </CardShell>
-            <CardShell title="UTILIZAÇÃO POR FROTA">
+            <CardShell title="UTILIZAÇÃO POR FROTA" className="h-full">
               {fleets.map((f) => (
                 <FleetRow
                   key={`ut-${f.name}`}
