@@ -160,9 +160,22 @@ export function OpsCenter() {
   const clock = useClock();
   const syncing = metricsLoading || workbookLoading;
   const syncError = workbookError || metricsError;
-  const todayKey = useMemo(() => {
-    return `${clock.getFullYear()}-${String(clock.getMonth() + 1).padStart(2, "0")}-${String(clock.getDate()).padStart(2, "0")}`;
+  const operationNow = useMemo(() => {
+    const parts = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "America/Sao_Paulo",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      hour12: false,
+    }).formatToParts(clock);
+    const get = (type: string) => parts.find((part) => part.type === type)?.value || "00";
+    return {
+      todayKey: `${get("year")}-${get("month")}-${get("day")}`,
+      currentHour: Number(get("hour")),
+    };
   }, [clock]);
+  const todayKey = operationNow.todayKey;
   // Detecta se a planilha ativa não é de hoje. Prioriza a célula DATA: da aba
   // PRODUÇÃO EH (verdade da operação); cai pra parsedAt se a célula não existir.
   const planilhaDesatualizada = useMemo(() => {
@@ -199,10 +212,10 @@ export function OpsCenter() {
     if (!summary?.dataPlanilha || summary.dataPlanilha !== todayKey || acumulado <= 0) {
       return fallback > 0 ? fallback : acumulado;
     }
-    const elapsedHours = clock.getHours();
+    const elapsedHours = operationNow.currentHour;
     if (elapsedHours <= 0) return fallback > 0 ? fallback : acumulado;
     return acumulado * (24 / elapsedHours);
-  }, [summary?.dataPlanilha, todayKey, clock]);
+  }, [summary?.dataPlanilha, todayKey, operationNow.currentHour]);
   const projectedMinaShown = recomputeProjectedForToday(summary?.acumuladoDia || 0, summary?.projetadoDia || 0);
   const handleManualRefresh = async () => {
     await Promise.all([refreshWorkbook(), refresh()]);
