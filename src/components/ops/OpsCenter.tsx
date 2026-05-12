@@ -235,7 +235,7 @@ export function OpsCenter() {
   const aderTurno = metaTurno > 0 ? (producaoTurno / metaTurno) * 100 : 0;
 
   const producaoMensal = producaoTurno * 22;
-  const metaMensal = metaTurno * 22;
+  const metaMensal = 1_351_096;
   const aderMensal = metaMensal > 0 ? (producaoMensal / metaMensal) * 100 : 0;
 
   const tonH = summary?.toneladaPorHora || 10_250;
@@ -486,7 +486,7 @@ export function OpsCenter() {
               <div className="flex flex-col justify-between">
                 <div>
                   <p className="text-xs font-mono uppercase tracking-[0.18em] text-muted-foreground">Retaludamento</p>
-                  <p className="mt-3 text-4xl font-mono font-bold text-mining-green">{fmt(metaMensalRetalud)}</p>
+                  <p className="mt-3 text-4xl font-mono font-bold text-mining-yellow">{fmt(metaMensalRetalud)}</p>
                 </div>
                 <div className="mt-3">
                   <p className="text-[11px] font-mono uppercase tracking-[0.18em] text-muted-foreground">{shareMetaRetalud.toFixed(1)}% da meta</p>
