@@ -610,28 +610,22 @@ export function OpsCenter() {
 
         {/* COLUNA DIREITA: RANKING + TONELADAS/H + PRODUÇÃO TURNO + OPERAÇÃO AO VIVO */}
         <div className="col-span-12 lg:col-span-6 flex flex-col gap-3">
-          <CardShell title="META TOTAL MAIO">
-            <div className="grid gap-3 grid-cols-2 min-h-[132px]">
-              <div className="flex flex-col justify-between border border-mining-yellow/20 rounded-sm px-3 py-3 bg-mining-yellow/5">
-                <div>
-                  <p className="text-xs font-mono uppercase tracking-[0.18em] text-muted-foreground">Mina</p>
-                  <p className="mt-3 text-3xl font-mono font-bold text-mining-yellow">{fmt(metaMensalMina)}</p>
-                </div>
-                <div className="mt-3">
-                  <p className="text-[11px] font-mono uppercase tracking-[0.18em] text-muted-foreground">{shareMetaMina.toFixed(1)}% da meta</p>
-                  <div className="mt-2"><ProgressBar value={shareMetaMina} color={YELLOW} /></div>
-                </div>
-              </div>
-              <div className="flex flex-col justify-between border border-mining-green/20 rounded-sm px-3 py-3 bg-mining-green/5">
-                <div>
-                  <p className="text-xs font-mono uppercase tracking-[0.18em] text-muted-foreground">Retaludamento</p>
-                  <p className="mt-3 text-3xl font-mono font-bold text-mining-green">{fmt(metaMensalRetalud)}</p>
-                </div>
-                <div className="mt-3">
-                  <p className="text-[11px] font-mono uppercase tracking-[0.18em] text-muted-foreground">{shareMetaRetalud.toFixed(1)}% da meta</p>
-                  <div className="mt-2"><ProgressBar value={shareMetaRetalud} color={NEON} /></div>
-                </div>
-              </div>
+          <CardShell title="RANKING DE PRODUTIVIDADE — ESCAVADEIRAS (T/H)">
+            <div className="space-y-1.5">
+              {ranking.map((r) => {
+                const max = ranking[0]?.value || 1;
+                const pct = (r.value / max) * 100;
+                return (
+                  <div key={r.pos} className="flex items-center gap-2">
+                    <span className="w-5 text-xs font-mono text-muted-foreground text-right">{r.pos}</span>
+                    <span className="w-20 text-sm font-mono text-foreground">{r.name}</span>
+                    <div className="flex-1 h-3 bg-white/5 rounded-sm overflow-hidden">
+                      <div className="h-full bg-mining-green" style={{ width: `${pct}%`, boxShadow: `0 0 8px ${NEON}` }} />
+                    </div>
+                    <span className="w-20 text-right text-sm font-mono text-mining-green">{fmt(r.value)} t/h</span>
+                  </div>
+                );
+              })}
             </div>
           </CardShell>
 
