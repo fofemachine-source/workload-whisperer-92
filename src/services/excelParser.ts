@@ -634,19 +634,46 @@ function applyStructuredOverrides(
     }
 
     // --- Ranking de produtividade por escavadeira (EH-XXXX) ---
-    // Lê DIRETAMENTE o bloco "TON/H" da aba PRODUÇÃO EH (abaixo da linha TOTAL),
-    // onde cada linha tem: col A = "EH-XXXX", col B = valor t/h, col C = "t/h".
+    // Localiza o bloco "TON/H" na aba PRODUÇÃO EH e varre as linhas seguintes
+    // extraindo, via regex no texto completo da linha, o nome (EH-XXXX) e o
+    // valor numérico seguido de "t/h". Isso torna o parser robusto a variações
+    // de coluna/posição na planilha.
     {
       const ranking: EhRankingItem[] = [];
-      const startR = totalRowIdx > 0 ? totalRowIdx + 1 : 0;
-      for (let r = startR; r < prodEh.values.length; r++) {
+      // 1) Acha a linha que contém "TON/H" (cabeçalho do bloco)
+      let tonhRow = -1;
+      for (let r = 0; r < prodEh.values.length; r++) {
+        const text = (prodEh.values[r] ?? []).join(" ").toUpperCase();
+        if (/\bTON\s*\/\s*H\b/.test(text)) {
+          tonhRow = r;
+          break;
+        }
+      }
+      const startR = tonhRow >= 0 ? tonhRow + 1 : (totalRowIdx > 0 ? totalRowIdx + 1 : 0);
+      const endR = Math.min(prodEh.values.length, startR + 40);
+      const seen = new Set<string>();
+      for (let r = startR; r < endR; r++) {
         const row = prodEh.values[r] ?? [];
-        const nome = String(row[0] ?? "").trim().toUpperCase();
-        if (!/^EH-\d+/.test(nome)) continue;
-        const tph = toNumber(row[1]);
-        if (!Number.isFinite(tph) || tph < 0) continue;
+        const text = row.map((v) => (v == null ? "" : String(v))).join(" ");
+        const matchEH = text.match(/EH[-\s]?\d+/i);
+        if (!matchEH) continue;
+        const equipamento = matchEH[0].toUpperCase().replace(/\s+/, "-");
+        if (seen.has(equipamento)) continue;
+        // Procura primeiro número > 0 na linha (col B normalmente)
+        let tph = 0;
+        const matchTPH = text.match(/(\d+[.,]?\d*)\s*t\s*\/\s*h/i);
+        if (matchTPH) {
+          tph = Number(matchTPH[1].replace(/\./g, "").replace(",", "."));
+        } else {
+          for (let c = 1; c < row.length; c++) {
+            const v = toNumber(row[c]);
+            if (v > 0) { tph = v; break; }
+          }
+        }
+        if (!Number.isFinite(tph) || tph <= 0) continue;
+        seen.add(equipamento);
         ranking.push({
-          equipamento: nome,
+          equipamento,
           producao: 0,
           horas: 0,
           tph: Math.round(tph),
