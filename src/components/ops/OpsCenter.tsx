@@ -13,7 +13,6 @@ import {
   ComposedChart,
 } from "recharts";
 import {
-  Activity,
   Calendar,
   RefreshCw,
 } from "lucide-react";
@@ -157,7 +156,7 @@ function FleetRow({
 }
 
 export function OpsCenter() {
-  const { summary, rows, fleets: fleetsAgg, lastUpdated, source, refresh, refreshWorkbook, metricsLoading, workbookLoading, file, worksheets, workbookError, metricsError, localFile, lastCloudUpload } = useExcelLive();
+  const { summary, rows, fleets: fleetsAgg, areas, lastUpdated, source, refresh, refreshWorkbook, metricsLoading, workbookLoading, file, worksheets, workbookError, metricsError, localFile, lastCloudUpload } = useExcelLive();
   const clock = useClock();
   const syncing = metricsLoading || workbookLoading;
   const syncError = workbookError || metricsError;
@@ -194,6 +193,13 @@ export function OpsCenter() {
     diaria: 43_584,
     horaria: 1_816,
   };
+  const baseMetaMina = areas?.Mina?.meta || summary?.projetadoDia || 0;
+  const baseMetaRetalud = areas?.Retaludamento?.meta || summary?.projetadoRetalud || 0;
+  const totalBaseMeta = baseMetaMina + baseMetaRetalud;
+  const metaMensalMina = totalBaseMeta > 0 ? Math.round(metasFixas.mensal * (baseMetaMina / totalBaseMeta)) : Math.round(metasFixas.mensal / 2);
+  const metaMensalRetalud = metasFixas.mensal - metaMensalMina;
+  const shareMetaMina = metasFixas.mensal > 0 ? (metaMensalMina / metasFixas.mensal) * 100 : 0;
+  const shareMetaRetalud = metasFixas.mensal > 0 ? (metaMensalRetalud / metasFixas.mensal) * 100 : 0;
   const handleManualRefresh = async () => {
     await Promise.all([refreshWorkbook(), refresh()]);
   };
