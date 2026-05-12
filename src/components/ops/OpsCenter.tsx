@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { motion } from "framer-motion";
 import {
   Bar,
@@ -204,11 +204,6 @@ export function OpsCenter() {
     return acumulado * (24 / elapsedHours);
   }, [summary?.dataPlanilha, todayKey, clock]);
   const projectedMinaShown = recomputeProjectedForToday(summary?.acumuladoDia || 0, summary?.projetadoDia || 0);
-  const totalBaseMeta = baseMetaMina + baseMetaRetalud;
-  const metaMensalMina = totalBaseMeta > 0 ? Math.round(metasFixas.mensal * (baseMetaMina / totalBaseMeta)) : Math.round(metasFixas.mensal / 2);
-  const metaMensalRetalud = metasFixas.mensal - metaMensalMina;
-  const shareMetaMina = metasFixas.mensal > 0 ? (metaMensalMina / metasFixas.mensal) * 100 : 0;
-  const shareMetaRetalud = metasFixas.mensal > 0 ? (metaMensalRetalud / metasFixas.mensal) * 100 : 0;
   const handleManualRefresh = async () => {
     await Promise.all([refreshWorkbook(), refresh()]);
   };
@@ -234,6 +229,11 @@ export function OpsCenter() {
   const projetadoRetaludShown = recomputeProjectedForToday(acumuladoRetaludShown, projetoRetaludBase);
   const baseMetaMina = areas?.Mina?.meta || projectedMinaShown || 0;
   const baseMetaRetalud = areas?.Retaludamento?.meta || projetadoRetaludShown || 0;
+  const totalBaseMeta = baseMetaMina + baseMetaRetalud;
+  const metaMensalMina = totalBaseMeta > 0 ? Math.round(metasFixas.mensal * (baseMetaMina / totalBaseMeta)) : Math.round(metasFixas.mensal / 2);
+  const metaMensalRetalud = metasFixas.mensal - metaMensalMina;
+  const shareMetaMina = metasFixas.mensal > 0 ? (metaMensalMina / metasFixas.mensal) * 100 : 0;
+  const shareMetaRetalud = metasFixas.mensal > 0 ? (metaMensalRetalud / metasFixas.mensal) * 100 : 0;
 
   // Auto refresh OneDrive a cada 60s
   useEffect(() => {
