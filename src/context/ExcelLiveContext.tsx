@@ -182,7 +182,17 @@ export function ExcelLiveProvider({ children }: { children: ReactNode }) {
     console.log("[ExcelLive] fonte ativa: ONEDRIVE", wb.file?.name);
   }
   const metrics = useOneDrive ? m.metrics : useLocal ? local!.metrics : null;
-  const areas = useOneDrive ? m.areas : useLocal ? local!.areas : null;
+  const rawAreas = useOneDrive ? m.areas : useLocal ? local!.areas : null;
+  // Override meta Retaludamento: 853.680 (conforme solicitação operacional)
+  const areas: typeof rawAreas = rawAreas
+    ? {
+        ...rawAreas,
+        Retaludamento: {
+          ...rawAreas.Retaludamento,
+          meta: 853_680,
+        },
+      }
+    : null;
   const debug = useOneDrive ? m.debug : useLocal ? local!.debug : [];
   const lastUpdated = useOneDrive ? m.lastUpdated : useLocal ? new Date(local!.parsedAt) : null;
   const summary = useOneDrive ? m.summary : useLocal ? local!.summary ?? null : null;
