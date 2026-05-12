@@ -468,29 +468,29 @@ export function OpsCenter() {
         </div>
 
         <div className="col-span-12">
-          <CardShell title="META TOTAL MAIO">
-              <div className="grid gap-4 md:grid-cols-2 min-h-[132px]">
-                <div className="flex flex-col justify-between border border-mining-yellow/20 rounded-sm px-3 py-3 bg-mining-yellow/5">
-                  <div>
-                    <p className="text-xs font-mono uppercase tracking-[0.18em] text-muted-foreground">Mina</p>
-                    <p className="mt-3 text-4xl font-mono font-bold text-mining-yellow">{fmt(metaMensalMina)}</p>
-                  </div>
-                  <div className="mt-3">
-                    <p className="text-[11px] font-mono uppercase tracking-[0.18em] text-muted-foreground">{shareMetaMina.toFixed(1)}% da meta</p>
-                    <div className="mt-2"><ProgressBar value={shareMetaMina} color={YELLOW} /></div>
-                  </div>
-                </div>
-                <div className="flex flex-col justify-between border border-mining-green/20 rounded-sm px-3 py-3 bg-mining-green/5">
-                  <div>
-                    <p className="text-xs font-mono uppercase tracking-[0.18em] text-muted-foreground">Retaludamento</p>
-                    <p className="mt-3 text-4xl font-mono font-bold text-mining-green">{fmt(metaMensalRetalud)}</p>
-                  </div>
-                  <div className="mt-3">
-                    <p className="text-[11px] font-mono uppercase tracking-[0.18em] text-muted-foreground">{shareMetaRetalud.toFixed(1)}% da meta</p>
-                    <div className="mt-2"><ProgressBar value={shareMetaRetalud} color={NEON} /></div>
-                  </div>
-                </div>
-              </div>
+          <CardShell title="PRODUÇÃO DO TURNO (TONELADAS)">
+            <div className="h-56">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={productionSeries} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="prodFill" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={NEON} stopOpacity={0.5} />
+                      <stop offset="100%" stopColor={NEON} stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid stroke="rgba(34,197,94,0.08)" />
+                  <XAxis dataKey="hora" stroke="#4ade80" tick={{ fontSize: 10, fontFamily: "monospace" }} />
+                  <YAxis stroke="#4ade80" tick={{ fontSize: 10, fontFamily: "monospace" }} />
+                  <Tooltip
+                    contentStyle={{ background: "#000", border: `1px solid ${NEON}`, fontFamily: "monospace", fontSize: 11 }}
+                    labelStyle={{ color: NEON }}
+                  />
+                  <Area type="monotone" dataKey="realizado" stroke={NEON} strokeWidth={2} fill="url(#prodFill)" name="Realizado" />
+                  <Line type="monotone" dataKey="meta" stroke="#9ca3af" strokeDasharray="4 4" strokeWidth={1.5} dot={false} name="Meta" />
+                  <Line type="monotone" dataKey="hd785" stroke={YELLOW} strokeWidth={2} dot={false} name="HD785" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
           </CardShell>
         </div>
 
