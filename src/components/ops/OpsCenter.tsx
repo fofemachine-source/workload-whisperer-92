@@ -473,7 +473,7 @@ export function OpsCenter() {
           </CardShell>
         </div>
         <div className="col-span-12 md:col-span-6 lg:col-span-3 flex">
-          <CardShell title="TONELADAS / HORA (MÉDIA DO TURNO)" className="flex-1 flex flex-col">
+          <CardShell title="T/H" className="flex-1 flex flex-col">
             <div className="flex-1 flex flex-col justify-center">
               <p className="text-base font-mono font-bold text-mining-green text-glow-neon">{fmt(tonH)} <span className="text-base">t/h</span></p>
               <div className="mt-3 text-base font-mono text-muted-foreground">META: {fmt(metaTonH)} t/h</div>
@@ -562,7 +562,7 @@ export function OpsCenter() {
 
         {/* COLUNA DIREITA: RANKING + TONELADAS/H + PRODUÇÃO TURNO + OPERAÇÃO AO VIVO */}
         <div className="col-span-12 lg:col-span-6 flex flex-col gap-3">
-          <CardShell title="RANKING DE PRODUTIVIDADE — ESCAVADEIRAS (T/H)">
+          <CardShell title="D/F T/H">
             <div className="space-y-1.5">
               {ranking.map((r) => {
                 const max = ranking[0]?.value || 1;
