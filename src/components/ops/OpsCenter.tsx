@@ -217,11 +217,13 @@ export function OpsCenter() {
     horaria: 1_816,
   };
   const recomputeProjectedForToday = useCallback((acumulado: number, fallback: number) => {
+    // A planilha já traz o projetado oficial; só recalcula quando esse campo vier vazio.
+    if (fallback > 0) return fallback;
     if (!summary?.dataPlanilha || summary.dataPlanilha !== todayKey || acumulado <= 0) {
-      return fallback > 0 ? fallback : acumulado;
+      return acumulado;
     }
     const elapsedHours = operationNow.currentHour;
-    if (elapsedHours <= 0) return fallback > 0 ? fallback : acumulado;
+    if (elapsedHours <= 0) return acumulado;
     return acumulado * (24 / elapsedHours);
   }, [summary?.dataPlanilha, todayKey, operationNow.currentHour]);
   const projectedMinaShown = recomputeProjectedForToday(summary?.acumuladoDia || 0, summary?.projetadoDia || 0);
