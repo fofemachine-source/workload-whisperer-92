@@ -414,32 +414,32 @@ export function OpsCenter() {
 
       <main className="relative z-10 p-3 md:p-4 grid grid-cols-12 gap-3">
         {/* CARDS PRINCIPAIS — linha 1 */}
-        <div className="col-span-12 md:col-span-3 flex">
-          <CardShell title="MINA" className="flex-1 flex flex-col">
-            <div className="space-y-2 flex-1 flex flex-col justify-center">
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-base font-mono text-muted-foreground uppercase tracking-wider">ACUMULADO DIA:</span>
-                <span className="text-4xl font-mono font-bold text-mining-blue">{fmt(summary?.acumuladoDia || producaoTurno)}</span>
+        <div className="col-span-12 md:col-span-6 flex">
+          <CardShell title="MINA · RETALUDAMENTO" className="flex-1 flex flex-col">
+            <div className="grid grid-cols-2 divide-x divide-mining-green/20 flex-1">
+              <div className="pr-3 flex flex-col justify-center space-y-2">
+                <p className="text-xs font-mono uppercase tracking-[0.18em] text-mining-yellow">MINA</p>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-sm font-mono text-muted-foreground uppercase tracking-wider">ACUMULADO:</span>
+                  <span className="text-3xl font-mono font-bold text-mining-blue">{fmt(summary?.acumuladoDia || producaoTurno)}</span>
+                </div>
+                <div className="h-px bg-mining-green/15" />
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-sm font-mono text-muted-foreground uppercase tracking-wider">PROJETADO:</span>
+                  <span className="text-3xl font-mono font-bold text-mining-green text-glow-neon">{fmt(summary?.projetadoDia || summary?.acumuladoDia || producaoTurno)}</span>
+                </div>
               </div>
-              <div className="h-px bg-mining-green/15" />
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-base font-mono text-muted-foreground uppercase tracking-wider">PROJETADO DIA:</span>
-                <span className="text-4xl font-mono font-bold text-mining-green text-glow-neon">{fmt(summary?.projetadoDia || summary?.acumuladoDia || producaoTurno)}</span>
-              </div>
-            </div>
-          </CardShell>
-        </div>
-        <div className="col-span-12 md:col-span-3 flex">
-          <CardShell title="RETALUDAMENTO" className="flex-1 flex flex-col">
-            <div className="space-y-2 flex-1 flex flex-col justify-center">
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-base font-mono text-muted-foreground uppercase tracking-wider">ACUMULADO DIA:</span>
-                <span className="text-4xl font-mono font-bold text-mining-blue">{fmt(acumuladoRetaludShown)}</span>
-              </div>
-              <div className="h-px bg-mining-green/15" />
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-base font-mono text-muted-foreground uppercase tracking-wider">PROJETADO DIA:</span>
-                <span className="text-4xl font-mono font-bold text-mining-green text-glow-neon">{fmt(projetadoRetaludShown)}</span>
+              <div className="pl-3 flex flex-col justify-center space-y-2">
+                <p className="text-xs font-mono uppercase tracking-[0.18em] text-mining-green">RETALUDAMENTO</p>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-sm font-mono text-muted-foreground uppercase tracking-wider">ACUMULADO:</span>
+                  <span className="text-3xl font-mono font-bold text-mining-blue">{fmt(acumuladoRetaludShown)}</span>
+                </div>
+                <div className="h-px bg-mining-green/15" />
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-sm font-mono text-muted-foreground uppercase tracking-wider">PROJETADO:</span>
+                  <span className="text-3xl font-mono font-bold text-mining-green text-glow-neon">{fmt(projetadoRetaludShown)}</span>
+                </div>
               </div>
             </div>
           </CardShell>
@@ -603,28 +603,6 @@ export function OpsCenter() {
               </div>
               <RefreshCw className="h-8 w-8 text-mining-green/70" />
             </div>
-          </CardShell>
-
-          <CardShell title="TONELADAS POR HORA">
-            <div className="h-52">
-              <ResponsiveContainer width="100%" height="100%">
-                <ComposedChart data={tonHSeries} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
-                  <CartesianGrid stroke="rgba(34,197,94,0.08)" />
-                  <XAxis dataKey="hora" stroke="#4ade80" tick={{ fontSize: 10, fontFamily: "monospace" }} />
-                  <YAxis stroke="#4ade80" tick={{ fontSize: 10, fontFamily: "monospace" }} />
-                  <Tooltip contentStyle={{ background: "#000", border: `1px solid ${NEON}`, fontSize: 11, fontFamily: "monospace" }} labelStyle={{ color: NEON }} />
-                  <Bar dataKey="tonH" fill={NEON} radius={[2, 2, 0, 0]} name="Ton/h" />
-                  <Line type="monotone" dataKey="meta" stroke={YELLOW} strokeDasharray="4 4" strokeWidth={1.5} dot={false} name="Meta" />
-                </ComposedChart>
-              </ResponsiveContainer>
-            </div>
-            {tonHCheck && (
-              <div className={`mt-2 px-2 py-1 text-[10px] font-mono rounded-sm border ${tonHCheck.ok ? "border-mining-green/40 text-mining-green/80 bg-mining-green/5" : "border-mining-yellow/60 text-mining-yellow bg-mining-yellow/10"}`}>
-                {tonHCheck.ok
-                  ? `✓ SOMA HORÁRIA ${tonHCheck.soma}t = TOTAL DIA ${tonHCheck.total}t`
-                  : `⚠ DIVERGÊNCIA: soma horária ${tonHCheck.soma}t vs total dia ${tonHCheck.total}t (Δ ${tonHCheck.diff > 0 ? "+" : ""}${tonHCheck.diff}t · ${tonHCheck.pct.toFixed(1)}%)`}
-              </div>
-            )}
           </CardShell>
 
           <CardShell title="PRODUÇÃO DO TURNO (TONELADAS)">
