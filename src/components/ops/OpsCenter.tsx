@@ -569,7 +569,7 @@ export function OpsCenter() {
           </CardShell>
 
           <CardShell title="PRODUÇÃO DO TURNO (TONELADAS)">
-            <div className="h-56">
+            <div className="h-40">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={productionSeries} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
                   <defs>
