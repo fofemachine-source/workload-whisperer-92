@@ -242,9 +242,10 @@ export function OpsCenter() {
   const projetadoRetaludShown = recomputeProjectedForToday(acumuladoRetaludShown, projetoRetaludBase);
   const baseMetaMina = areas?.Mina?.meta || projectedMinaShown || 0;
   const baseMetaRetalud = areas?.Retaludamento?.meta || projetadoRetaludShown || 0;
-  const totalBaseMeta = baseMetaMina + baseMetaRetalud;
-  const metaMensalMina = totalBaseMeta > 0 ? Math.round(metasFixas.mensal * (baseMetaMina / totalBaseMeta)) : Math.round(metasFixas.mensal / 2);
-  const metaMensalRetalud = metasFixas.mensal - metaMensalMina;
+  void baseMetaMina; void baseMetaRetalud;
+  // Meta mensal de Retaludamento fixada em 853.680 (definição operacional).
+  const metaMensalRetalud = 853_680;
+  const metaMensalMina = Math.max(0, metasFixas.mensal - metaMensalRetalud);
   const shareMetaMina = metasFixas.mensal > 0 ? (metaMensalMina / metasFixas.mensal) * 100 : 0;
   const shareMetaRetalud = metasFixas.mensal > 0 ? (metaMensalRetalud / metasFixas.mensal) * 100 : 0;
 
