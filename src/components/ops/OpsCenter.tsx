@@ -595,28 +595,13 @@ export function OpsCenter() {
 
         {/* COLUNA DIREITA: RANKING + TONELADAS/H + PRODUÇÃO TURNO + OPERAÇÃO AO VIVO */}
         <div className="col-span-12 lg:col-span-6 flex flex-col gap-3">
-          <CardShell title="RANKING DE PRODUTIVIDADE — ESCAVADEIRAS (T/H)">
-            <div className="space-y-1.5">
-              {ranking.map((r, i) => {
-                const max = ranking[0].value;
-                const pct = (r.value / max) * 100;
-                return (
-                  <div key={r.name} className="flex items-center gap-2 text-sm font-mono">
-                    <span className="w-5 text-muted-foreground text-right">{r.pos}</span>
-                    <span className="w-24 text-foreground">{r.name}</span>
-                    <div className="flex-1 h-3 bg-white/5 rounded-sm overflow-hidden">
-                      <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: `${pct}%` }}
-                        transition={{ duration: 1, delay: i * 0.05 }}
-                        className="h-full rounded-sm"
-                        style={{ background: NEON, boxShadow: `0 0 8px ${NEON}` }}
-                      />
-                    </div>
-                    <span className="w-20 text-right text-mining-green font-bold">{fmt(r.value)} t/h</span>
-                  </div>
-                );
-              })}
+          <CardShell title="META HORÁRIA">
+            <div className="flex items-end justify-between gap-3 min-h-[96px]">
+              <div>
+                <p className="text-4xl font-mono font-bold text-mining-green">{fmt(metasFixas.horaria)}</p>
+                <p className="mt-2 text-xs font-mono uppercase tracking-[0.18em] text-muted-foreground">toneladas / hora</p>
+              </div>
+              <RefreshCw className="h-8 w-8 text-mining-green/70" />
             </div>
           </CardShell>
 
