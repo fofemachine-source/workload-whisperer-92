@@ -82,6 +82,15 @@ export interface AggregateSummary {
   hourlySeries?: HourlyProduction[];
   /** ISO yyyy-mm-dd lido da célula DATA: na aba PRODUÇÃO EH (dia da operação) */
   dataPlanilha?: string;
+  /** Ranking de produtividade (T/H) por escavadeira EH-XXXX a partir da aba PRODUÇÃO EH. */
+  ehRanking?: EhRankingItem[];
+}
+
+export interface EhRankingItem {
+  equipamento: string;
+  producao: number;
+  horas: number;
+  tph: number;
 }
 
 export interface HourlyProduction {
