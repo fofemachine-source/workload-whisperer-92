@@ -470,8 +470,7 @@ export function OpsCenter() {
         </div>
 
         <div className="col-span-12">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <CardShell title="META TOTAL MAIO">
+          <CardShell title="META TOTAL MAIO">
               <div className="grid gap-4 md:grid-cols-2 min-h-[132px]">
                 <div className="flex flex-col justify-between border border-mining-yellow/20 rounded-sm px-3 py-3 bg-mining-yellow/5">
                   <div>
@@ -494,17 +493,7 @@ export function OpsCenter() {
                   </div>
                 </div>
               </div>
-            </CardShell>
-            <CardShell title="META HORÁRIA">
-              <div className="flex items-end justify-between gap-3 min-h-[96px]">
-                <div>
-                  <p className="text-4xl font-mono font-bold text-mining-green">{fmt(metasFixas.horaria)}</p>
-                  <p className="mt-2 text-xs font-mono uppercase tracking-[0.18em] text-muted-foreground">toneladas / hora</p>
-                </div>
-                <RefreshCw className="h-8 w-8 text-mining-green/70" />
-              </div>
-            </CardShell>
-          </div>
+          </CardShell>
         </div>
 
         {/* COLUNA ESQUERDA: DF/UT + ESCAVADEIRAS + CAMINHÕES + EQUIP OPERANDO */}
