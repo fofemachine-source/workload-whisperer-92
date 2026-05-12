@@ -1,5 +1,6 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
+import legacy from "@vitejs/plugin-legacy";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 
@@ -12,7 +13,20 @@ export default defineConfig(({ mode }) => ({
       overlay: false,
     },
   },
-  plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
+  plugins: [
+    react(),
+    // Compatibilidade com navegadores antigos (Smart TVs WebOS/Tizen,
+    // Chromium antigo). Sem isso o bundle ES2020+ não roda e a tela fica preta.
+    legacy({
+      targets: ["chrome >= 64", "edge >= 79", "safari >= 12", "firefox >= 67"],
+      modernPolyfills: true,
+      renderLegacyChunks: true,
+    }),
+    mode === "development" && componentTagger(),
+  ].filter(Boolean),
+  build: {
+    target: ["es2017", "chrome64", "safari12"],
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
