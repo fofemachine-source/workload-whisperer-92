@@ -472,8 +472,8 @@ export function OpsCenter() {
         {/* LINHA 2: META TOTAL MAIO + TONELADAS POR HORA */}
         <div className="col-span-12 lg:col-span-6 flex">
           <CardShell title="META TOTAL MAIO" className="flex-1 flex flex-col">
-            <div className="grid gap-3 grid-cols-2 min-h-[132px] flex-1">
-              <div className="flex flex-col justify-between border border-mining-yellow/20 rounded-sm px-3 py-3 bg-mining-yellow/5">
+            <div className="grid gap-6 grid-cols-2 min-h-[132px] flex-1">
+              <div className="flex flex-col justify-between">
                 <div>
                   <p className="text-xs font-mono uppercase tracking-[0.18em] text-muted-foreground">Mina</p>
                   <p className="mt-3 text-4xl font-mono font-bold text-mining-yellow">{fmt(metaMensalMina)}</p>
@@ -483,7 +483,7 @@ export function OpsCenter() {
                   <div className="mt-2"><ProgressBar value={shareMetaMina} color={YELLOW} /></div>
                 </div>
               </div>
-              <div className="flex flex-col justify-between border border-mining-green/20 rounded-sm px-3 py-3 bg-mining-green/5">
+              <div className="flex flex-col justify-between">
                 <div>
                   <p className="text-xs font-mono uppercase tracking-[0.18em] text-muted-foreground">Retaludamento</p>
                   <p className="mt-3 text-4xl font-mono font-bold text-mining-green">{fmt(metaMensalRetalud)}</p>
