@@ -392,12 +392,17 @@ export function OpsCenter() {
               )}
             </div>
           </div>
-          <div className={`hidden xl:flex items-center gap-2 rounded-md border px-2 py-1 ${syncStatusMeta.box}`}>
+          <div
+            className={`hidden xl:flex items-center gap-2 rounded-md border px-2 py-1 ${syncStatusMeta.box}`}
+            title={syncError ?? undefined}
+          >
             <span className={`h-1.5 w-1.5 rounded-full ${syncStatusMeta.dot}`} />
             <div>
               <p className="text-[8px] tracking-[0.18em] uppercase">{syncStatusMeta.label}</p>
               <p className="text-[8px] text-muted-foreground max-w-[190px] truncate">
-                {source === "onedrive"
+                {syncError
+                  ? syncError
+                  : source === "onedrive"
                   ? file?.name ?? "Arquivo conectado"
                   : source === "local"
                     ? `${localFile?.name ?? "Planilha local"}${lastCloudUpload ? " · enviado" : ""}`

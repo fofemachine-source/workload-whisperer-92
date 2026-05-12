@@ -28,30 +28,44 @@ export function useExcelWorkbook(enabled: boolean): ExcelWorkbookState {
     try {
       const client = createGraphClient(instance, accounts[0]);
       let found = await findExcelFile(client, EXCEL_FILE_NAME);
+      const tryListSheets = async (item: typeof found) => {
+        if (!item) throw new Error("Arquivo nulo");
+        const driveId = item.parentReference?.driveId ?? "";
+        return await listWorksheets(client, driveId, item.id);
+      };
+      let sheets: Awaited<ReturnType<typeof listWorksheets>> | null = null;
+      if (found) {
+        try {
+          sheets = await tryListSheets(found);
+        } catch (err) {
+          console.warn("[graph] listWorksheets falhou para o item encontrado, tentando link compartilhado…", (err as Error)?.message);
+          found = null;
+        }
+      }
       if (!found && EXCEL_SHARE_URL) {
         console.log("[graph] tentando resolver via URL de compartilhamento…");
         found = await resolveSharedFile(client, EXCEL_SHARE_URL);
+        if (found) sheets = await tryListSheets(found);
       }
-      if (!found) {
+      if (!found || !sheets) {
         throw new Error(
-          `Arquivo "${EXCEL_FILE_NAME}" não encontrado. Verifique se a conta logada tem acesso ao link compartilhado.`,
+          `Arquivo "${EXCEL_FILE_NAME}" não encontrado no OneDrive da conta logada nem via link compartilhado.`,
         );
       }
+      const resolvedFound = found;
       setFile((prev) => {
-        if (prev && prev.id === found.id && prev.lastModifiedDateTime === found.lastModifiedDateTime) {
+        if (prev && prev.id === resolvedFound.id && prev.lastModifiedDateTime === resolvedFound.lastModifiedDateTime) {
           return prev;
         }
-        console.log("[graph] arquivo:", found.name, "modified:", found.lastModifiedDateTime);
-        return found;
+        console.log("[graph] arquivo:", resolvedFound.name, "modified:", resolvedFound.lastModifiedDateTime);
+        return resolvedFound;
       });
-
-      const driveId = found.parentReference?.driveId ?? "";
-      const sheets = await listWorksheets(client, driveId, found.id);
+      const finalSheets = sheets;
       setWorksheets((prev) => {
-        if (prev.length === sheets.length && prev.every((p, i) => p.id === sheets[i].id && p.name === sheets[i].name)) {
+        if (prev.length === finalSheets.length && prev.every((p, i) => p.id === finalSheets[i].id && p.name === finalSheets[i].name)) {
           return prev;
         }
-        return sheets;
+        return finalSheets;
       });
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
