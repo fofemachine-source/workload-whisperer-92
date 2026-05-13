@@ -102,17 +102,17 @@ export interface HourlyProduction {
 export interface FleetAggregate {
   fleet: TargetEquipment;
   category: "escavadeira" | "caminhao";
-  totalUnits: number;        // tamanho fixo da frota
-  ativos: number;            // unidades com horas trabalhadas > 0
-  emManutencao: number;      // unidades com horas de manutenção > 0
+  totalUnits: number; // tamanho fixo da frota
+  ativos: number; // unidades com horas trabalhadas > 0
+  emManutencao: number; // unidades com horas de manutenção > 0
   totalProducao: number;
   totalHoras: number;
-  produtividade: number;     // produção / horas
-  df: number;                // DF = HD / HT  (0-100)
-  ut: number;                // UT = HTra / HD (0-100)
-  horasTotais: number;       // HT = totalUnits * turno
-  horasManutencao: number;   // HM = soma manutenção da frota
-  horasDisponiveis: number;  // HD = HT - HM
+  produtividade: number; // produção / horas
+  df: number; // DF = HD / HT  (0-100)
+  ut: number; // UT = HTra / HD (0-100)
+  horasTotais: number; // HT = totalUnits * turno
+  horasManutencao: number; // HM = soma manutenção da frota
+  horasDisponiveis: number; // HD = HT - HM
 }
 
 export interface GenericEquipmentRow {
@@ -137,7 +137,20 @@ const norm = (s: unknown): string =>
     .trim();
 
 const HEADER_PATTERNS: Record<keyof MetricColumnMap, RegExp[]> = {
-  equipamento: [/equipamento/, /^equip\b/, /frota/, /maquina/, /m[aá]quina/, /modelo/, /\barea\b/, /local/, /^tag\b/, /^id\b/, /descri[cç][aã]o/, /^nome\b/],
+  equipamento: [
+    /equipamento/,
+    /^equip\b/,
+    /frota/,
+    /maquina/,
+    /m[aá]quina/,
+    /modelo/,
+    /\barea\b/,
+    /local/,
+    /^tag\b/,
+    /^id\b/,
+    /descri[cç][aã]o/,
+    /^nome\b/,
+  ],
   horasTrabalhadas: [/horas?\s*trabalhad/, /h\s*trab/, /horimetro/, /^ht\b/],
   producao: [/produ[cç][aã]o(?!t)/, /tonelagem/, /toneladas?/, /^prod\b/, /\bton\b/, /movimentado/, /carregad/],
   produtividade: [/produtividade/, /t\s*\/\s*h/, /ton\/h/, /\bprod\.?\s*$/],
@@ -178,7 +191,10 @@ function detectHeaderRow(values: unknown[][]): { row: number; map: MetricColumnM
 function toNumber(v: unknown): number {
   if (typeof v === "number") return v;
   if (v == null || v === "") return 0;
-  const s = String(v).replace(/[^\d,.\-]/g, "").replace(/\.(?=\d{3}(\D|$))/g, "").replace(",", ".");
+  const s = String(v)
+    .replace(/[^\d,.\-]/g, "")
+    .replace(/\.(?=\d{3}(\D|$))/g, "")
+    .replace(",", ".");
   const n = parseFloat(s);
   return isNaN(n) ? 0 : n;
 }
@@ -418,7 +434,11 @@ function applyStructuredOverrides(
 
   // 1) Determine target date from Horimetros (latest non-empty)
   let dateKey: string | null = null;
-  let dateColH = -1, eqColH = -1, frotaColH = -1, htColH = -1, headerH = -1;
+  let dateColH = -1,
+    eqColH = -1,
+    frotaColH = -1,
+    htColH = -1,
+    headerH = -1;
   if (horim && horim.values.length > 4) {
     // Header is around row 4 in user file; scan first 10 rows
     for (let r = 0; r < Math.min(horim.values.length, 12); r++) {
@@ -428,7 +448,11 @@ function applyStructuredOverrides(
       const fc = findHeaderIndex(row, [/^frota$/]);
       const hc = findHeaderIndex(row, [/horas?\s*trabalhad/]);
       if (dc >= 0 && ec >= 0 && fc >= 0 && hc >= 0) {
-        headerH = r; dateColH = dc; eqColH = ec; frotaColH = fc; htColH = hc;
+        headerH = r;
+        dateColH = dc;
+        eqColH = ec;
+        frotaColH = fc;
+        htColH = hc;
         break;
       }
     }
@@ -445,10 +469,16 @@ function applyStructuredOverrides(
 
   // 2) Aggregate HTra per fleet for the target date
   const htraByFleet: Record<TargetEquipment, number> = {
-    EX1200: 0, EX2500: 0, "Komatsu 730": 0, "Komatsu 785": 0,
+    EX1200: 0,
+    EX2500: 0,
+    "Komatsu 730": 0,
+    "Komatsu 785": 0,
   };
   const ativosByFleet: Record<TargetEquipment, Set<string>> = {
-    EX1200: new Set(), EX2500: new Set(), "Komatsu 730": new Set(), "Komatsu 785": new Set(),
+    EX1200: new Set(),
+    EX2500: new Set(),
+    "Komatsu 730": new Set(),
+    "Komatsu 785": new Set(),
   };
   if (horim && headerH >= 0 && dateKey) {
     for (let r = headerH + 1; r < horim.values.length; r++) {
@@ -466,11 +496,18 @@ function applyStructuredOverrides(
 
   // 3) Aggregate Manutenção per fleet for same date from Paradas
   const manutByFleet: Record<TargetEquipment, number> = {
-    EX1200: 0, EX2500: 0, "Komatsu 730": 0, "Komatsu 785": 0,
+    EX1200: 0,
+    EX2500: 0,
+    "Komatsu 730": 0,
+    "Komatsu 785": 0,
   };
   if (paradas && paradas.values.length > 3 && dateKey) {
     // Header on row index 2 typically
-    let headerP = -1, dateColP = -1, frotaColP = -1, horasColP = -1, catColP = -1;
+    let headerP = -1,
+      dateColP = -1,
+      frotaColP = -1,
+      horasColP = -1,
+      catColP = -1;
     for (let r = 0; r < Math.min(paradas.values.length, 8); r++) {
       const row = paradas.values[r] ?? [];
       const dc = findHeaderIndex(row, [/^data$/]);
@@ -478,7 +515,11 @@ function applyStructuredOverrides(
       const hc = findHeaderIndex(row, [/tempo\s*de\s*parada\s*\(hor/]);
       const cc = findHeaderIndex(row, [/categoria/]);
       if (dc >= 0 && fc >= 0 && hc >= 0 && cc >= 0) {
-        headerP = r; dateColP = dc; frotaColP = fc; horasColP = hc; catColP = cc;
+        headerP = r;
+        dateColP = dc;
+        frotaColP = fc;
+        horasColP = hc;
+        catColP = cc;
         break;
       }
     }
@@ -588,7 +629,7 @@ function applyStructuredOverrides(
 
     // --- Find the TOTAL row (label "TOTAL" in column 0 OR 18 below headers) ---
     let totalRowIdx = -1;
-    for (let r = (headerRowIdx >= 0 ? headerRowIdx + 1 : 0); r < prodEh.values.length; r++) {
+    for (let r = headerRowIdx >= 0 ? headerRowIdx + 1 : 0; r < prodEh.values.length; r++) {
       const row = prodEh.values[r] ?? [];
       if (/^total$/i.test(String(row[0] ?? "").trim())) {
         totalRowIdx = r;
@@ -651,7 +692,7 @@ function applyStructuredOverrides(
           break;
         }
       }
-      const startR = tonhRow >= 0 ? tonhRow + 1 : (totalRowIdx > 0 ? totalRowIdx + 1 : 0);
+      const startR = tonhRow >= 0 ? tonhRow + 1 : totalRowIdx > 0 ? totalRowIdx + 1 : 0;
       const endR = Math.min(prodEh.values.length, startR + 40);
       const seen = new Set<string>();
       for (let r = startR; r < endR; r++) {
@@ -669,7 +710,10 @@ function applyStructuredOverrides(
         } else {
           for (let c = 1; c < row.length; c++) {
             const v = toNumber(row[c]);
-            if (v > 0) { tph = v; break; }
+            if (v > 0) {
+              tph = v;
+              break;
+            }
           }
         }
         if (!Number.isFinite(tph) || tph <= 0) continue;
@@ -706,9 +750,7 @@ function applyStructuredOverrides(
       const row = prodEh.values[r] ?? [];
       for (let c = 0; c < row.length; c++) {
         const lab = norm(row[c]);
-        const isRetaludCol =
-          retaludCols.has(c) ||
-          (Number.isFinite(retaludStartCol) && c >= retaludStartCol - 1);
+        const isRetaludCol = retaludCols.has(c) || (Number.isFinite(retaludStartCol) && c >= retaludStartCol - 1);
         if (/acumulado\s*dia/.test(lab)) {
           const v = numRight(row, c);
           if (v > 0) {
@@ -762,9 +804,7 @@ function applyStructuredOverrides(
       const sum = turnoRetalud[0] + turnoRetalud[1];
       const drift = Math.abs(sum - producaoRetalud) / producaoRetalud;
       if (drift > 0.05) {
-        console.warn(
-          `[excelParser] RETALUDAMENTO inconsistente: Turno1+Turno2=${sum} vs Acumulado=${producaoRetalud}`
-        );
+        console.warn(`[excelParser] RETALUDAMENTO inconsistente: Turno1+Turno2=${sum} vs Acumulado=${producaoRetalud}`);
         retaludDebug.inconsistencyDrift = drift;
       }
     }
@@ -857,21 +897,25 @@ function applyStructuredOverrides(
 
   // 7.b) RETALUDAMENTO por Obra (MORRO 1) — soma da aba "RETALUDAMENTO"
   // filtrada pela data mais recente, agrupando coluna "Obra".
-  const retaludSheet =
-    byName.get("retaludamento") ||
-    [...byName.values()].find((s) => /^retalud/i.test(s.name));
+  const retaludSheet = byName.get("retaludamento") || [...byName.values()].find((s) => /^retalud/i.test(s.name));
   let acumuladoMorro1 = 0;
   if (retaludSheet?.values?.length) {
     const rows = retaludSheet.values;
     // Detect header row: needs DATA + Obra + Produção columns
-    let hr = -1, dCol = -1, obraCol = -1, prodCol = -1;
+    let hr = -1,
+      dCol = -1,
+      obraCol = -1,
+      prodCol = -1;
     for (let r = 0; r < Math.min(rows.length, 12); r++) {
       const row = rows[r] ?? [];
       const dc = findHeaderIndex(row, [/^data$/]);
       const oc = findHeaderIndex(row, [/^obra$/]);
       const pc = findHeaderIndex(row, [/produ[cç][aã]o/]);
       if (dc >= 0 && oc >= 0 && pc >= 0) {
-        hr = r; dCol = dc; obraCol = oc; prodCol = pc;
+        hr = r;
+        dCol = dc;
+        obraCol = oc;
+        prodCol = pc;
         break;
       }
     }
@@ -1051,9 +1095,21 @@ export function processSheetValues(sheets: SheetValues[]): {
   }
 
   const rows = Array.from(rowsByName.values()).map((g) => {
-    if (!g.produtividade && g.horasTrabalhadas > 0 && g.producao > 0) {
+    // ======================================================
+    // NÃO RECALCULAR ESCAVADEIRAS
+    // O TON/H DELAS JÁ VEM PRONTO DA PLANILHA
+    // ======================================================
+
+    const ehRankingPronto = typeof g.produtividade === "number" && g.produtividade > 0;
+
+    // ======================================================
+    // SOMENTE CALCULA SE NÃO EXISTIR VALOR
+    // ======================================================
+
+    if (!ehRankingPronto && g.horasTrabalhadas > 0 && g.producao > 0) {
       g.produtividade = g.producao / g.horasTrabalhadas;
     }
+
     return g;
   });
 
@@ -1171,7 +1227,15 @@ export function processSheetValues(sheets: SheetValues[]): {
   // Validação por aba — confirma se datas e totais foram lidos
   validateSheets(sheets, overrides, summary);
 
-  return { metrics: acc as Record<TargetEquipment, EquipmentMetrics>, areas, debug, rows, summary, primarySheet, fleets };
+  return {
+    metrics: acc as Record<TargetEquipment, EquipmentMetrics>,
+    areas,
+    debug,
+    rows,
+    summary,
+    primarySheet,
+    fleets,
+  };
 }
 
 /**
@@ -1190,14 +1254,22 @@ function applyDashboardAnchors(
   const limparNumero = (v: unknown): number => {
     if (v == null || v === "") return 0;
     if (typeof v === "number") return v;
-    const s = String(v).replace(/\./g, "").replace(",", ".").replace(/[^\d.\-]/g, "");
+    const s = String(v)
+      .replace(/\./g, "")
+      .replace(",", ".")
+      .replace(/[^\d.\-]/g, "");
     const n = Number(s);
     return Number.isFinite(n) ? n : 0;
   };
 
   for (const { name: sheetName, values } of sheets) {
     if (!values?.length) continue;
-    const upperRows = values.map((row) => (row ?? []).map((v) => String(v ?? "")).join(" ").toUpperCase());
+    const upperRows = values.map((row) =>
+      (row ?? [])
+        .map((v) => String(v ?? ""))
+        .join(" ")
+        .toUpperCase(),
+    );
     const readClosestNumberRight = (row: unknown[], fromCol: number, span = 6): number => {
       for (let c = fromCol + 1; c <= fromCol + span && c < row.length; c++) {
         const val = limparNumero(row[c]);
@@ -1312,7 +1384,10 @@ function applyDashboardAnchors(
         } else {
           for (let c = 1; c < row.length; c++) {
             const v = limparNumero(row[c]);
-            if (v > 0) { tph = v; break; }
+            if (v > 0) {
+              tph = v;
+              break;
+            }
           }
         }
         if (tph <= 0) continue;
@@ -1404,9 +1479,15 @@ function validateSheets(
     let headerRow = -1;
     for (let r = 0; r < Math.min(rows, 12); r++) {
       const dc = findHeaderIndex(sh.values[r] ?? [], [/^data$/]);
-      if (dc >= 0) { dateCol = dc; headerRow = r; break; }
+      if (dc >= 0) {
+        dateCol = dc;
+        headerRow = r;
+        break;
+      }
     }
-    let minDate = "", maxDate = "", dateCount = 0;
+    let minDate = "",
+      maxDate = "",
+      dateCount = 0;
     if (dateCol >= 0) {
       for (let r = headerRow + 1; r < rows; r++) {
         const k = cellToDateKey((sh.values[r] ?? [])[dateCol]);
