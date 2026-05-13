@@ -212,7 +212,7 @@ export function OpsCenter() {
     idle: { label: "AGUARDANDO ONEDRIVE", box: "border-muted-foreground/30 text-muted-foreground", dot: "bg-muted-foreground" },
   }[syncStatus];
   const metasFixas = {
-    mensal: 1_351_096,
+    mensal: 1_351_130,
     diaria: 43_584,
     horaria: 1_816,
   };
@@ -253,11 +253,12 @@ export function OpsCenter() {
   const baseMetaMina = areas?.Mina?.meta || projectedMinaShown || 0;
   const baseMetaRetalud = areas?.Retaludamento?.meta || projetadoRetaludShown || 0;
   void baseMetaMina; void baseMetaRetalud;
-  // Meta mensal de Retaludamento fixada em 853.680 (definição operacional).
-  const metaMensalRetalud = 853_680;
-  const metaMensalMina = Math.max(0, metasFixas.mensal - metaMensalRetalud);
-  const shareMetaMina = metasFixas.mensal > 0 ? (metaMensalMina / metasFixas.mensal) * 100 : 0;
-  const shareMetaRetalud = metasFixas.mensal > 0 ? (metaMensalRetalud / metasFixas.mensal) * 100 : 0;
+  // Metas mensais operacionais (mai/2026).
+  const metaMensalMina = 1_351_130;
+  const metaMensalRetalud = 1_241_297;
+  const metaMensalTotal = metaMensalMina + metaMensalRetalud;
+  const shareMetaMina = metaMensalTotal > 0 ? (metaMensalMina / metaMensalTotal) * 100 : 0;
+  const shareMetaRetalud = metaMensalTotal > 0 ? (metaMensalRetalud / metaMensalTotal) * 100 : 0;
 
   // Auto refresh OneDrive a cada 60s
   useEffect(() => {
@@ -489,7 +490,7 @@ export function OpsCenter() {
               <div className="flex flex-col justify-between">
                 <div>
                   <p className="text-lg font-mono uppercase tracking-[0.18em] text-muted-foreground">Mina</p>
-                  <p className="mt-3 text-4xl font-mono font-bold text-mining-yellow">{fmt(metasFixas.mensal)}</p>
+                  <p className="mt-3 text-4xl font-mono font-bold text-mining-yellow">{fmt(metaMensalMina)}</p>
                 </div>
                 <div className="mt-3">
                   <p className="text-xl font-mono uppercase tracking-[0.18em] text-muted-foreground">{shareMetaMina.toFixed(1)}% da meta</p>
