@@ -1363,42 +1363,111 @@ function applyDashboardAnchors(
       }
     }
 
-    // ---------- TON/H (ranking de escavadeiras) ----------
-    const linhaTonH = upperRows.findIndex((t) => /\bTON\s*\/\s*H\b/.test(t));
-    if (linhaTonH >= 0) {
-      const ranking: EhRankingItem[] = [];
-      const seen = new Set<string>();
-      const end = Math.min(values.length, linhaTonH + 25);
-      for (let i = linhaTonH + 1; i < end; i++) {
-        const row = values[i] ?? [];
-        const text = row.map((v) => String(v ?? "")).join(" ");
-        const mEH = text.match(/EH[-\s]?\d+/i);
-        if (!mEH) continue;
-        const equip = mEH[0].toUpperCase().replace(/\s+/, "-");
-        if (seen.has(equip)) continue;
-        // Captura número brasileiro completo: "1.992,5", "1.351.130", "850", "850,3"
-        const mTph = text.match(/((?:\d{1,3}(?:\.\d{3})+|\d+)(?:,\d+)?)\s*t\s*\/\s*h/i);
-        let tph = 0;
-        if (mTph) {
-          tph = limparNumero(mTph[1]);
-        } else {
-          for (let c = 1; c < row.length; c++) {
-            const v = limparNumero(row[c]);
-            if (v > 0) {
-              tph = v;
-              break;
-            }
-          }
-        }
-        if (tph <= 0) continue;
-        seen.add(equip);
-        // Mantém o valor exato da planilha (não arredonda — ex.: 1.992,5)
-        ranking.push({ equipamento: equip, producao: 0, horas: 0, tph });
-      }
-      if (ranking.length) {
-        ranking.sort((a, b) => b.tph - a.tph);
-        summary.ehRanking = ranking;
-        console.log(`[anchors] TON/H @${sheetName}`, ranking);
+// ---------- TON/H (ranking de escavadeiras) ----------
+const linhaTonH = upperRows.findIndex((t) =>
+  /\bTON\s*\/\s*H\b/.test(t)
+);
+
+if (linhaTonH >= 0) {
+
+  const ranking: EhRankingItem[] = [];
+  const seen = new Set<string>();
+
+  const end = Math.min(values.length, linhaTonH + 25);
+
+  for (let i = linhaTonH + 1; i < end; i++) {
+
+    const row = values[i] ?? [];
+
+    // ======================================================
+    // EQUIPAMENTO
+    // ======================================================
+
+    const equipamentoRaw =
+      String(row[0] ?? "")
+        .trim();
+
+    if (!equipamentoRaw) continue;
+
+    const matchEH =
+      equipamentoRaw.match(/EH[-\s]?\d+/i);
+
+    if (!matchEH) continue;
+
+    const equipamento =
+      matchEH[0]
+        .toUpperCase()
+        .replace(/\s+/g, "-");
+
+    if (seen.has(equipamento)) continue;
+
+    // ======================================================
+    // VALOR T/H
+    // ======================================================
+
+    const valorBruto =
+      String(row[1] ?? "")
+        .replace("t/h", "")
+        .trim();
+
+    if (
+      !valorBruto ||
+      valorBruto === "-"
+    ) {
+      continue;
+    }
+
+    // ======================================================
+    // CONVERSÃO BRASILEIRA
+    // 1.992,5 -> 1992.5
+    // ======================================================
+
+    const tph = Number(
+
+      valorBruto
+
+        .replace(/\./g, "")
+        .replace(",", ".")
+
+    );
+
+    // ======================================================
+    // VALIDAÇÃO
+    // ======================================================
+
+    if (!Number.isFinite(tph)) continue;
+
+    if (tph <= 0) continue;
+
+    if (tph > 5000) continue;
+
+    seen.add(equipamento);
+
+    ranking.push({
+      equipamento,
+      producao: 0,
+      horas: 0,
+      tph,
+    });
+
+  }
+
+  if (ranking.length) {
+
+    ranking.sort(
+      (a, b) => b.tph - a.tph
+    );
+
+    summary.ehRanking = ranking;
+
+    console.log(
+      `[TON/H FIXADO @${sheetName}]`,
+      ranking
+    );
+
+  }
+
+}
       }
     }
 
