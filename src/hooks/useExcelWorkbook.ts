@@ -9,7 +9,7 @@ import {
   DriveItem,
   WorksheetInfo,
 } from "@/services/graphService";
-import { EXCEL_FILE_NAME, EXCEL_SHARE_URL } from "@/auth/msalConfig";
+import { EXCEL_FILE_NAME, EXCEL_SHARE_URLS } from "@/auth/msalConfig";
 import { SheetValues } from "@/services/excelParser";
 
 // Atualização automática a cada 1 minuto para refletir edições recentes na planilha.
@@ -66,11 +66,12 @@ export function useExcelWorkbook(enabled: boolean): ExcelWorkbookState {
       // 1) Resolve metadados do arquivo: prioriza o link compartilhado oficial
       //    (planilha mora em outra conta) e usa busca em /me/drive como fallback.
       let resolved: DriveItem | null = null;
-      if (EXCEL_SHARE_URL) {
+      for (const shareUrl of EXCEL_SHARE_URLS) {
+        if (resolved) break;
         try {
-          resolved = await resolveSharedFile(client, EXCEL_SHARE_URL);
+          resolved = await resolveSharedFile(client, shareUrl);
         } catch (err) {
-          console.warn("[graph] resolveSharedFile falhou:", (err as Error)?.message);
+          console.warn("[graph] resolveSharedFile falhou:", shareUrl, (err as Error)?.message);
         }
       }
       if (!resolved) {
