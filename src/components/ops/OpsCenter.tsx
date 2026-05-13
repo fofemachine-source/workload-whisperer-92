@@ -312,12 +312,17 @@ export function OpsCenter() {
     return () => clearInterval(interval);
   }, [source, refresh, refreshWorkbook]);
 
-  const producaoTurno = summary?.totalProducao || 128_450;
-  const metaTurno = summary?.totalMeta || 150_000;
+  const producaoTurno = summary?.acumuladoDia || 0;
+
+  const metaTurno = metasFixas.diaria;
+
   const aderTurno = metaTurno > 0 ? (producaoTurno / metaTurno) * 100 : 0;
 
-  const producaoMensal = producaoTurno * 22;
+  // PRODUÇÃO MENSAL REAL DA PLANILHA
+  const producaoMensal = (summary?.realizadoMes || 0) + (summary?.realizadoRetaludMes || 0);
+
   const metaMensal = 1_351_096;
+
   const aderMensal = metaMensal > 0 ? (producaoMensal / metaMensal) * 100 : 0;
 
   const tonH = summary?.toneladaPorHora || 10_250;
