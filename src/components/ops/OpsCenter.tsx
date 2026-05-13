@@ -669,9 +669,7 @@ export function OpsCenter() {
                         style={{ width: `${pct}%`, boxShadow: `0 0 8px ${NEON}` }}
                       />
                     </div>
-                    <span className="w-24 text-right text-base font-mono text-mining-green">
-                      {Number(r.value).toFixed(1)} t/h
-                    </span>
+                    <span className="w-24 text-right text-base font-mono text-mining-green">{fmt(r.value)} t/h</span>
                   </div>
                 );
               })}
