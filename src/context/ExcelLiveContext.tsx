@@ -15,6 +15,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { isMicrosoftAuthSupported } from "@/lib/browserSupport";
 
+const CLOUD_POLL_MS = 60_000;
+
 interface ExcelLiveValue {
   isAuth: boolean;
   file: DriveItem | null;
@@ -90,7 +92,7 @@ function ExcelLiveProviderConnected({ children }: { children: ReactNode }) {
   // Carrega a planilha mais recente da nuvem ao abrir + assina realtime
   useEffect(() => {
     let cancelled = false;
-    (async () => {
+    const checkLatestCloudSpreadsheet = async (silent = true) => {
       const { data, error } = await supabase
         .from("spreadsheet_uploads")
         .select("*")
@@ -98,15 +100,20 @@ function ExcelLiveProviderConnected({ children }: { children: ReactNode }) {
         .limit(1)
         .maybeSingle();
       if (cancelled || error || !data) return;
-      // Só baixa se for mais nova que a local persistida
       const localTime = local?.parsedAt ? new Date(local.parsedAt).getTime() : 0;
       const cloudTime = new Date(data.uploaded_at).getTime();
       if (cloudTime > localTime) {
-        await fetchAndParseFromCloud(data.file_path, data.file_name, data.uploaded_at, true);
+        await fetchAndParseFromCloud(data.file_path, data.file_name, data.uploaded_at, silent);
       } else {
         setLastCloudUpload({ fileName: data.file_name, uploadedAt: data.uploaded_at });
       }
-    })();
+    };
+
+    void checkLatestCloudSpreadsheet(true);
+
+    const pollId = window.setInterval(() => {
+      void checkLatestCloudSpreadsheet(true);
+    }, CLOUD_POLL_MS);
 
     const channel = supabase
       .channel("spreadsheet-uploads")
@@ -123,10 +130,11 @@ function ExcelLiveProviderConnected({ children }: { children: ReactNode }) {
 
     return () => {
       cancelled = true;
+      window.clearInterval(pollId);
       supabase.removeChannel(channel);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [fetchAndParseFromCloud, local?.parsedAt]);
 
   const uploadLocalExcel = useCallback(async (file: File) => {
     setLocalLoading(true);
@@ -297,7 +305,7 @@ function ExcelLiveProviderFallback({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let cancelled = false;
-    (async () => {
+    const checkLatestCloudSpreadsheet = async (silent = true) => {
       const { data, error } = await supabase
         .from("spreadsheet_uploads")
         .select("*")
@@ -308,11 +316,17 @@ function ExcelLiveProviderFallback({ children }: { children: ReactNode }) {
       const localTime = local?.parsedAt ? new Date(local.parsedAt).getTime() : 0;
       const cloudTime = new Date(data.uploaded_at).getTime();
       if (cloudTime > localTime) {
-        await fetchAndParseFromCloud(data.file_path, data.file_name, data.uploaded_at, true);
+        await fetchAndParseFromCloud(data.file_path, data.file_name, data.uploaded_at, silent);
       } else {
         setLastCloudUpload({ fileName: data.file_name, uploadedAt: data.uploaded_at });
       }
-    })();
+    };
+
+    void checkLatestCloudSpreadsheet(true);
+
+    const pollId = window.setInterval(() => {
+      void checkLatestCloudSpreadsheet(true);
+    }, CLOUD_POLL_MS);
 
     const channel = supabase
       .channel("spreadsheet-uploads")
@@ -328,6 +342,7 @@ function ExcelLiveProviderFallback({ children }: { children: ReactNode }) {
 
     return () => {
       cancelled = true;
+      window.clearInterval(pollId);
       supabase.removeChannel(channel);
     };
   }, [fetchAndParseFromCloud, local?.parsedAt]);
