@@ -1243,7 +1243,8 @@ function applyDashboardAnchors(
         if (!mEH) continue;
         const equip = mEH[0].toUpperCase().replace(/\s+/, "-");
         if (seen.has(equip)) continue;
-        const mTph = text.match(/(\d+[.,]?\d*)\s*t\s*\/\s*h/i);
+        // Captura número brasileiro completo: "1.992,5", "1.351.130", "850", "850,3"
+        const mTph = text.match(/((?:\d{1,3}(?:\.\d{3})+|\d+)(?:,\d+)?)\s*t\s*\/\s*h/i);
         let tph = 0;
         if (mTph) {
           tph = limparNumero(mTph[1]);
@@ -1255,7 +1256,8 @@ function applyDashboardAnchors(
         }
         if (tph <= 0) continue;
         seen.add(equip);
-        ranking.push({ equipamento: equip, producao: 0, horas: 0, tph: Math.round(tph) });
+        // Mantém o valor exato da planilha (não arredonda — ex.: 1.992,5)
+        ranking.push({ equipamento: equip, producao: 0, horas: 0, tph });
       }
       if (ranking.length) {
         ranking.sort((a, b) => b.tph - a.tph);
