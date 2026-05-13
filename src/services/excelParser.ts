@@ -508,7 +508,9 @@ function applyStructuredOverrides(
     // first ~10 rows. Anchors deeper in the sheet (e.g. detail rows in column 0)
     // would wrongly mark the N5-SUL summary columns as belonging to retaludamento.
     const retaludAnchors: { row: number; col: number }[] = [];
-    const HEADER_SCAN_ROWS = 10;
+    // Aumentado de 10 para 30 — em algumas planilhas o mini-box
+    // (Turno1/Turno2/Acumulado/Projetado) começa abaixo da linha 10.
+    const HEADER_SCAN_ROWS = 30;
     for (let r = 0; r < Math.min(prodEh.values.length, HEADER_SCAN_ROWS); r++) {
       const row = prodEh.values[r] ?? [];
       for (let c = 0; c < row.length; c++) {
@@ -695,11 +697,12 @@ function applyStructuredOverrides(
       return 0;
     };
 
-    // --- Pass 1: scan TOP rows for "Acumulado dia"/"Projetado dia" labels ---
-    // O box-resumo do RETALUDAMENTO costuma ter o rótulo 1 coluna à esquerda do
-    // cabeçalho "RETALUDAMENTO"; por isso usamos também retaludStartCol-1.
+    // --- Pass 1: scan ALL rows for "Acumulado dia"/"Projetado dia" labels ---
+    // O mini-box (Turno1/Turno2/Acumulado/Projetado) é a fonte de verdade dos
+    // totais oficiais — preferimos esses valores em vez da soma da tabela
+    // hora-a-hora. Varremos a aba inteira pra tolerar variações de layout.
     const turnoRetalud: number[] = [];
-    for (let r = 0; r < Math.min(prodEh.values.length, HEADER_SCAN_ROWS); r++) {
+    for (let r = 0; r < prodEh.values.length; r++) {
       const row = prodEh.values[r] ?? [];
       for (let c = 0; c < row.length; c++) {
         const lab = norm(row[c]);
