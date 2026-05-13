@@ -218,7 +218,19 @@ function ExcelLiveProviderConnected({ children }: { children: ReactNode }) {
     : null;
   const debug = useOneDrive ? m.debug : useLocal ? local!.debug : [];
   const lastUpdated = useOneDrive ? m.lastUpdated : useLocal ? new Date(local!.parsedAt) : null;
-  const summary = useOneDrive ? m.summary : useLocal ? local!.summary ?? null : null;
+  const rawSummary = useOneDrive ? m.summary : useLocal ? local!.summary ?? null : null;
+  // Override metas no summary para refletir as metas operacionais corretas
+  const summary = rawSummary
+    ? (() => {
+        const totalMeta = 1_351_130 + 1_241_297;
+        const totalRealizado = rawSummary.totalRealizado ?? 0;
+        return {
+          ...rawSummary,
+          totalMeta,
+          aderencia: totalMeta ? (totalRealizado / totalMeta) * 100 : 0,
+        };
+      })()
+    : null;
   const rows = useOneDrive ? m.rows : useLocal ? local!.rows ?? [] : [];
   const fleets = useOneDrive ? m.fleets : useLocal ? local!.fleets ?? null : null;
 
@@ -392,7 +404,17 @@ function ExcelLiveProviderFallback({ children }: { children: ReactNode }) {
     refresh: async () => {},
     refreshWorkbook: async () => {},
     debug: local?.debug ?? [],
-    summary: local?.summary ?? null,
+    summary: local?.summary
+      ? (() => {
+          const totalMeta = 1_351_130 + 1_241_297;
+          const totalRealizado = local.summary.totalRealizado ?? 0;
+          return {
+            ...local.summary,
+            totalMeta,
+            aderencia: totalMeta ? (totalRealizado / totalMeta) * 100 : 0,
+          };
+        })()
+      : null,
     rows: local?.rows ?? [],
     fleets: local?.fleets ?? null,
     source: local ? "local" : "none",
