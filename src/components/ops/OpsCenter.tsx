@@ -12,10 +12,7 @@ import {
   Line,
   ComposedChart,
 } from "recharts";
-import {
-  Calendar,
-  RefreshCw,
-} from "lucide-react";
+import { Calendar, RefreshCw } from "lucide-react";
 import { useExcelLive } from "@/context/ExcelLiveContext";
 import { FLEET_SIZE, FLEET_TOTAL } from "@/services/excelParser";
 import { ExcelUploadButton } from "@/components/dashboard/ExcelUploadButton";
@@ -57,9 +54,7 @@ function CardShell({
       className={`relative bg-black/70 border border-mining-green/25 rounded-md overflow-hidden shadow-[0_0_24px_-12px_hsl(var(--mining-green)/0.6)] ${className}`}
     >
       <div className="px-3 py-2 border-b border-mining-green/20 bg-mining-green/5">
-        <p className="text-base font-mono font-bold tracking-[0.18em] text-mining-green uppercase">
-          {title}
-        </p>
+        <p className="text-base font-mono font-bold tracking-[0.18em] text-mining-green uppercase">{title}</p>
       </div>
       <div className="p-3">{children}</div>
     </div>
@@ -157,7 +152,24 @@ function FleetRow({
 }
 
 export function OpsCenter() {
-  const { summary, rows, fleets: fleetsAgg, areas, lastUpdated, source, refresh, refreshWorkbook, metricsLoading, workbookLoading, file, worksheets, workbookError, metricsError, localFile, lastCloudUpload } = useExcelLive();
+  const {
+    summary,
+    rows,
+    fleets: fleetsAgg,
+    areas,
+    lastUpdated,
+    source,
+    refresh,
+    refreshWorkbook,
+    metricsLoading,
+    workbookLoading,
+    file,
+    worksheets,
+    workbookError,
+    metricsError,
+    localFile,
+    lastCloudUpload,
+  } = useExcelLive();
   const clock = useClock();
   const syncing = metricsLoading || workbookLoading;
   const syncError = workbookError || metricsError;
@@ -203,29 +215,41 @@ export function OpsCenter() {
     }
     return lastUpdated?.toLocaleDateString("pt-BR") ?? "—";
   }, [summary?.dataPlanilha, lastUpdated]);
-  const syncStatus: "error" | "syncing" | "connected" | "idle" =
-    syncError ? "error" : syncing ? "syncing" : source === "onedrive" ? "connected" : "idle";
+  const syncStatus: "error" | "syncing" | "connected" | "idle" = syncError
+    ? "error"
+    : syncing
+      ? "syncing"
+      : source === "onedrive"
+        ? "connected"
+        : "idle";
   const syncStatusMeta = {
     connected: { label: "ONEDRIVE CONECTADO", box: "border-mining-green/40 text-mining-green", dot: "bg-mining-green" },
     syncing: { label: "ATUALIZANDO…", box: "border-mining-yellow/40 text-mining-yellow", dot: "bg-mining-yellow" },
     error: { label: "ERRO DE SINCRONIZAÇÃO", box: "border-mining-red/40 text-mining-red", dot: "bg-mining-red" },
-    idle: { label: "AGUARDANDO ONEDRIVE", box: "border-muted-foreground/30 text-muted-foreground", dot: "bg-muted-foreground" },
+    idle: {
+      label: "AGUARDANDO ONEDRIVE",
+      box: "border-muted-foreground/30 text-muted-foreground",
+      dot: "bg-muted-foreground",
+    },
   }[syncStatus];
   const metasFixas = {
     mensal: 1_351_130,
     diaria: 43_584,
     horaria: 1_816,
   };
-  const recomputeProjectedForToday = useCallback((acumulado: number, fallback: number) => {
-    // A planilha já traz o projetado oficial; só recalcula quando esse campo vier vazio.
-    if (fallback > 0) return fallback;
-    if (!summary?.dataPlanilha || summary.dataPlanilha !== todayKey || acumulado <= 0) {
-      return acumulado;
-    }
-    const elapsedHours = operationNow.currentHour;
-    if (elapsedHours <= 0) return acumulado;
-    return acumulado * (24 / elapsedHours);
-  }, [summary?.dataPlanilha, todayKey, operationNow.currentHour]);
+  const recomputeProjectedForToday = useCallback(
+    (acumulado: number, fallback: number) => {
+      // A planilha já traz o projetado oficial; só recalcula quando esse campo vier vazio.
+      if (fallback > 0) return fallback;
+      if (!summary?.dataPlanilha || summary.dataPlanilha !== todayKey || acumulado <= 0) {
+        return acumulado;
+      }
+      const elapsedHours = operationNow.currentHour;
+      if (elapsedHours <= 0) return acumulado;
+      return acumulado * (24 / elapsedHours);
+    },
+    [summary?.dataPlanilha, todayKey, operationNow.currentHour],
+  );
   const projectedMinaShown = recomputeProjectedForToday(summary?.acumuladoDia || 0, summary?.projetadoDia || 0);
   const handleManualRefresh = async () => {
     await Promise.all([refreshWorkbook(), refresh()]);
@@ -243,16 +267,19 @@ export function OpsCenter() {
     }
   });
   // Planilha sempre vence quando tem valor; override manual é apenas fallback.
-  const acumuladoRetaludShown = (summary?.acumuladoRetalud && summary.acumuladoRetalud > 0)
-    ? summary.acumuladoRetalud
-    : (retaludOverride?.acumulado ?? 0);
-  const projetoRetaludBase = (summary?.projetadoRetalud && summary.projetadoRetalud > 0)
-    ? summary.projetadoRetalud
-    : (retaludOverride?.projetado ?? acumuladoRetaludShown);
+  const acumuladoRetaludShown =
+    summary?.acumuladoRetalud && summary.acumuladoRetalud > 0
+      ? summary.acumuladoRetalud
+      : (retaludOverride?.acumulado ?? 0);
+  const projetoRetaludBase =
+    summary?.projetadoRetalud && summary.projetadoRetalud > 0
+      ? summary.projetadoRetalud
+      : (retaludOverride?.projetado ?? acumuladoRetaludShown);
   const projetadoRetaludShown = recomputeProjectedForToday(acumuladoRetaludShown, projetoRetaludBase);
   const baseMetaMina = areas?.Mina?.meta || projectedMinaShown || 0;
   const baseMetaRetalud = areas?.Retaludamento?.meta || projetadoRetaludShown || 0;
-  void baseMetaMina; void baseMetaRetalud;
+  void baseMetaMina;
+  void baseMetaRetalud;
   // Metas mensais operacionais (mai/2026).
   const metaMensalMina = 1_351_130;
   const metaMensalRetalud = 1_241_297;
@@ -337,9 +364,7 @@ export function OpsCenter() {
     // 1) Preferir ranking calculado direto da aba PRODUÇÃO EH (fonte oficial).
     const eh = summary?.ehRanking ?? [];
     if (eh.length >= 1) {
-      return eh
-        .slice(0, 8)
-        .map((r, i) => ({ pos: i + 1, name: r.equipamento, value: r.tph }));
+      return eh.slice(0, 8).map((r, i) => ({ pos: i + 1, name: r.equipamento, value: r.tph }));
     }
     const all = (rows || []).filter((r) => r.category === "escavadeira" && r.produtividade > 0);
     // Preferir dados da aba "PORTAL Novo" quando disponível
@@ -365,10 +390,38 @@ export function OpsCenter() {
 
   // Frotas (DF/UT/produção por modelo) — vindas da planilha quando disponível
   const fleets = [
-    { key: "EX1200" as const, name: "EX1200", icon: "ex" as const, count: FLEET_SIZE.EX1200, df: fleetsAgg?.EX1200.df ?? 87.2, ut: fleetsAgg?.EX1200.ut ?? 79.2 },
-    { key: "EX2500" as const, name: "EX2500", icon: "ex" as const, count: FLEET_SIZE.EX2500, df: fleetsAgg?.EX2500.df ?? 88.1, ut: fleetsAgg?.EX2500.ut ?? 76.5 },
-    { key: "Komatsu 785" as const, name: "CAMINHÕES 785", icon: "truck" as const, count: FLEET_SIZE["Komatsu 785"], df: fleetsAgg?.["Komatsu 785"].df ?? 88.4, ut: fleetsAgg?.["Komatsu 785"].ut ?? 76.8 },
-    { key: "Komatsu 730" as const, name: "CAMINHÕES 730", icon: "truck" as const, count: FLEET_SIZE["Komatsu 730"], df: fleetsAgg?.["Komatsu 730"].df ?? 86.9, ut: fleetsAgg?.["Komatsu 730"].ut ?? 79.5 },
+    {
+      key: "EX1200" as const,
+      name: "EX1200",
+      icon: "ex" as const,
+      count: FLEET_SIZE.EX1200,
+      df: fleetsAgg?.EX1200.df ?? 87.2,
+      ut: fleetsAgg?.EX1200.ut ?? 79.2,
+    },
+    {
+      key: "EX2500" as const,
+      name: "EX2500",
+      icon: "ex" as const,
+      count: FLEET_SIZE.EX2500,
+      df: fleetsAgg?.EX2500.df ?? 88.1,
+      ut: fleetsAgg?.EX2500.ut ?? 76.5,
+    },
+    {
+      key: "Komatsu 785" as const,
+      name: "CAMINHÕES 785",
+      icon: "truck" as const,
+      count: FLEET_SIZE["Komatsu 785"],
+      df: fleetsAgg?.["Komatsu 785"].df ?? 88.4,
+      ut: fleetsAgg?.["Komatsu 785"].ut ?? 76.8,
+    },
+    {
+      key: "Komatsu 730" as const,
+      name: "CAMINHÕES 730",
+      icon: "truck" as const,
+      count: FLEET_SIZE["Komatsu 730"],
+      df: fleetsAgg?.["Komatsu 730"].df ?? 86.9,
+      ut: fleetsAgg?.["Komatsu 730"].ut ?? 79.5,
+    },
   ];
 
   return (
@@ -398,12 +451,13 @@ export function OpsCenter() {
             <p className="text-mining-green font-bold">DIA</p>
           </div>
           <div className="border-l border-mining-green/20 pl-2 flex items-center gap-1.5">
-            <RefreshCw className={`h-3 w-3 text-mining-green ${syncing ? "animate-spin" : ""}`} style={syncing ? undefined : { animationDuration: "4s" }} />
+            <RefreshCw
+              className={`h-3 w-3 text-mining-green ${syncing ? "animate-spin" : ""}`}
+              style={syncing ? undefined : { animationDuration: "4s" }}
+            />
             <div>
               <p className="text-muted-foreground">ÚLTIMO REFRESH</p>
-              <p className="text-mining-green">
-                {lastUpdated ? lastUpdated.toLocaleTimeString("pt-BR") : "—"}
-              </p>
+              <p className="text-mining-green">{lastUpdated ? lastUpdated.toLocaleTimeString("pt-BR") : "—"}</p>
               {source === "onedrive" && file && (
                 <p className="text-[8px] text-muted-foreground truncate max-w-[140px]">
                   {file.name} · {worksheets.length} aba(s)
@@ -433,12 +487,16 @@ export function OpsCenter() {
             <div className="space-y-2 flex-1 flex flex-col justify-center">
               <div className="flex items-center justify-between gap-2">
                 <span className="text-xl font-mono text-muted-foreground uppercase tracking-wider">ACUMULADO DIA:</span>
-                <span className="text-2xl font-mono font-bold text-mining-blue">{fmt(summary?.acumuladoDia || producaoTurno)}</span>
+                <span className="text-2xl font-mono font-bold text-mining-blue">
+                  {fmt(summary?.acumuladoDia || producaoTurno)}
+                </span>
               </div>
               <div className="h-px bg-mining-green/15" />
               <div className="flex items-center justify-between gap-2">
                 <span className="text-xl font-mono text-muted-foreground uppercase tracking-wider">PROJETADO DIA:</span>
-                <span className="text-2xl font-mono font-bold text-mining-green text-glow-neon">{fmt(projectedMinaShown || summary?.acumuladoDia || producaoTurno)}</span>
+                <span className="text-2xl font-mono font-bold text-mining-green text-glow-neon">
+                  {fmt(projectedMinaShown || summary?.acumuladoDia || producaoTurno)}
+                </span>
               </div>
             </div>
           </CardShell>
@@ -453,7 +511,9 @@ export function OpsCenter() {
               <div className="h-px bg-mining-green/15" />
               <div className="flex items-center justify-between gap-2">
                 <span className="text-xl font-mono text-muted-foreground uppercase tracking-wider">PROJETADO DIA:</span>
-                <span className="text-2xl font-mono font-bold text-mining-green text-glow-neon">{fmt(projetadoRetaludShown)}</span>
+                <span className="text-2xl font-mono font-bold text-mining-green text-glow-neon">
+                  {fmt(projetadoRetaludShown)}
+                </span>
               </div>
             </div>
           </CardShell>
@@ -462,23 +522,31 @@ export function OpsCenter() {
           <CardShell title="PRODUÇÃO MENSAL" className="flex-1 flex flex-col">
             <div className="flex-1 flex flex-col justify-center">
               <div className="flex items-end justify-between">
-                <p className="text-2xl font-mono font-bold text-mining-green text-glow-neon">{fmt(producaoMensal)} <span className="text-xl">t</span></p>
+                <p className="text-2xl font-mono font-bold text-mining-green text-glow-neon">
+                  {fmt(producaoMensal)} <span className="text-xl">t</span>
+                </p>
                 <p className="text-2xl font-mono font-bold text-foreground">{aderMensal.toFixed(1)}%</p>
               </div>
               <div className="mt-2 flex items-center justify-between text-lg font-mono text-muted-foreground">
                 <span>META: {fmt(metaMensal)} t</span>
                 <span>DA META</span>
               </div>
-              <div className="mt-1.5"><ProgressBar value={aderMensal} /></div>
+              <div className="mt-1.5">
+                <ProgressBar value={aderMensal} />
+              </div>
             </div>
           </CardShell>
         </div>
         <div className="col-span-12 md:col-span-6 lg:col-span-3 flex">
           <CardShell title="T/H" className="flex-1 flex flex-col">
             <div className="flex-1 flex flex-col justify-center">
-              <p className="text-2xl font-mono font-bold text-mining-green text-glow-neon">{fmt(tonH)} <span className="text-xl">t/h</span></p>
+              <p className="text-2xl font-mono font-bold text-mining-green text-glow-neon">
+                {fmt(tonH)} <span className="text-xl">t/h</span>
+              </p>
               <div className="mt-3 text-lg font-mono text-muted-foreground">META: {fmt(metaTonH)} t/h</div>
-              <div className="mt-1.5"><ProgressBar value={(tonH / metaTonH) * 100} color={BLUE} /></div>
+              <div className="mt-1.5">
+                <ProgressBar value={(tonH / metaTonH) * 100} color={BLUE} />
+              </div>
             </div>
           </CardShell>
         </div>
@@ -493,8 +561,12 @@ export function OpsCenter() {
                   <p className="mt-3 text-4xl font-mono font-bold text-mining-yellow">{fmt(metaMensalMina)}</p>
                 </div>
                 <div className="mt-3">
-                  <p className="text-xl font-mono uppercase tracking-[0.18em] text-muted-foreground">{shareMetaMina.toFixed(1)}% da meta</p>
-                  <div className="mt-2"><ProgressBar value={shareMetaMina} color={YELLOW} /></div>
+                  <p className="text-xl font-mono uppercase tracking-[0.18em] text-muted-foreground">
+                    {shareMetaMina.toFixed(1)}% da meta
+                  </p>
+                  <div className="mt-2">
+                    <ProgressBar value={shareMetaMina} color={YELLOW} />
+                  </div>
                 </div>
               </div>
               <div className="flex flex-col justify-between">
@@ -503,8 +575,12 @@ export function OpsCenter() {
                   <p className="mt-3 text-4xl font-mono font-bold text-mining-yellow">{fmt(metaMensalRetalud)}</p>
                 </div>
                 <div className="mt-3">
-                  <p className="text-xl font-mono uppercase tracking-[0.18em] text-muted-foreground">{shareMetaRetalud.toFixed(1)}% da meta</p>
-                  <div className="mt-2"><ProgressBar value={shareMetaRetalud} color={YELLOW} /></div>
+                  <p className="text-xl font-mono uppercase tracking-[0.18em] text-muted-foreground">
+                    {shareMetaRetalud.toFixed(1)}% da meta
+                  </p>
+                  <div className="mt-2">
+                    <ProgressBar value={shareMetaRetalud} color={YELLOW} />
+                  </div>
                 </div>
               </div>
             </div>
@@ -518,9 +594,25 @@ export function OpsCenter() {
                   <CartesianGrid stroke="rgba(34,197,94,0.08)" />
                   <XAxis dataKey="hora" stroke="#4ade80" tick={{ fontSize: 10, fontFamily: "monospace" }} />
                   <YAxis stroke="#4ade80" tick={{ fontSize: 10, fontFamily: "monospace" }} />
-                  <Tooltip contentStyle={{ background: "#000", border: `1px solid ${NEON}`, fontSize: 11, fontFamily: "monospace" }} labelStyle={{ color: NEON }} />
+                  <Tooltip
+                    contentStyle={{
+                      background: "#000",
+                      border: `1px solid ${NEON}`,
+                      fontSize: 11,
+                      fontFamily: "monospace",
+                    }}
+                    labelStyle={{ color: NEON }}
+                  />
                   <Bar dataKey="tonH" fill={NEON} radius={[2, 2, 0, 0]} name="Ton/h" />
-                  <Line type="monotone" dataKey="meta" stroke={YELLOW} strokeDasharray="4 4" strokeWidth={1.5} dot={false} name="Meta" />
+                  <Line
+                    type="monotone"
+                    dataKey="meta"
+                    stroke={YELLOW}
+                    strokeDasharray="4 4"
+                    strokeWidth={1.5}
+                    dot={false}
+                    name="Meta"
+                  />
                 </ComposedChart>
               </ResponsiveContainer>
             </div>
@@ -558,7 +650,6 @@ export function OpsCenter() {
               ))}
             </CardShell>
           </div>
-
         </div>
 
         {/* COLUNA DIREITA: RANKING + TONELADAS/H + PRODUÇÃO TURNO + OPERAÇÃO AO VIVO */}
@@ -573,9 +664,14 @@ export function OpsCenter() {
                     <span className="w-6 text-base font-mono text-muted-foreground text-right">{r.pos}</span>
                     <span className="w-24 text-base font-mono text-foreground">{r.name}</span>
                     <div className="flex-1 h-3 bg-white/5 rounded-sm overflow-hidden">
-                      <div className="h-full bg-mining-green" style={{ width: `${pct}%`, boxShadow: `0 0 8px ${NEON}` }} />
+                      <div
+                        className="h-full bg-mining-green"
+                        style={{ width: `${pct}%`, boxShadow: `0 0 8px ${NEON}` }}
+                      />
                     </div>
-                    <span className="w-24 text-right text-base font-mono text-mining-green">{fmt(r.value)} t/h</span>
+                    <span className="w-24 text-right text-base font-mono text-mining-green">
+                      {Number(r.value).toFixed(1)} t/h
+                    </span>
                   </div>
                 );
               })}
@@ -595,14 +691,36 @@ export function OpsCenter() {
                   <CartesianGrid stroke="rgba(34,197,94,0.08)" />
                   <XAxis dataKey="hora" stroke="#4ade80" tick={{ fontSize: 10, fontFamily: "monospace" }} />
                   <YAxis stroke="#4ade80" tick={{ fontSize: 10, fontFamily: "monospace" }} />
-                  <Tooltip contentStyle={{ background: "#000", border: `1px solid ${NEON}`, fontFamily: "monospace", fontSize: 11 }} labelStyle={{ color: NEON }} />
-                  <Area type="monotone" dataKey="realizado" stroke={NEON} strokeWidth={2} fill="url(#prodFill)" name="Realizado" />
-                  <Line type="monotone" dataKey="meta" stroke="#9ca3af" strokeDasharray="4 4" strokeWidth={1.5} dot={false} name="Meta" />
+                  <Tooltip
+                    contentStyle={{
+                      background: "#000",
+                      border: `1px solid ${NEON}`,
+                      fontFamily: "monospace",
+                      fontSize: 11,
+                    }}
+                    labelStyle={{ color: NEON }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="realizado"
+                    stroke={NEON}
+                    strokeWidth={2}
+                    fill="url(#prodFill)"
+                    name="Realizado"
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="meta"
+                    stroke="#9ca3af"
+                    strokeDasharray="4 4"
+                    strokeWidth={1.5}
+                    dot={false}
+                    name="Meta"
+                  />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
           </CardShell>
-
         </div>
 
         {/* FAIXA DE CAMINHÕES ANIMADA — banda inferior */}
@@ -611,10 +729,16 @@ export function OpsCenter() {
           <div className="absolute inset-y-0 w-24 animate-truck-drive">
             <AnimatedTruck className="w-24 h-14 mt-0.5" color={YELLOW} />
           </div>
-          <div className="absolute inset-y-0 w-24 animate-truck-drive" style={{ animationDuration: "24s", animationDelay: "-7s" }}>
+          <div
+            className="absolute inset-y-0 w-24 animate-truck-drive"
+            style={{ animationDuration: "24s", animationDelay: "-7s" }}
+          >
             <AnimatedTruck className="w-24 h-14 mt-0.5" color="#fb923c" />
           </div>
-          <div className="absolute inset-y-0 w-24 animate-truck-drive" style={{ animationDuration: "30s", animationDelay: "-14s" }}>
+          <div
+            className="absolute inset-y-0 w-24 animate-truck-drive"
+            style={{ animationDuration: "30s", animationDelay: "-14s" }}
+          >
             <AnimatedTruck className="w-24 h-14 mt-0.5" color={NEON} />
           </div>
         </div>
