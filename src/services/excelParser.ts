@@ -1363,143 +1363,60 @@ function applyDashboardAnchors(
       }
     }
 
-// ---------- TON/H (ranking de escavadeiras) ----------
-const linhaTonH = upperRows.findIndex((t) =>
-  /\bTON\s*\/\s*H\b/.test(t)
-);
+    // ---------- TON/H (ranking de escavadeiras) ----------
+    const linhaTonH = upperRows.findIndex((t) => /\bTON\s*\/\s*H\b/.test(t));
 
-if (linhaTonH >= 0) {
+    if (linhaTonH >= 0) {
+      const ranking: EhRankingItem[] = [];
+      const seen = new Set<string>();
 
-  const ranking: EhRankingItem[] = [];
-  const seen = new Set<string>();
+      const end = Math.min(values.length, linhaTonH + 25);
 
-  const end = Math.min(
-    values.length,
-    linhaTonH + 25
-  );
+      for (let i = linhaTonH + 1; i < end; i++) {
+        const row = values[i] ?? [];
 
-  for (
-    let i = linhaTonH + 1;
-    i < end;
-    i++
-  ) {
+        const equipamentoRaw = String(row[0] ?? "").trim();
 
-    const row = values[i] ?? [];
+        if (!equipamentoRaw) continue;
 
-    // =====================================
-    // TEXTO COMPLETO DA LINHA
-    // =====================================
+        const matchEH = equipamentoRaw.match(/EH[-\s]?\d+/i);
 
-    const textoLinha =
-      row
-        .map((v) => String(v ?? ""))
-        .join(" ");
+        if (!matchEH) continue;
 
-    // =====================================
-    // EQUIPAMENTO EH-XXXX
-    // =====================================
+        const equipamento = matchEH[0].toUpperCase().replace(/\s+/g, "-");
 
-    const matchEH =
-      textoLinha.match(
-        /EH[-\s]?\d+/i
-      );
+        if (seen.has(equipamento)) continue;
 
-    if (!matchEH)
-      continue;
-
-    const equipamento =
-      matchEH[0]
-        .toUpperCase()
-        .replace(/\s+/g, "-");
-
-    if (
-      seen.has(equipamento)
-    )
-      continue;
-
-    // =====================================
-    // PROCURA T/H NA LINHA
-    // =====================================
-
-    let tph = 0;
-
-    for (
-      let c = 1;
-      c < row.length;
-      c++
-    ) {
-
-      const bruto =
-        String(row[c] ?? "")
-          .replace(/t\/h/i, "")
+        const valorBruto = String(row[1] ?? "")
+          .replace("t/h", "")
           .trim();
 
-      if (
-        !bruto ||
-        bruto === "-"
-      ) {
-        continue;
+        if (!valorBruto || valorBruto === "-") {
+          continue;
+        }
+
+        const tph = Number(valorBruto.replace(/\./g, "").replace(",", "."));
+
+        if (!Number.isFinite(tph)) continue;
+        if (tph <= 0) continue;
+        if (tph > 5000) continue;
+
+        seen.add(equipamento);
+
+        ranking.push({
+          equipamento,
+          producao: 0,
+          horas: 0,
+          tph,
+        });
       }
 
-      const valor = Number(
-        bruto
-          .replace(/\./g, "")
-          .replace(",", ".")
-      );
+      if (ranking.length) {
+        ranking.sort((a, b) => b.tph - a.tph);
 
-      if (
-        Number.isFinite(valor) &&
-        valor > 0 &&
-        valor < 5000
-      ) {
+        summary.ehRanking = ranking;
 
-        tph = valor;
-
-        break;
-
-      }
-
-    }
-
-    if (tph <= 0)
-      continue;
-
-    seen.add(equipamento);
-
-    ranking.push({
-
-      equipamento,
-
-      producao: 0,
-
-      horas: 0,
-
-      tph,
-
-    });
-
-  }
-
-  if (ranking.length) {
-
-    ranking.sort(
-      (a, b) =>
-        b.tph - a.tph
-    );
-
-    summary.ehRanking =
-      ranking;
-
-    console.log(
-      `[TON/H CORRIGIDO @${sheetName}]`,
-      ranking
-    );
-
-  }
-
-}
-
-}
+        console.log(`[TON/H FIXADO @${sheetName}]`, ranking);
       }
     }
 
