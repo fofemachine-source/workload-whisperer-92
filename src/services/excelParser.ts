@@ -508,7 +508,9 @@ function applyStructuredOverrides(
     // first ~10 rows. Anchors deeper in the sheet (e.g. detail rows in column 0)
     // would wrongly mark the N5-SUL summary columns as belonging to retaludamento.
     const retaludAnchors: { row: number; col: number }[] = [];
-    const HEADER_SCAN_ROWS = 10;
+    // Aumentado de 10 para 30 — em algumas planilhas o mini-box
+    // (Turno1/Turno2/Acumulado/Projetado) começa abaixo da linha 10.
+    const HEADER_SCAN_ROWS = 30;
     for (let r = 0; r < Math.min(prodEh.values.length, HEADER_SCAN_ROWS); r++) {
       const row = prodEh.values[r] ?? [];
       for (let c = 0; c < row.length; c++) {
