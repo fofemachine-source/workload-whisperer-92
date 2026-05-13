@@ -1198,6 +1198,13 @@ function applyDashboardAnchors(
   for (const { name: sheetName, values } of sheets) {
     if (!values?.length) continue;
     const upperRows = values.map((row) => (row ?? []).map((v) => String(v ?? "")).join(" ").toUpperCase());
+    const readClosestNumberRight = (row: unknown[], fromCol: number, span = 6): number => {
+      for (let c = fromCol + 1; c <= fromCol + span && c < row.length; c++) {
+        const val = limparNumero(row[c]);
+        if (val > 0) return val;
+      }
+      return 0;
+    };
 
     // ---------- PRODUÇÃO REALIZADA ----------
     const linhaProd = upperRows.findIndex((t) => t.includes("PRODUÇÃO REALIZADA") || t.includes("PRODUCAO REALIZADA"));
@@ -1228,6 +1235,60 @@ function applyDashboardAnchors(
       if (totalMeta) summary.totalMeta = totalMeta;
       if (totalMeta) summary.aderencia = (totalReal / totalMeta) * 100;
       console.log(`[anchors] PRODUÇÃO REALIZADA @${sheetName} L${linhaProd}`, { minaReal, minaMeta, retReal, retMeta });
+    }
+
+    // ---------- MINA / RETALUDAMENTO (mini cards oficiais da aba PRODUÇÃO EH) ----------
+    if (/PRODU[CÇ][AÃ]O\s*EH/i.test(sheetName)) {
+      const anchors: Array<{ type: "mina" | "retalud"; row: number; col: number }> = [];
+      const topRows = Math.min(values.length, 40);
+      for (let r = 0; r < topRows; r++) {
+        const row = values[r] ?? [];
+        for (let c = 0; c < row.length; c++) {
+          const cell = norm(row[c]);
+          if (cell === "mina") anchors.push({ type: "mina", row: r, col: c });
+          if (/retalud/.test(cell)) anchors.push({ type: "retalud", row: r, col: c });
+        }
+      }
+
+      const readMiniCard = (type: "mina" | "retalud") => {
+        const anchor = anchors.find((item) => item.type === type);
+        if (!anchor) return null;
+        let acumulado = 0;
+        let projetado = 0;
+        const rowStart = anchor.row;
+        const rowEnd = Math.min(values.length, anchor.row + 8);
+        const colStart = Math.max(0, anchor.col - 1);
+        const colEnd = anchor.col + 8;
+
+        for (let r = rowStart; r < rowEnd; r++) {
+          const row = values[r] ?? [];
+          for (let c = colStart; c < Math.min(row.length, colEnd); c++) {
+            const label = norm(row[c]);
+            if (!acumulado && /acumulado\s*dia/.test(label)) {
+              acumulado = readClosestNumberRight(row, c, 6);
+            }
+            if (!projetado && /projetad[oa]\s*dia/.test(label)) {
+              projetado = readClosestNumberRight(row, c, 6);
+            }
+          }
+        }
+
+        return acumulado || projetado ? { acumulado, projetado } : null;
+      };
+
+      const minaCard = readMiniCard("mina");
+      if (minaCard) {
+        summary.acumuladoDia = minaCard.acumulado || summary.acumuladoDia || 0;
+        summary.projetadoDia = minaCard.projetado || minaCard.acumulado || summary.projetadoDia || 0;
+        console.log(`[anchors] MINI CARD MINA @${sheetName}`, minaCard);
+      }
+
+      const retCard = readMiniCard("retalud");
+      if (retCard) {
+        summary.acumuladoRetalud = retCard.acumulado || summary.acumuladoRetalud || 0;
+        summary.projetadoRetalud = retCard.projetado || retCard.acumulado || summary.projetadoRetalud || 0;
+        console.log(`[anchors] MINI CARD RETALUDAMENTO @${sheetName}`, retCard);
+      }
     }
 
     // ---------- TON/H (ranking de escavadeiras) ----------
