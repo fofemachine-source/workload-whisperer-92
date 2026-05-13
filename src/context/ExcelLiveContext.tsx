@@ -202,13 +202,17 @@ function ExcelLiveProviderConnected({ children }: { children: ReactNode }) {
   }
   const metrics = useOneDrive ? m.metrics : useLocal ? local!.metrics : null;
   const rawAreas = useOneDrive ? m.areas : useLocal ? local!.areas : null;
-  // Override meta Retaludamento: 853.680 (conforme solicitação operacional)
+  // Override metas operacionais (mai): Mina 1.351.130 / Retaludamento 1.241.297
   const areas: typeof rawAreas = rawAreas
     ? {
         ...rawAreas,
+        Mina: {
+          ...rawAreas.Mina,
+          meta: 1_351_130,
+        },
         Retaludamento: {
           ...rawAreas.Retaludamento,
-          meta: 853_680,
+          meta: 1_241_297,
         },
       }
     : null;
@@ -372,9 +376,13 @@ function ExcelLiveProviderFallback({ children }: { children: ReactNode }) {
     areas: local?.areas
       ? {
           ...local.areas,
+          Mina: {
+            ...local.areas.Mina,
+            meta: 1_351_130,
+          },
           Retaludamento: {
             ...local.areas.Retaludamento,
-            meta: 853_680,
+            meta: 1_241_297,
           },
         }
       : null,
