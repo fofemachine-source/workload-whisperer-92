@@ -490,7 +490,7 @@ export function OpsCenter() {
               <div className="flex flex-col justify-between">
                 <div>
                   <p className="text-lg font-mono uppercase tracking-[0.18em] text-muted-foreground">Mina</p>
-                  <p className="mt-3 text-4xl font-mono font-bold text-mining-yellow">{fmt(metasFixas.mensal)}</p>
+                  <p className="mt-3 text-4xl font-mono font-bold text-mining-yellow">{fmt(metaMensalMina)}</p>
                 </div>
                 <div className="mt-3">
                   <p className="text-xl font-mono uppercase tracking-[0.18em] text-muted-foreground">{shareMetaMina.toFixed(1)}% da meta</p>
