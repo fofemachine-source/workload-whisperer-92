@@ -190,11 +190,13 @@ function ExcelLiveProviderConnected({ children }: { children: ReactNode }) {
   // como fallback quando a leitura remota ainda não estiver disponível.
   const oneDriveAvailable = isAuth && !!wb.file && !!m.metrics;
   const localAvailable = !!local;
-  const useOneDrive = oneDriveAvailable;
-  // Sempre usa fallback local quando OneDrive ainda não está pronto,
-  // mesmo autenticado — evita tela preta na TV enquanto a sincronização
-  // remota não termina ou enquanto há erro de rede.
-  const useLocal = !useOneDrive && localAvailable;
+  const oneDriveVersionMs = wb.file?.lastModifiedDateTime ? new Date(wb.file.lastModifiedDateTime).getTime() : 0;
+  const localVersionMs = local?.parsedAt ? new Date(local.parsedAt).getTime() : 0;
+  const preferLocalBecauseNewer = localAvailable && localVersionMs > oneDriveVersionMs;
+  const useOneDrive = oneDriveAvailable && !preferLocalBecauseNewer;
+  // Usa o fallback/local quando o OneDrive ainda não está pronto OU quando a
+  // planilha sincronizada na nuvem é mais recente que a versão atual do OneDrive.
+  const useLocal = localAvailable && (!useOneDrive || preferLocalBecauseNewer);
   if (useLocal) {
     console.log(
       "[ExcelLive] fonte ativa: LOCAL",
