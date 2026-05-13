@@ -1395,7 +1395,13 @@ function applyDashboardAnchors(
           continue;
         }
 
-        const tph = Number(valorBruto.replace(/\./g, "").replace(",", "."));
+        let tph = 0;
+
+        if (valorBruto.includes(",") && valorBruto.includes(".")) {
+          tph = Number(valorBruto.replace(/\./g, "").replace(",", "."));
+        } else {
+          tph = Number(valorBruto.replace(",", "."));
+        }
 
         if (!Number.isFinite(tph)) continue;
         if (tph <= 0) continue;
