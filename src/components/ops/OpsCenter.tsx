@@ -290,9 +290,27 @@ export function OpsCenter() {
   // Auto refresh OneDrive a cada 60s
   useEffect(() => {
     if (source !== "onedrive") return;
-    const t = setInterval(() => refresh(), 60_000);
-    return () => clearInterval(t);
-  }, [source, refresh]);
+
+    const atualizarAutomatico = async () => {
+      try {
+        await Promise.all([refreshWorkbook(), refresh()]);
+
+        console.log("[AUTO REFRESH OK]", new Date().toLocaleTimeString());
+      } catch (err) {
+        console.error("[AUTO REFRESH ERROR]", err);
+      }
+    };
+
+    // executa imediatamente
+    atualizarAutomatico();
+
+    // executa continuamente
+    const interval = setInterval(() => {
+      atualizarAutomatico();
+    }, 60000);
+
+    return () => clearInterval(interval);
+  }, [source, refresh, refreshWorkbook]);
 
   const producaoTurno = summary?.totalProducao || 128_450;
   const metaTurno = summary?.totalMeta || 150_000;
