@@ -1373,81 +1373,109 @@ if (linhaTonH >= 0) {
   const ranking: EhRankingItem[] = [];
   const seen = new Set<string>();
 
-  const end = Math.min(values.length, linhaTonH + 25);
+  const end = Math.min(
+    values.length,
+    linhaTonH + 25
+  );
 
-  for (let i = linhaTonH + 1; i < end; i++) {
+  for (
+    let i = linhaTonH + 1;
+    i < end;
+    i++
+  ) {
 
     const row = values[i] ?? [];
 
-    // ======================================================
-    // EQUIPAMENTO
-    // ======================================================
+    // =====================================
+    // TEXTO COMPLETO DA LINHA
+    // =====================================
 
-    const equipamentoRaw =
-      String(row[0] ?? "")
-        .trim();
+    const textoLinha =
+      row
+        .map((v) => String(v ?? ""))
+        .join(" ");
 
-    if (!equipamentoRaw) continue;
+    // =====================================
+    // EQUIPAMENTO EH-XXXX
+    // =====================================
 
     const matchEH =
-      equipamentoRaw.match(/EH[-\s]?\d+/i);
+      textoLinha.match(
+        /EH[-\s]?\d+/i
+      );
 
-    if (!matchEH) continue;
+    if (!matchEH)
+      continue;
 
     const equipamento =
       matchEH[0]
         .toUpperCase()
         .replace(/\s+/g, "-");
 
-    if (seen.has(equipamento)) continue;
-
-    // ======================================================
-    // VALOR T/H
-    // ======================================================
-
-    const valorBruto =
-      String(row[1] ?? "")
-        .replace("t/h", "")
-        .trim();
-
     if (
-      !valorBruto ||
-      valorBruto === "-"
-    ) {
+      seen.has(equipamento)
+    )
       continue;
+
+    // =====================================
+    // PROCURA T/H NA LINHA
+    // =====================================
+
+    let tph = 0;
+
+    for (
+      let c = 1;
+      c < row.length;
+      c++
+    ) {
+
+      const bruto =
+        String(row[c] ?? "")
+          .replace(/t\/h/i, "")
+          .trim();
+
+      if (
+        !bruto ||
+        bruto === "-"
+      ) {
+        continue;
+      }
+
+      const valor = Number(
+        bruto
+          .replace(/\./g, "")
+          .replace(",", ".")
+      );
+
+      if (
+        Number.isFinite(valor) &&
+        valor > 0 &&
+        valor < 5000
+      ) {
+
+        tph = valor;
+
+        break;
+
+      }
+
     }
 
-    // ======================================================
-    // CONVERSÃO BRASILEIRA
-    // 1.992,5 -> 1992.5
-    // ======================================================
-
-    const tph = Number(
-
-      valorBruto
-
-        .replace(/\./g, "")
-        .replace(",", ".")
-
-    );
-
-    // ======================================================
-    // VALIDAÇÃO
-    // ======================================================
-
-    if (!Number.isFinite(tph)) continue;
-
-    if (tph <= 0) continue;
-
-    if (tph > 5000) continue;
+    if (tph <= 0)
+      continue;
 
     seen.add(equipamento);
 
     ranking.push({
+
       equipamento,
+
       producao: 0,
+
       horas: 0,
+
       tph,
+
     });
 
   }
@@ -1455,17 +1483,21 @@ if (linhaTonH >= 0) {
   if (ranking.length) {
 
     ranking.sort(
-      (a, b) => b.tph - a.tph
+      (a, b) =>
+        b.tph - a.tph
     );
 
-    summary.ehRanking = ranking;
+    summary.ehRanking =
+      ranking;
 
     console.log(
-      `[TON/H FIXADO @${sheetName}]`,
+      `[TON/H CORRIGIDO @${sheetName}]`,
       ranking
     );
 
   }
+
+}
 
 }
       }
