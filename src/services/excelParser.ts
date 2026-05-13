@@ -1163,10 +1163,145 @@ export function processSheetValues(sheets: SheetValues[]): {
   const overrides = applyStructuredOverrides(sheets, fleets, summary);
   console.log("[excelParser] structured overrides:", overrides);
 
+  // Pass FINAL: leitura por âncoras textuais (PRODUÇÃO REALIZADA / TON/H /
+  // ACUMULADO MÊS) — replica exatamente o algoritmo de referência do cliente
+  // e SOBREPÕE os valores anteriores quando encontrados.
+  applyDashboardAnchors(sheets, areas, summary, fleets, acc);
+
   // Validação por aba — confirma se datas e totais foram lidos
   validateSheets(sheets, overrides, summary);
 
   return { metrics: acc as Record<TargetEquipment, EquipmentMetrics>, areas, debug, rows, summary, primarySheet, fleets };
+}
+
+/**
+ * Pass final baseado em âncoras textuais — replica o parser de referência:
+ *   "PRODUÇÃO REALIZADA" → próximas 2 linhas: Mina, Retaludamento (col 1=realizado, 2=meta, 3=%)
+ *   "TON/H"              → próximas linhas: ranking EH-XXXX → t/h
+ *   "ACUMULADO MÊS"      → próximas linhas: equipamento, horasParadas, DF, UT, código, HT
+ */
+function applyDashboardAnchors(
+  sheets: SheetValues[],
+  areas: Record<AreaName, AreaMetrics>,
+  summary: AggregateSummary,
+  fleets: Record<TargetEquipment, FleetAggregate>,
+  acc: Record<string, EquipmentMetrics>,
+) {
+  const limparNumero = (v: unknown): number => {
+    if (v == null || v === "") return 0;
+    if (typeof v === "number") return v;
+    const s = String(v).replace(/\./g, "").replace(",", ".").replace(/[^\d.\-]/g, "");
+    const n = Number(s);
+    return Number.isFinite(n) ? n : 0;
+  };
+
+  for (const { name: sheetName, values } of sheets) {
+    if (!values?.length) continue;
+    const upperRows = values.map((row) => (row ?? []).map((v) => String(v ?? "")).join(" ").toUpperCase());
+
+    // ---------- PRODUÇÃO REALIZADA ----------
+    const linhaProd = upperRows.findIndex((t) => t.includes("PRODUÇÃO REALIZADA") || t.includes("PRODUCAO REALIZADA"));
+    if (linhaProd >= 0) {
+      const lMina = values[linhaProd + 1] ?? [];
+      const lRet = values[linhaProd + 2] ?? [];
+      const minaReal = limparNumero(lMina[1]);
+      const minaMeta = limparNumero(lMina[2]);
+      const minaPct = limparNumero(lMina[3]);
+      const retReal = limparNumero(lRet[1]);
+      const retMeta = limparNumero(lRet[2]);
+      const retPct = limparNumero(lRet[3]);
+      if (minaReal || minaMeta) {
+        areas.Mina.realizado = minaReal;
+        areas.Mina.meta = minaMeta;
+        areas.Mina.percentual = minaPct || (minaMeta ? (minaReal / minaMeta) * 100 : 0);
+        areas.Mina.source = sheetName;
+      }
+      if (retReal || retMeta) {
+        areas.Retaludamento.realizado = retReal;
+        areas.Retaludamento.meta = retMeta;
+        areas.Retaludamento.percentual = retPct || (retMeta ? (retReal / retMeta) * 100 : 0);
+        areas.Retaludamento.source = sheetName;
+      }
+      const totalMeta = areas.Mina.meta + areas.Retaludamento.meta;
+      const totalReal = areas.Mina.realizado + areas.Retaludamento.realizado;
+      if (totalReal) summary.totalRealizado = totalReal;
+      if (totalMeta) summary.totalMeta = totalMeta;
+      if (totalMeta) summary.aderencia = (totalReal / totalMeta) * 100;
+      console.log(`[anchors] PRODUÇÃO REALIZADA @${sheetName} L${linhaProd}`, { minaReal, minaMeta, retReal, retMeta });
+    }
+
+    // ---------- TON/H (ranking de escavadeiras) ----------
+    const linhaTonH = upperRows.findIndex((t) => /\bTON\s*\/\s*H\b/.test(t));
+    if (linhaTonH >= 0) {
+      const ranking: EhRankingItem[] = [];
+      const seen = new Set<string>();
+      const end = Math.min(values.length, linhaTonH + 25);
+      for (let i = linhaTonH + 1; i < end; i++) {
+        const row = values[i] ?? [];
+        const text = row.map((v) => String(v ?? "")).join(" ");
+        const mEH = text.match(/EH[-\s]?\d+/i);
+        if (!mEH) continue;
+        const equip = mEH[0].toUpperCase().replace(/\s+/, "-");
+        if (seen.has(equip)) continue;
+        const mTph = text.match(/(\d+[.,]?\d*)\s*t\s*\/\s*h/i);
+        let tph = 0;
+        if (mTph) {
+          tph = limparNumero(mTph[1]);
+        } else {
+          for (let c = 1; c < row.length; c++) {
+            const v = limparNumero(row[c]);
+            if (v > 0) { tph = v; break; }
+          }
+        }
+        if (tph <= 0) continue;
+        seen.add(equip);
+        ranking.push({ equipamento: equip, producao: 0, horas: 0, tph: Math.round(tph) });
+      }
+      if (ranking.length) {
+        ranking.sort((a, b) => b.tph - a.tph);
+        summary.ehRanking = ranking;
+        console.log(`[anchors] TON/H @${sheetName}`, ranking);
+      }
+    }
+
+    // ---------- ACUMULADO MÊS ----------
+    const linhaAcum = upperRows.findIndex((t) => t.includes("ACUMULADO MÊS") || t.includes("ACUMULADO MES"));
+    if (linhaAcum >= 0) {
+      const end = Math.min(values.length, linhaAcum + 15);
+      for (let i = linhaAcum + 1; i < end; i++) {
+        const row = values[i] ?? [];
+        const equip = String(row[0] ?? "").trim();
+        if (!equip) continue;
+        const horasParadas = limparNumero(row[1]);
+        const df = limparNumero(row[2]);
+        const ut = limparNumero(row[3]);
+        const ht = limparNumero(row[5]);
+
+        // Mapeia para uma das 4 frotas-alvo
+        const tgt = matchEquipment(equip);
+        if (tgt) {
+          const m = acc[tgt];
+          if (df) m.df = df;
+          if (ut) m.ut = ut;
+          if (ht) m.horasTrabalhadas = ht;
+          if (horasParadas) m.manutencao = horasParadas;
+          m.source = m.source || sheetName;
+
+          const f = fleets[tgt];
+          if (df) f.df = df;
+          if (ut) f.ut = ut;
+          if (ht) f.totalHoras = ht;
+          if (horasParadas) f.horasManutencao = horasParadas;
+        }
+      }
+      // Recalcula UT/DF globais com a média ponderada simples das frotas
+      const dfs = TARGET_EQUIPMENT.map((f) => fleets[f].df).filter((x) => x > 0);
+      const uts = TARGET_EQUIPMENT.map((f) => fleets[f].ut).filter((x) => x > 0);
+      if (dfs.length) summary.df = dfs.reduce((a, b) => a + b, 0) / dfs.length;
+      if (uts.length) summary.ut = uts.reduce((a, b) => a + b, 0) / uts.length;
+      console.log(`[anchors] ACUMULADO MÊS @${sheetName}`, { dfs, uts });
+    }
+  }
 }
 
 /**
