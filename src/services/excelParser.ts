@@ -745,8 +745,13 @@ function applyStructuredOverrides(
     // O mini-box (Turno1/Turno2/Acumulado/Projetado) é a fonte de verdade dos
     // totais oficiais — preferimos esses valores em vez da soma da tabela
     // hora-a-hora. Varremos a aba inteira pra tolerar variações de layout.
+    // Limita a varredura ao topo da aba (mini-boxes oficiais MINA/RETALUDAMENTO).
+    // Mais abaixo existem outros blocos com "Projetado dia" de valores maiores
+    // que estavam sobrescrevendo os do dashboard.
     const turnoRetalud: number[] = [];
-    for (let r = 0; r < prodEh.values.length; r++) {
+    const TOP_ROWS = 40;
+    const scanLimit = Math.min(prodEh.values.length, TOP_ROWS);
+    for (let r = 0; r < scanLimit; r++) {
       const row = prodEh.values[r] ?? [];
       for (let c = 0; c < row.length; c++) {
         const lab = norm(row[c]);
@@ -754,14 +759,21 @@ function applyStructuredOverrides(
         if (/acumulado\s*dia/.test(lab)) {
           const v = numRight(row, c);
           if (v > 0) {
-            if (isRetaludCol) producaoRetalud = v;
-            else producaoDia = v;
+            // Mantém o PRIMEIRO valor encontrado (mini-box do topo).
+            if (isRetaludCol) {
+              if (!producaoRetalud) producaoRetalud = v;
+            } else if (!producaoDia) {
+              producaoDia = v;
+            }
           }
         } else if (/projetad[oa]\s*dia/.test(lab)) {
           const v = numRight(row, c);
           if (v > 0) {
-            if (isRetaludCol) projetadoRetalud = v;
-            else projetadoDia = v;
+            if (isRetaludCol) {
+              if (!projetadoRetalud) projetadoRetalud = v;
+            } else if (!projetadoDia) {
+              projetadoDia = v;
+            }
           }
         } else if (isRetaludCol && /^turno\s*[12]\s*:?$/.test(lab)) {
           const v = numRight(row, c);
