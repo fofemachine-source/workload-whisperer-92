@@ -319,7 +319,7 @@ export function OpsCenter() {
   const aderTurno = metaTurno > 0 ? (producaoTurno / metaTurno) * 100 : 0;
 
   // PRODUCAO MENSAL REAL DA PLANILHA
-  const producaoMensal = (summary?.realizadoMes || 0) + (summary?.realizadoRetaludMes || 0);
+  const producaoMensal = summary?.totalRealizado || 0;
 
   const metaMensal = 1_351_096;
 
