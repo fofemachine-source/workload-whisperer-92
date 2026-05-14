@@ -1335,29 +1335,47 @@ function applyDashboardAnchors(
       }
 
       const readMiniCard = (type: "mina" | "retalud") => {
-        const anchor = anchors.find((item) => item.type === type);
-        if (!anchor) return null;
-        let acumulado = 0;
-        let projetado = 0;
-        const rowStart = anchor.row;
-        const rowEnd = Math.min(values.length, anchor.row + 8);
-        const colStart = Math.max(0, anchor.col - 1);
-        const colEnd = anchor.col + 8;
+        const candidates = anchors
+          .filter((item) => item.type === type)
+          .map((anchor) => {
+            let acumulado = 0;
+            let projetado = 0;
+            let hits = 0;
+            let distance = Number.POSITIVE_INFINITY;
+            const rowStart = anchor.row;
+            const rowEnd = Math.min(values.length, anchor.row + 10);
+            const colStart = anchor.col;
+            const colEnd = anchor.col + 10;
 
-        for (let r = rowStart; r < rowEnd; r++) {
-          const row = values[r] ?? [];
-          for (let c = colStart; c < Math.min(row.length, colEnd); c++) {
-            const label = norm(row[c]);
-            if (!acumulado && /acumulado\s*dia/.test(label)) {
-              acumulado = readClosestNumberRight(row, c, 6);
+            for (let r = rowStart; r < rowEnd; r++) {
+              const row = values[r] ?? [];
+              for (let c = colStart; c < Math.min(row.length, colEnd); c++) {
+                const label = norm(row[c]);
+                if (!label) continue;
+                if (!acumulado && /acumulado\s*dia/.test(label)) {
+                  acumulado = readClosestNumberRight(row, c, 6);
+                  if (acumulado > 0) {
+                    hits += 1;
+                    distance = Math.min(distance, Math.abs(r - anchor.row) + Math.abs(c - anchor.col));
+                  }
+                }
+                if (!projetado && /projetad[oa]\s*dia/.test(label)) {
+                  projetado = readClosestNumberRight(row, c, 6);
+                  if (projetado > 0) {
+                    hits += 1;
+                    distance = Math.min(distance, Math.abs(r - anchor.row) + Math.abs(c - anchor.col));
+                  }
+                }
+              }
             }
-            if (!projetado && /projetad[oa]\s*dia/.test(label)) {
-              projetado = readClosestNumberRight(row, c, 6);
-            }
-          }
-        }
 
-        return acumulado || projetado ? { acumulado, projetado } : null;
+            return { anchor, acumulado, projetado, hits, distance };
+          })
+          .filter((candidate) => candidate.acumulado > 0 || candidate.projetado > 0)
+          .sort((a, b) => b.hits - a.hits || a.distance - b.distance || b.anchor.row - a.anchor.row);
+
+        const best = candidates[0];
+        return best ? { acumulado: best.acumulado, projetado: best.projetado } : null;
       };
 
       const minaCard = readMiniCard("mina");
