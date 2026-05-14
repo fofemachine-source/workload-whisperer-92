@@ -239,42 +239,18 @@ export function OpsCenter() {
   };
   const recomputeProjectedForToday = useCallback(
     (acumulado: number, fallback: number) => {
-      // A planilha já traz o projetado oficial; só recalcula quando esse campo vier vazio.
       if (fallback > 0) return fallback;
-      if (!summary?.dataPlanilha || summary.dataPlanilha !== todayKey || acumulado <= 0) {
-        return acumulado;
-      }
-      const elapsedHours = operationNow.currentHour;
-      if (elapsedHours <= 0) return acumulado;
-      return acumulado * (24 / elapsedHours);
+      return acumulado;
     },
-    [summary?.dataPlanilha, todayKey, operationNow.currentHour],
+    [],
   );
   const projectedMinaShown = recomputeProjectedForToday(summary?.acumuladoDia || 0, summary?.projetadoDia || 0);
   const handleManualRefresh = async () => {
     await Promise.all([refreshWorkbook(), refresh()]);
   };
 
-  // Override manual de RETALUDAMENTO (persistido localmente).
-  // Enquanto a leitura automática da planilha não bate, o usuário lança aqui.
-  const RETALUD_KEY = "lovable.retalud.override.v1";
-  const [retaludOverride, setRetaludOverride] = useState<{ acumulado: number; projetado: number } | null>(() => {
-    try {
-      const raw = localStorage.getItem(RETALUD_KEY);
-      return raw ? JSON.parse(raw) : null;
-    } catch {
-      return null;
-    }
-  });
-  // Planilha sempre vence quando tem valor; override manual é apenas fallback.
-  const acumuladoRetaludShown =
-    summary?.acumuladoRetalud && summary.acumuladoRetalud > 0
-      ? summary.acumuladoRetalud
-      : (retaludOverride?.acumulado ?? 0);
-  const projetoRetaludBase =
-    summary?.projetadoRetalud && summary.projetadoRetalud > 0
-      ? summary.projetadoRetalud
-      : (retaludOverride?.projetado ?? acumuladoRetaludShown);
+  const acumuladoRetaludShown = summary?.acumuladoRetalud || 0;
+  const projetoRetaludBase = summary?.projetadoRetalud || acumuladoRetaludShown;
   const projetadoRetaludShown = recomputeProjectedForToday(acumuladoRetaludShown, projetoRetaludBase);
   const baseMetaMina = areas?.Mina?.meta || projectedMinaShown || 0;
   const baseMetaRetalud = areas?.Retaludamento?.meta || projetadoRetaludShown || 0;
