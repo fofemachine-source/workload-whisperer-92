@@ -246,7 +246,8 @@ export function OpsCenter() {
   );
   const projectedMinaShown = recomputeProjectedForToday(summary?.acumuladoDia || 0, summary?.projetadoDia || 0);
   const handleManualRefresh = async () => {
-    await Promise.all([refreshWorkbook(), refresh()]);
+    await refreshWorkbook();
+    await refresh();
   };
 
   const acumuladoRetaludShown = summary?.acumuladoRetalud || 0;
@@ -263,13 +264,14 @@ export function OpsCenter() {
   const shareMetaMina = metaMensalTotal > 0 ? (metaMensalMina / metaMensalTotal) * 100 : 0;
   const shareMetaRetalud = metaMensalTotal > 0 ? (metaMensalRetalud / metaMensalTotal) * 100 : 0;
 
-  // Auto refresh OneDrive a cada 60s
+  // Auto refresh OneDrive a cada 30s
   useEffect(() => {
     if (source !== "onedrive") return;
 
     const atualizarAutomatico = async () => {
       try {
-        await Promise.all([refreshWorkbook(), refresh()]);
+        await refreshWorkbook();
+        await refresh();
 
         console.log("[AUTO REFRESH OK]", new Date().toLocaleTimeString());
       } catch (err) {
@@ -283,7 +285,7 @@ export function OpsCenter() {
     // executa continuamente
     const interval = setInterval(() => {
       atualizarAutomatico();
-    }, 60000);
+    }, 30000);
 
     return () => clearInterval(interval);
   }, [source, refresh, refreshWorkbook]);
