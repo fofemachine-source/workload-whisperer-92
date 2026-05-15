@@ -38,7 +38,8 @@ export function CommandTopBar() {
     const before = lastUpdated?.getTime() ?? 0;
     toast.loading("Recarregando dados...", { id: "refresh" });
     try {
-      await Promise.all([refreshWorkbook(), refresh()]);
+      await refreshWorkbook();
+      await refresh();
       const sheetsProcessed = debug?.filter((d) => d.matched > 0).map((d) => d.sheet).join(", ") || "—";
       toast.success(`Dados atualizados às ${new Date().toLocaleTimeString("pt-BR")}`, {
         id: "refresh",
@@ -108,7 +109,7 @@ export function CommandTopBar() {
         <CheckCircle2 className="h-3 w-3 text-mining-green" />
         <span>
           {source === "onedrive"
-            ? "FONTE: PLANILHA ONLINE · auto a cada 1 min"
+            ? "FONTE: PLANILHA ONLINE · auto a cada 30s"
             : source === "local"
             ? "FONTE: PLANILHA LOCAL (fallback temporário)"
             : "AGUARDANDO SINCRONIZAÇÃO DA PLANILHA ONLINE"}
