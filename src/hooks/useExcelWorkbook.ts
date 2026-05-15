@@ -12,8 +12,8 @@ import {
 import { EXCEL_FILE_NAME, EXCEL_SHARE_URLS } from "@/auth/msalConfig";
 import { SheetValues } from "@/services/excelParser";
 
-// Atualização automática a cada 1 minuto para refletir edições recentes na planilha.
-const FILE_POLL_MS = 60_000;
+// Atualização automática a cada 30 segundos para refletir edições recentes na planilha.
+const FILE_POLL_MS = 30_000;
 
 export interface ExcelWorkbookState {
   loading: boolean;
