@@ -10,10 +10,24 @@ export function createGraphClient(msalInstance: IPublicClientApplication, accoun
         done(null, result.accessToken);
       } catch (err) {
         try {
-          const result = await msalInstance.acquireTokenPopup(graphScopes);
+          const result = await msalInstance.ssoSilent({
+            ...graphScopes,
+            loginHint: account.username,
+          });
+          if (result.account) {
+            msalInstance.setActiveAccount(result.account);
+          }
           done(null, result.accessToken);
         } catch (e) {
-          done(e as Error, null);
+          const fallback = e instanceof Error ? e : err instanceof Error ? err : new Error("Falha ao renovar sessão Microsoft");
+          done(
+            new Error(
+              /interaction|login|required|consent/i.test(fallback.message)
+                ? "Sessão Microsoft expirada. Clique em Conectar Microsoft para retomar a atualização automática."
+                : fallback.message,
+            ),
+            null,
+          );
         }
       }
     },
