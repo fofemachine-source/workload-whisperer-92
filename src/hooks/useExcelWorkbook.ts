@@ -14,6 +14,8 @@ import { SheetValues } from "@/services/excelParser";
 
 // Atualização automática a cada 30 segundos para refletir edições recentes na planilha.
 const FILE_POLL_MS = 30_000;
+// Tempo máximo de uma sincronização antes de considerar travada e liberar o lock.
+const SYNC_WATCHDOG_MS = 45_000;
 
 export interface ExcelWorkbookState {
   loading: boolean;
@@ -52,11 +54,19 @@ export function useExcelWorkbook(enabled: boolean): ExcelWorkbookState {
   const [lastSyncAt, setLastSyncAt] = useState<Date | null>(null);
   const timer = useRef<number | null>(null);
   const inFlight = useRef(false);
+  const inFlightStartedAt = useRef<number>(0);
   const account = accounts[0] ?? instance.getActiveAccount() ?? instance.getAllAccounts()[0] ?? null;
 
   const load = useCallback(async () => {
-    if (!enabled || !account || inFlight.current) return;
+    if (!enabled || !account) return;
+    // Watchdog: se um sync anterior travou (>45s), libera o lock para permitir nova tentativa.
+    if (inFlight.current) {
+      const elapsed = performance.now() - inFlightStartedAt.current;
+      if (elapsed < SYNC_WATCHDOG_MS) return;
+      console.warn(`[ExcelLive] sync anterior travado há ${Math.round(elapsed)}ms — forçando nova tentativa`);
+    }
     inFlight.current = true;
+    inFlightStartedAt.current = performance.now();
     setLoading(true);
     setError(null);
     const startedAt = performance.now();
