@@ -84,6 +84,12 @@ export interface AggregateSummary {
   dataPlanilha?: string;
   /** Ranking de produtividade (T/H) por escavadeira EH-XXXX a partir da aba PRODUÇÃO EH. */
   ehRanking?: EhRankingItem[];
+  // Regras Oficiais de Produção HE
+  producaoMensal?: number;
+  metaMensal?: number;
+  porcentagemProducao?: number;
+  totalHT?: number;
+  acumuladoTH?: number;
 }
 
 export interface EhRankingItem {
@@ -1236,6 +1242,16 @@ export function processSheetValues(sheets: SheetValues[]): {
   // e SOBREPÕE os valores anteriores quando encontrados.
   applyDashboardAnchors(sheets, areas, summary, fleets, acc);
 
+  // ==========================================
+  // CÁLCULOS FINAIS DAS REGRAS OFICIAIS
+  // ==========================================
+  if (summary.producaoMensal && summary.metaMensal) {
+    summary.porcentagemProducao = (summary.producaoMensal / summary.metaMensal) * 100;
+  }
+  if (summary.producaoMensal && summary.totalHT) {
+    summary.acumuladoTH = summary.producaoMensal / summary.totalHT;
+  }
+
   // Validação por aba — confirma se datas e totais foram lidos
   validateSheets(sheets, overrides, summary);
 
@@ -1291,8 +1307,28 @@ function applyDashboardAnchors(
     };
 
     // ---------- PRODUÇÃO REALIZADA ----------
-    const linhaProd = upperRows.findIndex((t) => t.includes("PRODUÇÃO REALIZADA") || t.includes("PRODUCAO REALIZADA"));
+    const linhaProd = upperRows.findIndex((t) => t.includes("PRODUÇÃO REALIZADA MÊS") || t.includes("PRODUCAO REALIZADA MES") || t.includes("PRODUÇÃO REALIZADA") || t.includes("PRODUCAO REALIZADA"));
     if (linhaProd >= 0) {
+      let prodMina = 0;
+      let prodRetaludamento = 0;
+      
+      for (let i = linhaProd + 1; i <= linhaProd + 5; i++) {
+        const row = values[i] ?? [];
+        const txt = String(row[0] ?? "").toUpperCase();
+        if (txt.includes("MINA")) {
+           prodMina = limparNumero(row[1]);
+        }
+        if (txt.includes("RETALUD")) {
+           prodRetaludamento = limparNumero(row[1]);
+        }
+      }
+
+      if (prodMina > 0 || prodRetaludamento > 0) {
+         summary.producaoMensal = prodMina + prodRetaludamento;
+         console.log(`[anchors] PRODUÇÃO MENSAL OFICIAL @${sheetName}`, { prodMina, prodRetaludamento, total: summary.producaoMensal });
+      }
+
+      // Legado (caso precise manter para outras partes do app)
       const lMina = values[linhaProd + 1] ?? [];
       const lRet = values[linhaProd + 2] ?? [];
       const minaReal = limparNumero(lMina[1]);
@@ -1318,7 +1354,45 @@ function applyDashboardAnchors(
       if (totalReal) summary.totalRealizado = totalReal;
       if (totalMeta) summary.totalMeta = totalMeta;
       if (totalMeta) summary.aderencia = (totalReal / totalMeta) * 100;
-      console.log(`[anchors] PRODUÇÃO REALIZADA @${sheetName} L${linhaProd}`, { minaReal, minaMeta, retReal, retMeta });
+    }
+
+    // ---------- META MENSAL ----------
+    const linhaMetaMes = upperRows.findIndex(t => t.includes("META MENSAL") || t.includes("META DO MÊS"));
+    if (linhaMetaMes >= 0) {
+      let metaMina = 0;
+      let metaRet = 0;
+      for (let i = linhaMetaMes + 1; i <= linhaMetaMes + 5; i++) {
+        const row = values[i] ?? [];
+        const txt = String(row[0] ?? "").toUpperCase();
+        if (txt.includes("MINA")) {
+           metaMina = limparNumero(row[1]);
+        }
+        if (txt.includes("RETALUD")) {
+           metaRet = limparNumero(row[1]);
+        }
+      }
+      if (metaMina > 0 || metaRet > 0) {
+         summary.metaMensal = metaMina + metaRet;
+         console.log(`[anchors] META MENSAL OFICIAL @${sheetName}`, { metaMina, metaRet, total: summary.metaMensal });
+      }
+    }
+
+    // ---------- TOTAL HT ----------
+    if (!summary.totalHT) {
+      for (let r = 0; r < values.length; r++) {
+         const row = values[r] ?? [];
+         for (let c = 0; c < row.length; c++) {
+            if (String(row[c] ?? "").toUpperCase().includes("TOTAL HT")) {
+                const val = readClosestNumberRight(row, c, 3);
+                if (val > 0) {
+                    summary.totalHT = val;
+                    console.log(`[anchors] TOTAL HT OFICIAL @${sheetName}`, { val });
+                    break;
+                }
+            }
+         }
+         if (summary.totalHT) break;
+      }
     }
 
     // ---------- MINA / RETALUDAMENTO (mini cards oficiais da aba PRODUÇÃO EH) ----------

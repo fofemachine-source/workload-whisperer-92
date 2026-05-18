@@ -86,54 +86,50 @@ export function KpiStrip() {
     ).length;
   const camTotal = FLEET_SIZE["Komatsu 730"] + FLEET_SIZE["Komatsu 785"]; // 40
 
+  const prodReal = summary?.producaoMensal || totalRealizado;
+  const prodMeta = summary?.metaMensal || totalMeta;
+  const prodPct = summary?.porcentagemProducao || aderencia;
+  const tphOficial = summary?.acumuladoTH || produtividade;
+
   return (
-    <section className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
+    <section className="grid grid-cols-2 md:grid-cols-4 gap-3">
       <KpiCard
         icon={TrendingUp}
-        label="Produtividade"
-        value={fmt(produtividade, 2)}
-        unit="t/h"
-        hint="Ton movimentada / h escavadeiras"
-        tone="green"
-      />
-      <KpiCard
-        icon={Activity}
-        label="Utilização (UT%)"
-        value={fmt(ut)}
-        unit="%"
-        hint="Horas usadas / horas disponíveis"
-        tone="cyan"
-      />
-      <KpiCard
-        icon={Gauge}
-        label="Disp. Física (DF%)"
-        value={fmt(df)}
-        unit="%"
-        hint="(Total - manutenção) / total"
+        label="PRODUÇÃO MENSAL"
+        value={fmt(prodReal, 0)}
+        unit="t"
+        hint={`Percentual: ${fmt(prodPct, 0)}%`}
         tone="blue"
       />
       <KpiCard
-        icon={Mountain}
-        label="Aderência"
-        value={fmt(aderencia)}
-        unit="%"
-        hint={`${Math.round(totalRealizado)} / ${Math.round(totalMeta)} t`}
+        icon={Activity}
+        label="META MENSAL"
+        value={fmt(prodMeta, 0)}
+        unit="t"
         tone="purple"
       />
       <KpiCard
-        icon={Shovel}
-        label="Escavadeiras"
-        value={`${escavOperando}/${escavTotal}`}
-        hint="EX1200 (5) + EX2500 (3)"
-        tone="yellow"
+        icon={Gauge}
+        label="T/H OFICIAL"
+        value={fmt(tphOficial, 0)}
+        unit="t/h"
+        hint={`Baseado no TOTAL HT: ${fmt(summary?.totalHT || 0, 2)}`}
+        tone="green"
       />
       <KpiCard
-        icon={Truck}
-        label="Caminhões"
-        value={`${camOperando}/${camTotal}`}
-        hint={`Frota total: ${FLEET_TOTAL} eq.`}
-        tone="indigo"
+        icon={Mountain}
+        label="ADERÊNCIA"
+        value={fmt(prodPct, 0)}
+        unit="%"
+        hint="Produção / Meta"
+        tone="cyan"
       />
+      {/* 
+      Para manter contexto visual antigo caso o usuário deseje:
+      Pode descomentar abaixo se necessário:
+      <KpiCard icon={Shovel} label="Escavadeiras" value={`${escavOperando}/${escavTotal}`} hint="EX1200 (5) + EX2500 (3)" tone="yellow" />
+      <KpiCard icon={Truck} label="Caminhões" value={`${camOperando}/${camTotal}`} hint={`Frota total: ${FLEET_TOTAL} eq.`} tone="indigo" />
+      */}
     </section>
   );
 }
