@@ -291,24 +291,18 @@ export function OpsCenter() {
   }, [source, refresh, refreshWorkbook]);
 
   const producaoTurno = summary?.acumuladoDia || 0;
-
   const metaTurno = metasFixas.diaria;
-
   const aderTurno = metaTurno > 0 ? (producaoTurno / metaTurno) * 100 : 0;
 
-  // PRODUCAO MENSAL REAL DA PLANILHA
-  const producaoMensal = summary?.totalRealizado || 0;
-
-  const META_MINA_FALLBACK = 1_351_130;
-  const META_RETALUD_FALLBACK = 1_241_297;
-  const metaMensal =
-    (areas?.Mina?.meta ?? META_MINA_FALLBACK) +
-    (areas?.Retaludamento?.meta ?? META_RETALUD_FALLBACK);
-
+  // PRODUÇÃO MENSAL (Regra Definitiva HE)
+  const producaoMensal = summary?.producaoMensal || 0;
+  const metaMensal = summary?.metaMensal || 2592427;
   const aderMensal = metaMensal > 0 ? (producaoMensal / metaMensal) * 100 : 0;
 
-  const tonH = summary?.toneladaPorHora || 10_250;
-  const metaTonH = 11_500;
+  // T/H (Regra Definitiva HE)
+  const totalHT = summary?.totalHT || 0;
+  const tonH = totalHT > 0 ? (producaoMensal / totalHT) : 0;
+  const metaTonH = 11500;
 
   const opEscav = summary?.totalEscavadeiras || 8;
   const opCam = summary?.totalCaminhoes || 35;
