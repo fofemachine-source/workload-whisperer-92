@@ -537,12 +537,6 @@ export function OpsCenter() {
               </div>
               <div className="mt-1.5 relative">
                 <ProgressBar value={aderMensal} />
-                <span
-                  className="absolute -top-4 text-[11px] font-mono font-bold text-mining-green"
-                  style={{ left: `calc(${Math.max(0, Math.min(100, aderMensal))}% - 14px)` }}
-                >
-                  {aderMensal.toFixed(1)}%
-                </span>
               </div>
             </div>
           </CardShell>
@@ -556,15 +550,6 @@ export function OpsCenter() {
               <div className="mt-3 text-lg font-mono text-muted-foreground">META: {fmt(metaTonH)} t/h</div>
               <div className="mt-1.5 relative">
                 <ProgressBar value={(tonH / metaTonH) * 100} color={BLUE} />
-                <span
-                  className="absolute -top-4 text-[11px] font-mono font-bold"
-                  style={{
-                    left: `calc(${Math.max(0, Math.min(100, (tonH / metaTonH) * 100))}% - 14px)`,
-                    color: BLUE,
-                  }}
-                >
-                  {((tonH / metaTonH) * 100).toFixed(1)}%
-                </span>
               </div>
             </div>
           </CardShell>
