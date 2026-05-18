@@ -299,7 +299,8 @@ export function OpsCenter() {
   // PRODUCAO MENSAL REAL DA PLANILHA
   const producaoMensal = summary?.totalRealizado || 0;
 
-  const metaMensal = 1_351_096;
+  const metaMensal =
+    (areas?.Mina?.meta ?? 0) + (areas?.Retaludamento?.meta ?? 0) || 1_351_096;
 
   const aderMensal = metaMensal > 0 ? (producaoMensal / metaMensal) * 100 : 0;
 
