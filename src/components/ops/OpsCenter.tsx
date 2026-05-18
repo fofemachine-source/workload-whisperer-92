@@ -300,8 +300,13 @@ export function OpsCenter() {
   const aderMensal = metaMensal > 0 ? (producaoMensal / metaMensal) * 100 : 0;
 
   // T/H (Regra Definitiva HE)
-  const totalHT = summary?.totalHT || 0;
-  const tonH = totalHT > 0 ? (producaoMensal / totalHT) : 0;
+  const valorTotalHT = summary?.totalHT;
+  const totalHT = Number(valorTotalHT || 0);
+
+  const tonH =
+    totalHT > 0
+      ? producaoMensal / totalHT
+      : 0;
   const metaTonH = 11500;
 
   const opEscav = summary?.totalEscavadeiras || 8;

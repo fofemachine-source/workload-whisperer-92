@@ -1362,13 +1362,20 @@ function applyDashboardAnchors(
          for (let c = 0; c < row.length; c++) {
             const txt = String(row[c] ?? "").toUpperCase().replace(/\s+/g, ' ');
             if (txt.includes("TOTAL HT")) {
-                // Tenta achar na mesma linha, olhando até 15 colunas para a direita (células mescladas)
-                let val = readClosestNumberRight(row, c, 15);
+                let val = 0;
+
+                // 1) Tenta extrair o número de DENTRO da própria célula (ex: "TOTAL HT = 6724.77")
+                const matchNumbers = txt.match(/[\d]+(?:[.,][\d]+)?/g);
+                if (matchNumbers && matchNumbers.length > 0) {
+                    val = Number(matchNumbers[matchNumbers.length - 1].replace(',', '.'));
+                }
+
+                // 2) Se não achou na própria célula, tenta achar nas colunas à direita (mescladas)
+                if (val <= 0) val = readClosestNumberRight(row, c, 15);
                 
-                // Se não achou na direita, procura na linha de baixo
+                // 3) Se não achou na direita, procura na linha de baixo
                 if (val <= 0 && r + 1 < values.length) {
                    const nextRow = values[r + 1] ?? [];
-                   // Tenta na mesma coluna ou nas próximas
                    val = limparNumero(nextRow[c]);
                    if (val <= 0) val = readClosestNumberRight(nextRow, Math.max(0, c - 1), 10);
                 }
