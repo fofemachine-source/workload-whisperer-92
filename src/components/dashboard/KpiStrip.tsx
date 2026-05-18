@@ -88,8 +88,10 @@ export function KpiStrip() {
 
   const prodReal = summary?.producaoMensal || 0;
   const prodMeta = summary?.metaMensal || 0;
-  const prodPct = summary?.porcentagemProducao || 0;
-  const tphOficial = summary?.acumuladoTH || 0;
+  const totalHT = summary?.totalHT || 0;
+
+  const prodPct = prodMeta > 0 ? (prodReal / prodMeta) * 100 : 0;
+  const tphOficial = totalHT > 0 ? (prodReal / totalHT) : 0;
 
   return (
     <section className="grid grid-cols-2 md:grid-cols-4 gap-3">

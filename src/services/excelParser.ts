@@ -1307,7 +1307,7 @@ function applyDashboardAnchors(
     };
 
     // ---------- PRODUÇÃO REALIZADA MÊS ----------
-    const linhaProd = upperRows.findIndex((t) => t.includes("PRODUÇÃO REALIZADA MÊS") || t.includes("PRODUCAO REALIZADA MES") || t.includes("PRODUÇÃO REALIZADA") || t.includes("PRODUCAO REALIZADA"));
+    const linhaProd = upperRows.findIndex((t) => t.includes("PRODUÇÃO REALIZADA MÊS") || t.includes("PRODUCAO REALIZADA MES") || t.includes("PRODUÇÃO MENSAL") || t.includes("PRODUCAO MENSAL"));
     if (linhaProd >= 0) {
       let prodMina = 0;
       let prodRetaludamento = 0;
