@@ -1360,8 +1360,19 @@ function applyDashboardAnchors(
       for (let r = 0; r < values.length; r++) {
          const row = values[r] ?? [];
          for (let c = 0; c < row.length; c++) {
-            if (String(row[c] ?? "").toUpperCase().includes("TOTAL HT")) {
-                const val = readClosestNumberRight(row, c, 3);
+            const txt = String(row[c] ?? "").toUpperCase().replace(/\s+/g, ' ');
+            if (txt.includes("TOTAL HT")) {
+                // Tenta achar na mesma linha, olhando até 15 colunas para a direita (células mescladas)
+                let val = readClosestNumberRight(row, c, 15);
+                
+                // Se não achou na direita, procura na linha de baixo
+                if (val <= 0 && r + 1 < values.length) {
+                   const nextRow = values[r + 1] ?? [];
+                   // Tenta na mesma coluna ou nas próximas
+                   val = limparNumero(nextRow[c]);
+                   if (val <= 0) val = readClosestNumberRight(nextRow, Math.max(0, c - 1), 10);
+                }
+
                 if (val > 0) {
                     summary.totalHT = val;
                     console.log(`[anchors] TOTAL HT OFICIAL @${sheetName}`, { val });
