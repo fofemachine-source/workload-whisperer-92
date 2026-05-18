@@ -86,10 +86,10 @@ export function KpiStrip() {
     ).length;
   const camTotal = FLEET_SIZE["Komatsu 730"] + FLEET_SIZE["Komatsu 785"]; // 40
 
-  const prodReal = summary?.producaoMensal || totalRealizado;
-  const prodMeta = summary?.metaMensal || totalMeta;
-  const prodPct = summary?.porcentagemProducao || aderencia;
-  const tphOficial = summary?.acumuladoTH || produtividade;
+  const prodReal = summary?.producaoMensal || 0;
+  const prodMeta = summary?.metaMensal || 0;
+  const prodPct = summary?.porcentagemProducao || 0;
+  const tphOficial = summary?.acumuladoTH || 0;
 
   return (
     <section className="grid grid-cols-2 md:grid-cols-4 gap-3">

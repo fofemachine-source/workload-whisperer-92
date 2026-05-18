@@ -1306,20 +1306,23 @@ function applyDashboardAnchors(
       return 0;
     };
 
-    // ---------- PRODUÇÃO REALIZADA ----------
+    // ---------- PRODUÇÃO REALIZADA MÊS ----------
     const linhaProd = upperRows.findIndex((t) => t.includes("PRODUÇÃO REALIZADA MÊS") || t.includes("PRODUCAO REALIZADA MES") || t.includes("PRODUÇÃO REALIZADA") || t.includes("PRODUCAO REALIZADA"));
     if (linhaProd >= 0) {
       let prodMina = 0;
       let prodRetaludamento = 0;
       
-      for (let i = linhaProd + 1; i <= linhaProd + 5; i++) {
+      // Procura nas próximas 10 linhas para ser mais seguro
+      for (let i = linhaProd + 1; i <= Math.min(values.length - 1, linhaProd + 10); i++) {
         const row = values[i] ?? [];
-        const txt = String(row[0] ?? "").toUpperCase();
-        if (txt.includes("MINA")) {
-           prodMina = limparNumero(row[1]);
-        }
-        if (txt.includes("RETALUD")) {
-           prodRetaludamento = limparNumero(row[1]);
+        for (let c = 0; c < row.length; c++) {
+          const txt = String(row[c] ?? "").toUpperCase();
+          if (txt.includes("MINA") && !prodMina) {
+             prodMina = readClosestNumberRight(row, c, 10);
+          }
+          if (txt.includes("RETALUD") && !prodRetaludamento) {
+             prodRetaludamento = readClosestNumberRight(row, c, 10);
+          }
         }
       }
 
@@ -1327,33 +1330,6 @@ function applyDashboardAnchors(
          summary.producaoMensal = prodMina + prodRetaludamento;
          console.log(`[anchors] PRODUÇÃO MENSAL OFICIAL @${sheetName}`, { prodMina, prodRetaludamento, total: summary.producaoMensal });
       }
-
-      // Legado (caso precise manter para outras partes do app)
-      const lMina = values[linhaProd + 1] ?? [];
-      const lRet = values[linhaProd + 2] ?? [];
-      const minaReal = limparNumero(lMina[1]);
-      const minaMeta = limparNumero(lMina[2]);
-      const minaPct = limparNumero(lMina[3]);
-      const retReal = limparNumero(lRet[1]);
-      const retMeta = limparNumero(lRet[2]);
-      const retPct = limparNumero(lRet[3]);
-      if (minaReal || minaMeta) {
-        areas.Mina.realizado = minaReal;
-        areas.Mina.meta = minaMeta;
-        areas.Mina.percentual = minaPct || (minaMeta ? (minaReal / minaMeta) * 100 : 0);
-        areas.Mina.source = sheetName;
-      }
-      if (retReal || retMeta) {
-        areas.Retaludamento.realizado = retReal;
-        areas.Retaludamento.meta = retMeta;
-        areas.Retaludamento.percentual = retPct || (retMeta ? (retReal / retMeta) * 100 : 0);
-        areas.Retaludamento.source = sheetName;
-      }
-      const totalMeta = areas.Mina.meta + areas.Retaludamento.meta;
-      const totalReal = areas.Mina.realizado + areas.Retaludamento.realizado;
-      if (totalReal) summary.totalRealizado = totalReal;
-      if (totalMeta) summary.totalMeta = totalMeta;
-      if (totalMeta) summary.aderencia = (totalReal / totalMeta) * 100;
     }
 
     // ---------- META MENSAL ----------
@@ -1361,14 +1337,16 @@ function applyDashboardAnchors(
     if (linhaMetaMes >= 0) {
       let metaMina = 0;
       let metaRet = 0;
-      for (let i = linhaMetaMes + 1; i <= linhaMetaMes + 5; i++) {
+      for (let i = linhaMetaMes + 1; i <= Math.min(values.length - 1, linhaMetaMes + 10); i++) {
         const row = values[i] ?? [];
-        const txt = String(row[0] ?? "").toUpperCase();
-        if (txt.includes("MINA")) {
-           metaMina = limparNumero(row[1]);
-        }
-        if (txt.includes("RETALUD")) {
-           metaRet = limparNumero(row[1]);
+        for (let c = 0; c < row.length; c++) {
+          const txt = String(row[c] ?? "").toUpperCase();
+          if (txt.includes("MINA") && !metaMina) {
+             metaMina = readClosestNumberRight(row, c, 10);
+          }
+          if (txt.includes("RETALUD") && !metaRet) {
+             metaRet = readClosestNumberRight(row, c, 10);
+          }
         }
       }
       if (metaMina > 0 || metaRet > 0) {
