@@ -607,7 +607,7 @@ export function OpsCenter() {
                     }}
                     labelStyle={{ color: NEON }}
                   />
-                  <Bar dataKey="tonH" fill={NEON} radius={[2, 2, 0, 0]} name="Ton/h" />
+                  <Bar dataKey="tonH" fill={NEON} radius={[2, 2, 0, 0]} name="Ton/h" isAnimationActive={false} />
                   <Line
                     type="monotone"
                     dataKey="meta"
@@ -616,6 +616,7 @@ export function OpsCenter() {
                     strokeWidth={1.5}
                     dot={false}
                     name="Meta"
+                    isAnimationActive={false}
                   />
                 </ComposedChart>
               </ResponsiveContainer>
