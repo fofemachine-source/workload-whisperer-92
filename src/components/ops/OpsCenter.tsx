@@ -268,26 +268,67 @@ export function OpsCenter() {
   useEffect(() => {
     if (source !== "onedrive") return;
 
-    const atualizarAutomatico = async () => {
-      try {
-        await refreshWorkbook();
-        await refresh();
+    let cancelled = false;
+    let inFlight = false;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
-        console.log("[AUTO REFRESH OK]", new Date().toLocaleTimeString());
-      } catch (err) {
-        console.error("[AUTO REFRESH ERROR]", err);
+    // Promise com timeout — evita ficar pendurada se o OneDrive engasgar
+    const withTimeout = <T,>(p: Promise<T>, ms: number): Promise<T> =>
+      new Promise((resolve, reject) => {
+        const t = setTimeout(() => reject(new Error(`timeout ${ms}ms`)), ms);
+        p.then(
+          (v) => {
+            clearTimeout(t);
+            resolve(v);
+          },
+          (e) => {
+            clearTimeout(t);
+            reject(e);
+          },
+        );
+      });
+
+    // Retry com backoff exponencial (1s → 2s → 4s, máx 3 tentativas)
+    const runOnce = async () => {
+      const delays = [0, 1000, 2000, 4000];
+      for (let attempt = 0; attempt < delays.length; attempt++) {
+        if (cancelled) return;
+        if (delays[attempt]) await new Promise((r) => setTimeout(r, delays[attempt]));
+        try {
+          await withTimeout(refreshWorkbook(), 20000);
+          if (cancelled) return;
+          await withTimeout(refresh(), 20000);
+          console.log(
+            `[AUTO REFRESH OK] ${new Date().toLocaleTimeString()}${attempt ? ` (retry ${attempt})` : ""}`,
+          );
+          return;
+        } catch (err) {
+          console.warn(`[AUTO REFRESH] tentativa ${attempt + 1} falhou:`, err);
+          if (attempt === delays.length - 1) {
+            console.error("[AUTO REFRESH ERROR] desistindo até o próximo ciclo");
+          }
+        }
       }
     };
 
-    // executa imediatamente
-    atualizarAutomatico();
+    // Anti-sobreposição: nunca dispara um refresh enquanto outro está rodando
+    const tick = async () => {
+      if (inFlight || cancelled) return;
+      inFlight = true;
+      try {
+        await runOnce();
+      } finally {
+        inFlight = false;
+        if (!cancelled) timeoutId = setTimeout(tick, 30000);
+      }
+    };
 
-    // executa continuamente
-    const interval = setInterval(() => {
-      atualizarAutomatico();
-    }, 30000);
+    tick();
 
-    return () => clearInterval(interval);
+    return () => {
+      cancelled = true;
+      if (timeoutId) clearTimeout(timeoutId);
+    };
   }, [source, refresh, refreshWorkbook]);
 
   const producaoTurno = summary?.acumuladoDia || 0;
