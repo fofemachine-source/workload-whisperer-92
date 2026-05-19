@@ -3,6 +3,18 @@ import App from "./App.tsx";
 import "./index.css";
 import { startAutoReload } from "./lib/autoReload";
 
+// Modo TV/Kiosk: detecta telas grandes e adiciona classe para reduzir
+// animações, sombras e blur (alivia GPU em Smart TVs antigas).
+function applyTvMode() {
+  if (typeof window === "undefined") return;
+  const isTv = window.innerWidth >= 1920;
+  document.documentElement.classList.toggle("tv-mode", isTv);
+}
+if (typeof window !== "undefined") {
+  applyTvMode();
+  window.addEventListener("resize", applyTvMode);
+}
+
 // Patch defensivo contra extensões (Google Tradutor, etc.) que removem nós do DOM
 // e fazem o React quebrar com NotFoundError em removeChild/insertBefore.
 if (typeof Node !== "undefined") {

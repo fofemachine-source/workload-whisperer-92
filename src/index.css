@@ -142,3 +142,42 @@
   }
   .animate-scanline { animation: scanline 6s linear infinite; }
 }
+
+/* ============================================================
+   MODO TV / KIOSK (>=1920px)
+   Reduz animações, sombras e blur para evitar travamento
+   em Smart TVs com GPU fraca.
+   ============================================================ */
+html.tv-mode .animate-truck-drive,
+html.tv-mode .animate-truck-bounce,
+html.tv-mode .animate-wheel-spin,
+html.tv-mode .animate-excavator-arm,
+html.tv-mode .animate-radar,
+html.tv-mode .animate-scanline,
+html.tv-mode .animate-blink {
+  animation: none !important;
+}
+
+html.tv-mode * {
+  /* desliga blur pesado e reduz sombras */
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html.tv-mode .text-glow-neon,
+html.tv-mode .text-glow-green {
+  text-shadow: none !important;
+}
+
+html.tv-mode [style*="drop-shadow"] {
+  filter: none !important;
+}
+
+/* Recharts: desliga animação dos gráficos em TV */
+html.tv-mode .recharts-layer,
+html.tv-mode .recharts-bar-rectangle,
+html.tv-mode .recharts-area,
+html.tv-mode .recharts-line {
+  animation: none !important;
+  transition: none !important;
+}
