@@ -1393,72 +1393,74 @@ function applyDashboardAnchors(
 
     // ---------- MINA / RETALUDAMENTO (mini cards oficiais da aba PRODUÇÃO EH) ----------
     if (/PRODU[CÇ][AÃ]O\s*EH/i.test(sheetName)) {
-      const anchors: Array<{ type: "mina" | "retalud"; row: number; col: number }> = [];
-      const topRows = Math.min(values.length, 40);
+      type MiniCardField = "turno1" | "turno2" | "acumulado" | "projetado";
+      type MiniCardHit = { row: number; col: number; field: MiniCardField; value: number };
+
+      const topRows = Math.min(values.length, 24);
+      const hits: MiniCardHit[] = [];
+
       for (let r = 0; r < topRows; r++) {
         const row = values[r] ?? [];
         for (let c = 0; c < row.length; c++) {
-          const cell = norm(row[c]);
-          if (cell === "mina") anchors.push({ type: "mina", row: r, col: c });
-          if (/retalud/.test(cell)) anchors.push({ type: "retalud", row: r, col: c });
+          const label = norm(row[c]);
+          let field: MiniCardField | null = null;
+          if (/^turno\s*1\s*:?$/.test(label)) field = "turno1";
+          else if (/^turno\s*2\s*:?$/.test(label)) field = "turno2";
+          else if (/acumulado\s*dia/.test(label)) field = "acumulado";
+          else if (/projetad[oa]\s*dia/.test(label)) field = "projetado";
+          if (!field) continue;
+
+          const value = readClosestNumberRight(row, c, 8);
+          if (value > 0) hits.push({ row: r, col: c, field, value });
         }
       }
 
-      const readMiniCard = (type: "mina" | "retalud") => {
-        const candidates = anchors
-          .filter((item) => item.type === type)
-          .map((anchor) => {
-            let acumulado = 0;
-            let projetado = 0;
-            let hits = 0;
-            let distance = Number.POSITIVE_INFINITY;
-            const rowStart = anchor.row;
-            const rowEnd = Math.min(values.length, anchor.row + 10);
-            const colStart = anchor.col;
-            const colEnd = anchor.col + 10;
+      const columnGroups = hits
+        .sort((a, b) => a.col - b.col || a.row - b.row)
+        .reduce<Array<{ startCol: number; endCol: number; items: MiniCardHit[] }>>((groups, hit) => {
+          const last = groups[groups.length - 1];
+          if (!last || hit.col - last.endCol > 8) {
+            groups.push({ startCol: hit.col, endCol: hit.col, items: [hit] });
+          } else {
+            last.endCol = Math.max(last.endCol, hit.col);
+            last.items.push(hit);
+          }
+          return groups;
+        }, [])
+        .map((group) => {
+          const card = {
+            acumulado: 0,
+            projetado: 0,
+            turno1: 0,
+            turno2: 0,
+            startCol: group.startCol,
+            topRow: Math.min(...group.items.map((item) => item.row)),
+            hits: 0,
+          };
 
-            for (let r = rowStart; r < rowEnd; r++) {
-              const row = values[r] ?? [];
-              for (let c = colStart; c < Math.min(row.length, colEnd); c++) {
-                const label = norm(row[c]);
-                if (!label) continue;
-                if (!acumulado && /acumulado\s*dia/.test(label)) {
-                  acumulado = readClosestNumberRight(row, c, 6);
-                  if (acumulado > 0) {
-                    hits += 1;
-                    distance = Math.min(distance, Math.abs(r - anchor.row) + Math.abs(c - anchor.col));
-                  }
-                }
-                if (!projetado && /projetad[oa]\s*dia/.test(label)) {
-                  projetado = readClosestNumberRight(row, c, 6);
-                  if (projetado > 0) {
-                    hits += 1;
-                    distance = Math.min(distance, Math.abs(r - anchor.row) + Math.abs(c - anchor.col));
-                  }
-                }
-              }
+          group.items.forEach((item) => {
+            if (!card[item.field]) {
+              card[item.field] = item.value;
+              card.hits += 1;
             }
+          });
 
-            return { anchor, acumulado, projetado, hits, distance };
-          })
-          .filter((candidate) => candidate.acumulado > 0 || candidate.projetado > 0)
-          .sort((a, b) => b.hits - a.hits || a.distance - b.distance || b.anchor.row - a.anchor.row);
+          return card;
+        })
+        .filter((card) => card.acumulado > 0 || card.projetado > 0)
+        .sort((a, b) => a.startCol - b.startCol || a.topRow - b.topRow || b.hits - a.hits);
 
-        const best = candidates[0];
-        return best ? { acumulado: best.acumulado, projetado: best.projetado } : null;
-      };
-
-      const minaCard = readMiniCard("mina");
+      const minaCard = columnGroups[0];
       if (minaCard) {
         summary.acumuladoDia = minaCard.acumulado || summary.acumuladoDia || 0;
-        summary.projetadoDia = minaCard.projetado || minaCard.acumulado || summary.projetadoDia || 0;
+        summary.projetadoDia = minaCard.projetado || minaCard.acumulado || 0;
         console.log(`[anchors] MINI CARD MINA @${sheetName}`, minaCard);
       }
 
-      const retCard = readMiniCard("retalud");
+      const retCard = columnGroups.length > 1 ? columnGroups[columnGroups.length - 1] : null;
       if (retCard) {
         summary.acumuladoRetalud = retCard.acumulado || summary.acumuladoRetalud || 0;
-        summary.projetadoRetalud = retCard.projetado || retCard.acumulado || summary.projetadoRetalud || 0;
+        summary.projetadoRetalud = retCard.projetado || retCard.acumulado || 0;
         console.log(`[anchors] MINI CARD RETALUDAMENTO @${sheetName}`, retCard);
       }
     }
