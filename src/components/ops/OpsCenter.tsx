@@ -331,6 +331,14 @@ export function OpsCenter() {
     };
   }, [source, refresh, refreshWorkbook]);
 
+  // HARD RELOAD (TV Dashboard) - Força recarregar a página a cada 60s
+  useEffect(() => {
+    const hardRefresh = setInterval(() => {
+      window.location.reload();
+    }, 60000);
+    return () => clearInterval(hardRefresh);
+  }, []);
+
   const producaoTurno = summary?.acumuladoDia || 0;
   const metaTurno = metasFixas.diaria;
   const aderTurno = metaTurno > 0 ? (producaoTurno / metaTurno) * 100 : 0;
