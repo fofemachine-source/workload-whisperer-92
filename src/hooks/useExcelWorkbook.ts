@@ -25,6 +25,7 @@ export interface ExcelWorkbookState {
   sheetValues: SheetValues[];
   lastSyncMs: number | null;
   lastSyncAt: Date | null;
+  hasLoadedOnce: boolean;
   refresh: () => Promise<void>;
 }
 
@@ -52,6 +53,7 @@ export function useExcelWorkbook(enabled: boolean): ExcelWorkbookState {
   const [sheetValues, setSheetValues] = useState<SheetValues[]>([]);
   const [lastSyncMs, setLastSyncMs] = useState<number | null>(null);
   const [lastSyncAt, setLastSyncAt] = useState<Date | null>(null);
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
   const timer = useRef<number | null>(null);
   const inFlight = useRef(false);
   const inFlightStartedAt = useRef<number>(0);
@@ -131,6 +133,7 @@ export function useExcelWorkbook(enabled: boolean): ExcelWorkbookState {
     } finally {
       inFlight.current = false;
       setLoading(false);
+      setHasLoadedOnce(true);
     }
   }, [enabled, instance, account]);
 
@@ -152,5 +155,5 @@ export function useExcelWorkbook(enabled: boolean): ExcelWorkbookState {
     };
   }, [load, enabled]);
 
-  return { loading, error, file, worksheets, sheetValues, lastSyncMs, lastSyncAt, refresh: load };
+  return { loading, error, file, worksheets, sheetValues, lastSyncMs, lastSyncAt, hasLoadedOnce, refresh: load };
 }
