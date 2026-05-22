@@ -195,7 +195,7 @@ function ExcelLiveProviderConnected({ children }: { children: ReactNode }) {
   // O cache/upload local serve apenas como fallback temporário enquanto a fonte
   // oficial ainda não terminou de sincronizar.
   const useOneDrive = oneDriveAvailable;
-  const useLocal = localAvailable && !useOneDrive && waitingForOneDrive;
+  const useLocal = localAvailable && !useOneDrive && (!isAuth || waitingForOneDrive);
   if (useLocal) {
     console.log(
       "[ExcelLive] fonte ativa: LOCAL",
