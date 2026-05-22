@@ -6,7 +6,13 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { isMicrosoftAuthSupported } from "@/lib/browserSupport";
 
-const LOCAL_EXCEL_STORAGE_KEYS = ["lovable.localExcel.v1", "lovable.localExcel.v2", "lovable.localExcel.v3"];
+const LOCAL_EXCEL_STORAGE_KEYS = [
+  "lovable.localExcel.v1",
+  "lovable.localExcel.v2",
+  "lovable.localExcel.v3",
+  "lovable.localExcel.v4",
+  "lovable.localExcel.v5",
+];
 
 export function MicrosoftLoginButton() {
   const authSupported = isMicrosoftAuthSupported();
