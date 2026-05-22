@@ -190,11 +190,12 @@ function ExcelLiveProviderConnected({ children }: { children: ReactNode }) {
   // como fallback quando a leitura remota ainda não estiver disponível.
   const oneDriveAvailable = isAuth && !!wb.file && !!m.metrics;
   const localAvailable = !!local;
+  const waitingForOneDrive = isAuth && !wb.hasLoadedOnce;
   // Regra operacional: quando o OneDrive estiver disponível ele sempre vence.
   // O cache/upload local serve apenas como fallback temporário enquanto a fonte
   // oficial ainda não terminou de sincronizar.
   const useOneDrive = oneDriveAvailable;
-  const useLocal = localAvailable && !useOneDrive;
+  const useLocal = localAvailable && !useOneDrive && waitingForOneDrive;
   if (useLocal) {
     console.log(
       "[ExcelLive] fonte ativa: LOCAL",
@@ -206,7 +207,11 @@ function ExcelLiveProviderConnected({ children }: { children: ReactNode }) {
   } else if (useOneDrive) {
     console.log("[ExcelLive] fonte ativa: ONEDRIVE", wb.file?.name);
   } else if (isAuth) {
-    console.log("[ExcelLive] aguardando OneDrive sincronizar e sem cache local disponível");
+    console.log(
+      waitingForOneDrive
+        ? "[ExcelLive] aguardando OneDrive sincronizar e sem cache local disponível"
+        : "[ExcelLive] OneDrive autenticado, mas sem dados válidos da planilha oficial",
+    );
   }
   const metrics = useOneDrive ? m.metrics : useLocal ? local!.metrics : null;
   const rawAreas = useOneDrive ? m.areas : useLocal ? local!.areas : null;
