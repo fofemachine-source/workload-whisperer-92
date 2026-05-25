@@ -12,6 +12,7 @@ const LOCAL_EXCEL_STORAGE_KEYS = [
   "lovable.localExcel.v3",
   "lovable.localExcel.v4",
   "lovable.localExcel.v5",
+  "lovable.localExcel.v6",
 ];
 
 export function MicrosoftLoginButton() {
