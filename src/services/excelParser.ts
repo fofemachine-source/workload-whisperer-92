@@ -906,7 +906,9 @@ function applyStructuredOverrides(
     summary.totalProducao = producaoDia;
     summary.toneladaPorHora = escavHtra > 0 ? producaoDia / escavHtra : 0;
     summary.produtividade = summary.toneladaPorHora;
-    summary.totalRealizado = producaoDia + producaoRetalud;
+    if (!summary.totalRealizado) {
+      summary.totalRealizado = producaoDia + producaoRetalud;
+    }
   }
   summary.acumuladoDia = producaoDia || 0;
   summary.projetadoDia = projetadoDia || producaoDia || 0;
@@ -1245,6 +1247,15 @@ export function processSheetValues(sheets: SheetValues[]): {
   // ==========================================
   // CÁLCULOS FINAIS DAS REGRAS OFICIAIS
   // ==========================================
+  if ((!summary.producaoMensal || summary.producaoMensal <= 0) && summary.totalRealizado > 0) {
+    summary.producaoMensal = summary.totalRealizado;
+    console.log("[anchors] PRODUÇÃO MENSAL VIA FALLBACK totalRealizado", { total: summary.producaoMensal });
+  }
+  if ((!summary.metaMensal || summary.metaMensal <= 0) && summary.totalMeta > 0) {
+    summary.metaMensal = summary.totalMeta;
+    console.log("[anchors] META MENSAL VIA FALLBACK totalMeta", { total: summary.metaMensal });
+  }
+
   if (summary.producaoMensal && summary.metaMensal) {
     summary.porcentagemProducao = (summary.producaoMensal / summary.metaMensal) * 100;
   }
@@ -1320,22 +1331,49 @@ function applyDashboardAnchors(
         return limparNumero(row[target]);
       };
 
+      const collectNumericCandidates = (row: unknown[], fromCol: number, span = 8) => {
+        const out: Array<{ value: number; text: string }> = [];
+        for (let c = fromCol + 1; c <= Math.min(row.length - 1, fromCol + span); c++) {
+          const raw = row[c];
+          const text = String(raw ?? "").trim();
+          const value = limparNumero(raw);
+          if (value <= 0) continue;
+          const percentLike = text.includes("%") || value <= 100;
+          out.push({ value, text: percentLike ? `${text}%` : text });
+        }
+        return out;
+      };
+
+      const readProdMetaPair = (row: unknown[], fromCol: number) => {
+        const fixedProd = readFixedOffset(row, fromCol, 1);
+        const fixedMeta = readFixedOffset(row, fromCol, 2);
+        const candidates = collectNumericCandidates(row, fromCol, 8);
+        const nonPercent = candidates.filter((item) => !item.text.includes("%"));
+        const largeValues = nonPercent.filter((item) => item.value >= 1000);
+        const pool = largeValues.length ? largeValues : nonPercent.length ? nonPercent : candidates;
+        const prod = fixedProd || pool[0]?.value || 0;
+        const meta = fixedMeta || pool.find((item) => item.value !== prod)?.value || 0;
+        return { prod, meta };
+      };
+
       let prodMina = 0;
       let prodRetaludamento = 0;
       let metaMinaFromProdTable = 0;
       let metaRetFromProdTable = 0;
 
-      for (let i = linhaProd + 1; i <= Math.min(values.length - 1, linhaProd + 10); i++) {
+      for (let i = linhaProd + 1; i <= Math.min(values.length - 1, linhaProd + 16); i++) {
         const row = values[i] ?? [];
         for (let c = 0; c < row.length; c++) {
           const txt = String(row[c] ?? "").toUpperCase();
           if (txt.includes("MINA") && !prodMina && !metaMinaFromProdTable) {
-            prodMina = readFixedOffset(row, c, 1);
-            metaMinaFromProdTable = readFixedOffset(row, c, 2);
+            const pair = readProdMetaPair(row, c);
+            prodMina = pair.prod;
+            metaMinaFromProdTable = pair.meta;
           }
           if (txt.includes("RETALUD") && !prodRetaludamento && !metaRetFromProdTable) {
-            prodRetaludamento = readFixedOffset(row, c, 1);
-            metaRetFromProdTable = readFixedOffset(row, c, 2);
+            const pair = readProdMetaPair(row, c);
+            prodRetaludamento = pair.prod;
+            metaRetFromProdTable = pair.meta;
           }
         }
       }
