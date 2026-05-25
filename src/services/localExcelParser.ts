@@ -68,8 +68,14 @@ export async function parseLocalExcel(file: File): Promise<LocalExcelResult> {
   };
 }
 
-const STORAGE_KEY = "lovable.localExcel.v5";
-const LEGACY_KEYS = ["lovable.localExcel.v1", "lovable.localExcel.v2", "lovable.localExcel.v3", "lovable.localExcel.v4"];
+const STORAGE_KEY = "lovable.localExcel.v6";
+const LEGACY_KEYS = [
+  "lovable.localExcel.v1",
+  "lovable.localExcel.v2",
+  "lovable.localExcel.v3",
+  "lovable.localExcel.v4",
+  "lovable.localExcel.v5",
+];
 
 export function persistLocalExcel(result: LocalExcelResult) {
   try {
