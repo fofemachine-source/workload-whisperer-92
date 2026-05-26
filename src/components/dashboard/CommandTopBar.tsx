@@ -27,7 +27,7 @@ export function CommandTopBar() {
 
   const status = source === "none" ? "off" : "online";
   const statusLabel =
-    source === "onedrive" ? "ONEDRIVE CONECTADO" : source === "local" ? "PLANILHA CARREGADA" : "AGUARDANDO PLANILHA";
+    source === "onedrive" ? "ONEDRIVE CONECTADO" : source === "local" ? "CACHE TEMPORÁRIO" : "CONECTE O ONEDRIVE";
   const statusCls =
     status === "online"
       ? "border-mining-green/30 bg-mining-green/5 text-mining-green"
@@ -111,8 +111,8 @@ export function CommandTopBar() {
           {source === "onedrive"
             ? "FONTE: PLANILHA ONLINE · auto a cada 30s"
             : source === "local"
-            ? "FONTE: PLANILHA LOCAL (fallback temporário)"
-            : "AGUARDANDO SINCRONIZAÇÃO DA PLANILHA ONLINE"}
+            ? "FONTE: CACHE TEMPORÁRIO · aguardando planilha oficial online"
+            : "FONTE OFICIAL INDISPONÍVEL · conecte a conta Microsoft"}
         </span>
         {lastSyncAt && (
           <>
