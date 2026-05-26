@@ -164,6 +164,12 @@ function ExcelLiveProviderConnected({ children }: { children: ReactNode }) {
     setLocalLoading(true);
     setLocalError(null);
     try {
+      const validationError = validateExcelUpload(file);
+      if (validationError) {
+        setLocalError(validationError);
+        toast.error("Arquivo rejeitado", { description: validationError });
+        return;
+      }
       const result = await parseLocalExcel(file);
       setLocal(result);
       persistLocalExcel(result);
@@ -172,11 +178,17 @@ function ExcelLiveProviderConnected({ children }: { children: ReactNode }) {
       // Envia para a nuvem para que outros dispositivos recebam via realtime
       setCloudSyncing(true);
       try {
-        const ext = file.name.split(".").pop() || "xlsx";
+        const ext = (file.name.split(".").pop() || "xlsx").toLowerCase();
         const filePath = `live/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
         const { error: upErr } = await supabase.storage
           .from("spreadsheets")
-          .upload(filePath, file, { upsert: false, contentType: file.type || undefined });
+          .upload(filePath, file, {
+            upsert: false,
+            contentType:
+              file.type && ALLOWED_EXCEL_MIME.has(file.type)
+                ? file.type
+                : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          });
         if (upErr) throw upErr;
         const { error: insErr } = await supabase
           .from("spreadsheet_uploads")
@@ -380,17 +392,29 @@ function ExcelLiveProviderFallback({ children }: { children: ReactNode }) {
     setLocalLoading(true);
     setLocalError(null);
     try {
+      const validationError = validateExcelUpload(file);
+      if (validationError) {
+        setLocalError(validationError);
+        toast.error("Arquivo rejeitado", { description: validationError });
+        return;
+      }
       const result = await parseLocalExcel(file);
       setLocal(result);
       persistLocalExcel(result);
 
       setCloudSyncing(true);
       try {
-        const ext = file.name.split(".").pop() || "xlsx";
+        const ext = (file.name.split(".").pop() || "xlsx").toLowerCase();
         const filePath = `live/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
         const { error: upErr } = await supabase.storage
           .from("spreadsheets")
-          .upload(filePath, file, { upsert: false, contentType: file.type || undefined });
+          .upload(filePath, file, {
+            upsert: false,
+            contentType:
+              file.type && ALLOWED_EXCEL_MIME.has(file.type)
+                ? file.type
+                : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          });
         if (upErr) throw upErr;
         const { error: insErr } = await supabase
           .from("spreadsheet_uploads")
