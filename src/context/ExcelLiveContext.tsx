@@ -113,8 +113,12 @@ function ExcelLiveProviderConnected({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  // Carrega a planilha mais recente da nuvem ao abrir + assina realtime
+  // Carrega a planilha mais recente da nuvem apenas como ponte temporária
+  // depois do login Microsoft. Sem autenticação, não devemos exibir cache/local
+  // como se fosse dado oficial do OneDrive.
   useEffect(() => {
+    if (!isAuth) return;
+
     let cancelled = false;
     const checkLatestCloudSpreadsheet = async (silent = true) => {
       const { data, error } = await supabase
@@ -223,15 +227,17 @@ function ExcelLiveProviderConnected({ children }: { children: ReactNode }) {
   }, []);
 
   // Após login, OneDrive deve ser a fonte principal. Upload/local fica apenas
-  // como fallback quando a leitura remota ainda não estiver disponível.
+  // como fallback curto enquanto a leitura remota oficial ainda não terminou.
+  // Sem login Microsoft, não mostramos cache local para evitar números stale
+  // sendo confundidos com dados reais do OneDrive.
   const oneDriveAvailable = isAuth && !!wb.file && !!m.metrics;
   const localAvailable = !!local;
   const waitingForOneDrive = isAuth && !wb.hasLoadedOnce;
   // Regra operacional: quando o OneDrive estiver disponível ele sempre vence.
-  // O cache/upload local serve apenas como fallback temporário enquanto a fonte
-  // oficial ainda não terminou de sincronizar.
+  // O cache/upload local serve apenas como fallback temporário durante o login,
+  // nunca como fonte principal em navegadores com suporte Microsoft.
   const useOneDrive = oneDriveAvailable;
-  const useLocal = localAvailable && !useOneDrive && (!isAuth || waitingForOneDrive);
+  const useLocal = localAvailable && !useOneDrive && waitingForOneDrive;
   if (useLocal) {
     console.log(
       "[ExcelLive] fonte ativa: LOCAL",
