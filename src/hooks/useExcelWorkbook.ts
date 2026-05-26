@@ -75,39 +75,50 @@ export function useExcelWorkbook(enabled: boolean): ExcelWorkbookState {
     try {
       const client = createGraphClient(instance, account);
 
-      // 1) Resolve metadados do arquivo: prioriza o link compartilhado oficial
-      //    (planilha mora em outra conta) e usa busca em /me/drive como fallback.
-      let resolved: DriveItem | null = null;
-      for (const shareUrl of EXCEL_SHARE_URLS) {
-        if (resolved) break;
-        try {
-          resolved = await resolveSharedFile(client, shareUrl);
-        } catch (err) {
-          console.warn("[graph] resolveSharedFile falhou:", shareUrl, (err as Error)?.message);
+      // Define um timeout de 30 segundos para evitar travamento infinito
+      const fetchPromise = (async () => {
+        // 1) Resolve metadados do arquivo: prioriza o link compartilhado oficial
+        //    (planilha mora em outra conta) e usa busca em /me/drive como fallback.
+        let resolved: DriveItem | null = null;
+        for (const shareUrl of EXCEL_SHARE_URLS) {
+          if (resolved) break;
+          try {
+            resolved = await resolveSharedFile(client, shareUrl);
+          } catch (err) {
+            console.warn("[graph] resolveSharedFile falhou:", shareUrl, (err as Error)?.message);
+          }
         }
-      }
-      if (!resolved) {
-        resolved = await findExcelFile(client, EXCEL_FILE_NAME);
-      }
-      if (!resolved) {
-        throw new Error(
-          `Arquivo "${EXCEL_FILE_NAME}" não encontrado no OneDrive nem via link compartilhado.`,
-        );
-      }
+        if (!resolved) {
+          resolved = await findExcelFile(client, EXCEL_FILE_NAME);
+        }
+        if (!resolved) {
+          throw new Error(
+            `Arquivo "${EXCEL_FILE_NAME}" não encontrado no OneDrive nem via link compartilhado.`,
+          );
+        }
 
-      // 2) Baixa o conteúdo binário (.xlsx) via Drive API — sem usar
-      //    /workbook/worksheets, que não funciona em planilhas compartilhadas
-      //    fora da conta logada.
-      const driveId = resolved.parentReference?.driveId ?? "";
-      const buffer = await downloadDriveItemContent(client, driveId, resolved.id, resolved.shareId);
-      const { sheets, names } = parseWorkbookBuffer(buffer);
+        // 2) Baixa o conteúdo binário (.xlsx) via Drive API — sem usar
+        //    /workbook/worksheets, que não funciona em planilhas compartilhadas
+        //    fora da conta logada.
+        const driveId = resolved.parentReference?.driveId ?? "";
+        const buffer = await downloadDriveItemContent(client, driveId, resolved.id, resolved.shareId);
+        const { sheets, names } = parseWorkbookBuffer(buffer);
 
-      const synthesizedWorksheets: WorksheetInfo[] = names.map((name, idx) => ({
-        id: `local-${idx}`,
-        name,
-        position: idx,
-        visibility: "Visible",
-      }));
+        const synthesizedWorksheets: WorksheetInfo[] = names.map((name, idx) => ({
+          id: `local-${idx}`,
+          name,
+          position: idx,
+          visibility: "Visible",
+        }));
+        
+        return { resolved, sheets, synthesizedWorksheets, names };
+      })();
+
+      const timeoutPromise = new Promise<never>((_, reject) => 
+        setTimeout(() => reject(new Error("Timeout: A conexão com o OneDrive demorou muito para responder.")), 30000)
+      );
+
+      const { resolved, sheets, synthesizedWorksheets, names } = await Promise.race([fetchPromise, timeoutPromise]);
 
       setFile((prev) =>
         prev && prev.id === resolved!.id && prev.lastModifiedDateTime === resolved!.lastModifiedDateTime
