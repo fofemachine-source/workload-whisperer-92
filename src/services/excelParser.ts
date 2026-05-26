@@ -1513,16 +1513,32 @@ function applyDashboardAnchors(
 
       const minaCard = columnGroups[0];
       if (minaCard) {
-        summary.acumuladoDia = minaCard.acumulado || summary.acumuladoDia || 0;
-        summary.projetadoDia = minaCard.projetado || minaCard.acumulado || 0;
-        console.log(`[anchors] MINI CARD MINA @${sheetName}`, minaCard);
+        const shouldApplyMinaCard = !summary.acumuladoDia && !summary.projetadoDia;
+        if (shouldApplyMinaCard) {
+          summary.acumuladoDia = minaCard.acumulado || summary.acumuladoDia || 0;
+          summary.projetadoDia = minaCard.projetado || minaCard.acumulado || 0;
+        }
+        console.log(`[anchors] MINI CARD MINA @${sheetName}`, {
+          ...minaCard,
+          applied: shouldApplyMinaCard,
+          currentAcumuladoDia: summary.acumuladoDia,
+          currentProjetadoDia: summary.projetadoDia,
+        });
       }
 
       const retCard = columnGroups.length > 1 ? columnGroups[columnGroups.length - 1] : null;
       if (retCard) {
-        summary.acumuladoRetalud = retCard.acumulado || summary.acumuladoRetalud || 0;
-        summary.projetadoRetalud = retCard.projetado || retCard.acumulado || 0;
-        console.log(`[anchors] MINI CARD RETALUDAMENTO @${sheetName}`, retCard);
+        const shouldApplyRetCard = !summary.acumuladoRetalud && !summary.projetadoRetalud;
+        if (shouldApplyRetCard) {
+          summary.acumuladoRetalud = retCard.acumulado || summary.acumuladoRetalud || 0;
+          summary.projetadoRetalud = retCard.projetado || retCard.acumulado || 0;
+        }
+        console.log(`[anchors] MINI CARD RETALUDAMENTO @${sheetName}`, {
+          ...retCard,
+          applied: shouldApplyRetCard,
+          currentAcumuladoRetalud: summary.acumuladoRetalud,
+          currentProjetadoRetalud: summary.projetadoRetalud,
+        });
       }
     }
 
