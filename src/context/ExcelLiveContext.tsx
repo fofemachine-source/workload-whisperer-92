@@ -17,6 +17,30 @@ import { isMicrosoftAuthSupported } from "@/lib/browserSupport";
 
 const CLOUD_POLL_MS = 60_000;
 
+const MAX_UPLOAD_BYTES = 20 * 1024 * 1024; // 20 MB
+const ALLOWED_EXCEL_MIME = new Set([
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "application/vnd.ms-excel",
+  "application/octet-stream", // alguns navegadores enviam genérico
+  "",
+]);
+const ALLOWED_EXCEL_EXT = new Set(["xlsx", "xls", "xlsm"]);
+
+function validateExcelUpload(file: File): string | null {
+  if (file.size <= 0) return "Arquivo vazio.";
+  if (file.size > MAX_UPLOAD_BYTES) {
+    return `Arquivo muito grande (máx ${MAX_UPLOAD_BYTES / (1024 * 1024)} MB).`;
+  }
+  const ext = (file.name.split(".").pop() || "").toLowerCase();
+  if (!ALLOWED_EXCEL_EXT.has(ext)) {
+    return "Extensão não suportada. Envie um arquivo .xlsx, .xls ou .xlsm.";
+  }
+  if (file.type && !ALLOWED_EXCEL_MIME.has(file.type)) {
+    return "Tipo de arquivo não suportado. Envie uma planilha Excel.";
+  }
+  return null;
+}
+
 interface ExcelLiveValue {
   isAuth: boolean;
   file: DriveItem | null;
@@ -140,6 +164,12 @@ function ExcelLiveProviderConnected({ children }: { children: ReactNode }) {
     setLocalLoading(true);
     setLocalError(null);
     try {
+      const validationError = validateExcelUpload(file);
+      if (validationError) {
+        setLocalError(validationError);
+        toast.error("Arquivo rejeitado", { description: validationError });
+        return;
+      }
       const result = await parseLocalExcel(file);
       setLocal(result);
       persistLocalExcel(result);
@@ -148,11 +178,17 @@ function ExcelLiveProviderConnected({ children }: { children: ReactNode }) {
       // Envia para a nuvem para que outros dispositivos recebam via realtime
       setCloudSyncing(true);
       try {
-        const ext = file.name.split(".").pop() || "xlsx";
+        const ext = (file.name.split(".").pop() || "xlsx").toLowerCase();
         const filePath = `live/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
         const { error: upErr } = await supabase.storage
           .from("spreadsheets")
-          .upload(filePath, file, { upsert: false, contentType: file.type || undefined });
+          .upload(filePath, file, {
+            upsert: false,
+            contentType:
+              file.type && ALLOWED_EXCEL_MIME.has(file.type)
+                ? file.type
+                : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          });
         if (upErr) throw upErr;
         const { error: insErr } = await supabase
           .from("spreadsheet_uploads")
@@ -356,17 +392,29 @@ function ExcelLiveProviderFallback({ children }: { children: ReactNode }) {
     setLocalLoading(true);
     setLocalError(null);
     try {
+      const validationError = validateExcelUpload(file);
+      if (validationError) {
+        setLocalError(validationError);
+        toast.error("Arquivo rejeitado", { description: validationError });
+        return;
+      }
       const result = await parseLocalExcel(file);
       setLocal(result);
       persistLocalExcel(result);
 
       setCloudSyncing(true);
       try {
-        const ext = file.name.split(".").pop() || "xlsx";
+        const ext = (file.name.split(".").pop() || "xlsx").toLowerCase();
         const filePath = `live/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
         const { error: upErr } = await supabase.storage
           .from("spreadsheets")
-          .upload(filePath, file, { upsert: false, contentType: file.type || undefined });
+          .upload(filePath, file, {
+            upsert: false,
+            contentType:
+              file.type && ALLOWED_EXCEL_MIME.has(file.type)
+                ? file.type
+                : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          });
         if (upErr) throw upErr;
         const { error: insErr } = await supabase
           .from("spreadsheet_uploads")
