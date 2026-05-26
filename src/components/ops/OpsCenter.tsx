@@ -413,6 +413,44 @@ export function OpsCenter() {
     return { soma: Math.round(soma), total: Math.round(total), diff: Math.round(diff), pct, ok: pct < 1 };
   }, [summary]);
 
+  if (source !== "onedrive") {
+    return (
+      <div className="min-h-screen bg-background text-foreground">
+        <div className="mx-auto max-w-6xl px-4 py-6 md:px-6">
+          <div className="rounded-md border border-mining-yellow/30 bg-mining-yellow/10 p-6">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div>
+                <p className="text-xs font-mono uppercase tracking-[0.22em] text-mining-yellow">fonte oficial necessária</p>
+                <h1 className="mt-2 text-2xl font-bold tracking-tight text-foreground">Conecte o Microsoft para carregar o OneDrive correto</h1>
+                <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
+                  O painel foi bloqueado porque havia um arquivo em cache/local diferente da planilha oficial. Assim evitamos mostrar números aleatórios ou desatualizados.
+                </p>
+                {syncError && <p className="mt-3 text-sm font-medium text-mining-red">{syncError}</p>}
+                {lastCloudUpload && (
+                  <p className="mt-3 text-xs font-mono text-muted-foreground">
+                    Último arquivo em cache: {lastCloudUpload.fileName} · {new Date(lastCloudUpload.uploadedAt).toLocaleString("pt-BR")}
+                  </p>
+                )}
+                {localFile && (
+                  <p className="mt-1 text-xs font-mono text-muted-foreground">
+                    Cache local detectado: {localFile.name}
+                  </p>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                <MicrosoftLoginButton />
+                <Button variant="outline" onClick={handleManualRefresh} disabled={syncing} className="gap-2 border-mining-green/40 text-mining-green hover:bg-mining-green/10">
+                  <RefreshCw className={`h-4 w-4 ${syncing ? "animate-spin" : ""}`} />
+                  Tentar novamente
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const ranking = useMemo(() => {
     // 1) Preferir ranking calculado direto da aba PRODUÇÃO EH (fonte oficial).
     const eh = summary?.ehRanking ?? [];
