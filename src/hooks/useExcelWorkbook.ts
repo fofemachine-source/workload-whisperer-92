@@ -73,6 +73,10 @@ export function useExcelWorkbook(enabled: boolean): ExcelWorkbookState {
     setError(null);
     const startedAt = performance.now();
     try {
+      console.log("[ExcelLive] iniciando sync do OneDrive", {
+        account: account.username,
+        shareUrls: EXCEL_SHARE_URLS.length,
+      });
       const client = createGraphClient(instance, account);
 
       // Define um timeout de 30 segundos para evitar travamento infinito
@@ -84,6 +88,14 @@ export function useExcelWorkbook(enabled: boolean): ExcelWorkbookState {
           if (resolved) break;
           try {
             resolved = await resolveSharedFile(client, shareUrl);
+            if (resolved) {
+              console.log("[ExcelLive] planilha oficial resolvida", {
+                name: resolved.name,
+                id: resolved.id,
+                driveId: resolved.parentReference?.driveId ?? null,
+                viaShare: Boolean(resolved.shareId),
+              });
+            }
           } catch (err) {
             console.warn("[graph] resolveSharedFile falhou:", shareUrl, (err as Error)?.message);
           }
@@ -102,6 +114,11 @@ export function useExcelWorkbook(enabled: boolean): ExcelWorkbookState {
         //    fora da conta logada.
         const driveId = resolved.parentReference?.driveId ?? "";
         const buffer = await downloadDriveItemContent(client, driveId, resolved.id, resolved.shareId);
+        console.log("[ExcelLive] download binário concluído", {
+          bytes: buffer.byteLength,
+          driveId: driveId || null,
+          shareId: resolved.shareId ?? null,
+        });
         const { sheets, names } = parseWorkbookBuffer(buffer);
 
         const synthesizedWorksheets: WorksheetInfo[] = names.map((name, idx) => ({
@@ -141,6 +158,9 @@ export function useExcelWorkbook(enabled: boolean): ExcelWorkbookState {
       const msg = e instanceof Error ? e.message : String(e);
       console.error("[graph] erro ao baixar/parsear workbook:", msg);
       setError(msg);
+      setFile(null);
+      setWorksheets([]);
+      setSheetValues([]);
     } finally {
       inFlight.current = false;
       setLoading(false);

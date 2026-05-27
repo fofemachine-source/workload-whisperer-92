@@ -2,6 +2,25 @@ import { Client } from "@microsoft/microsoft-graph-client";
 import { IPublicClientApplication, AccountInfo } from "@azure/msal-browser";
 import { graphScopes } from "@/auth/msalConfig";
 
+const GRAPH_REQUEST_TIMEOUT_MS = 15_000;
+
+async function withGraphTimeout<T>(promise: Promise<T>, label: string): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | null = null;
+
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<T>((_, reject) => {
+        timer = setTimeout(() => {
+          reject(new Error(`Tempo esgotado ao acessar o OneDrive (${label}).`));
+        }, GRAPH_REQUEST_TIMEOUT_MS);
+      }),
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
 export function createGraphClient(msalInstance: IPublicClientApplication, account: AccountInfo): Client {
   return Client.init({
     authProvider: async (done) => {
@@ -138,10 +157,13 @@ export async function resolveSharedFile(client: Client, shareUrl: string): Promi
   for (const candidate of getShareUrlCandidates(shareUrl)) {
     try {
       const shareId = encodeShareUrl(candidate);
-      const res = await client
-        .api(`/shares/${shareId}/driveItem`)
-        .select("id,name,webUrl,size,lastModifiedDateTime,parentReference")
-        .get();
+      const res = await withGraphTimeout(
+        client
+          .api(`/shares/${shareId}/driveItem`)
+          .select("id,name,webUrl,size,lastModifiedDateTime,parentReference")
+          .get(),
+        "resolver o link compartilhado",
+      );
       console.log("[graph] arquivo resolvido via link compartilhado:", res?.name);
       return { ...(res as DriveItem), shareId };
     } catch (err) {
@@ -200,22 +222,25 @@ export async function downloadDriveItemContent(
   itemId: string,
   shareId?: string,
 ): Promise<ArrayBuffer> {
-  const path = shareId
-    ? `/shares/${shareId}/driveItem/content`
-    : driveId
+  const path = driveId
     ? `/drives/${driveId}/items/${itemId}/content`
+    : shareId
+    ? `/shares/${shareId}/driveItem/content`
     : `/me/drive/items/${itemId}/content`;
   // Cache-bust: o endpoint /content redireciona para uma URL pré-assinada que
   // pode ficar em cache (browser/CDN). Adicionamos um query param volátil e
   // headers no-cache para garantir conteúdo fresco a cada sync.
   const bust = `nocache=${Date.now()}`;
   const pathWithBust = path.includes("?") ? `${path}&${bust}` : `${path}?${bust}`;
-  const res = (await client
-    .api(pathWithBust)
-    .header("Cache-Control", "no-cache, no-store, must-revalidate")
-    .header("Pragma", "no-cache")
-    .responseType("arraybuffer" as never)
-    .get()) as ArrayBuffer | Blob;
+  const res = (await withGraphTimeout(
+    client
+      .api(pathWithBust)
+      .header("Cache-Control", "no-cache, no-store, must-revalidate")
+      .header("Pragma", "no-cache")
+      .responseType("arraybuffer" as never)
+      .get(),
+    "baixar a planilha oficial",
+  )) as ArrayBuffer | Blob;
   if (res instanceof ArrayBuffer) return res;
   if (res instanceof Blob) return await res.arrayBuffer();
   // Alguns ambientes retornam Uint8Array
