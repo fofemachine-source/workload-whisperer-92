@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useMsal } from "@azure/msal-react";
+import { InteractionStatus } from "@azure/msal-browser";
 import * as XLSX from "xlsx";
 import {
   createGraphClient,
@@ -26,6 +27,7 @@ export interface ExcelWorkbookState {
   lastSyncMs: number | null;
   lastSyncAt: Date | null;
   hasLoadedOnce: boolean;
+  authReady: boolean;
   refresh: () => Promise<void>;
 }
 
@@ -45,7 +47,7 @@ function parseWorkbookBuffer(buffer: ArrayBuffer): { sheets: SheetValues[]; name
 }
 
 export function useExcelWorkbook(enabled: boolean): ExcelWorkbookState {
-  const { instance, accounts } = useMsal();
+  const { instance, accounts, inProgress } = useMsal();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [file, setFile] = useState<DriveItem | null>(null);
@@ -58,9 +60,10 @@ export function useExcelWorkbook(enabled: boolean): ExcelWorkbookState {
   const inFlight = useRef(false);
   const inFlightStartedAt = useRef<number>(0);
   const account = accounts[0] ?? instance.getActiveAccount() ?? instance.getAllAccounts()[0] ?? null;
+  const authReady = inProgress === InteractionStatus.None;
 
   const load = useCallback(async () => {
-    if (!enabled || !account) return;
+    if (!enabled || !account || !authReady) return;
     // Watchdog: se um sync anterior travou (>45s), libera o lock para permitir nova tentativa.
     if (inFlight.current) {
       const elapsed = performance.now() - inFlightStartedAt.current;
@@ -166,9 +169,41 @@ export function useExcelWorkbook(enabled: boolean): ExcelWorkbookState {
       setLoading(false);
       setHasLoadedOnce(true);
     }
-  }, [enabled, instance, account]);
+  }, [enabled, instance, account, authReady]);
 
   useEffect(() => {
+    if (!enabled) {
+      setLoading(false);
+      setError(null);
+      setFile(null);
+      setWorksheets([]);
+      setSheetValues([]);
+      setLastSyncMs(null);
+      setLastSyncAt(null);
+      setHasLoadedOnce(false);
+      inFlight.current = false;
+      if (timer.current) window.clearInterval(timer.current);
+      return;
+    }
+
+    if (!authReady) {
+      setLoading(true);
+      setError(null);
+      if (timer.current) window.clearInterval(timer.current);
+      return;
+    }
+
+    if (!account) {
+      setLoading(false);
+      setError("A conta Microsoft não ficou disponível após o login. Clique em Conectar Microsoft para iniciar a leitura oficial novamente.");
+      setFile(null);
+      setWorksheets([]);
+      setSheetValues([]);
+      setHasLoadedOnce(true);
+      if (timer.current) window.clearInterval(timer.current);
+      return;
+    }
+
     void load();
     if (timer.current) window.clearInterval(timer.current);
     if (enabled) {
@@ -184,7 +219,7 @@ export function useExcelWorkbook(enabled: boolean): ExcelWorkbookState {
       if (timer.current) window.clearInterval(timer.current);
       document.removeEventListener("visibilitychange", onVis);
     };
-  }, [load, enabled]);
+  }, [load, enabled, authReady, account]);
 
-  return { loading, error, file, worksheets, sheetValues, lastSyncMs, lastSyncAt, hasLoadedOnce, refresh: load };
+  return { loading, error, file, worksheets, sheetValues, lastSyncMs, lastSyncAt, hasLoadedOnce, authReady, refresh: load };
 }
