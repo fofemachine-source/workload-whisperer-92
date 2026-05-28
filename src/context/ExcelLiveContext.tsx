@@ -47,6 +47,8 @@ interface ExcelLiveValue {
   worksheets: WorksheetInfo[];
   workbookLoading: boolean;
   workbookError: string | null;
+  workbookAuthReady: boolean;
+  workbookHasLoadedOnce: boolean;
   metrics: Record<TargetEquipment, EquipmentMetrics> | null;
   areas: Record<AreaName, AreaMetrics> | null;
   metricsLoading: boolean;
@@ -288,6 +290,8 @@ function ExcelLiveProviderConnected({ children }: { children: ReactNode }) {
     worksheets: wb.worksheets,
     workbookLoading: wb.loading,
     workbookError: wb.error,
+    workbookAuthReady: wb.authReady,
+    workbookHasLoadedOnce: wb.hasLoadedOnce,
     metrics,
     areas,
     metricsLoading: useOneDrive ? m.loading : useLocal ? localLoading : false,
@@ -451,6 +455,8 @@ function ExcelLiveProviderFallback({ children }: { children: ReactNode }) {
     worksheets: [],
     workbookLoading: false,
     workbookError: null,
+    workbookAuthReady: false,
+    workbookHasLoadedOnce: false,
     metrics: local?.metrics ?? null,
     areas: local?.areas
       ? {
