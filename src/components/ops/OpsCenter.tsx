@@ -153,6 +153,7 @@ function FleetRow({
 
 export function OpsCenter() {
   const {
+    isAuth,
     summary,
     rows,
     fleets: fleetsAgg,
@@ -163,6 +164,8 @@ export function OpsCenter() {
     refreshWorkbook,
     metricsLoading,
     workbookLoading,
+    workbookAuthReady,
+    workbookHasLoadedOnce,
     file,
     worksheets,
     workbookError,
@@ -173,6 +176,8 @@ export function OpsCenter() {
   const clock = useClock();
   const syncing = metricsLoading || workbookLoading;
   const syncError = workbookError || metricsError;
+  const waitingForAuth = source === "none" && workbookLoading && !workbookAuthReady;
+  const waitingForOfficialRead = source === "none" && workbookLoading && workbookAuthReady && !workbookHasLoadedOnce;
   const operationNow = useMemo(() => {
     if (!supportsDateTimeFormatParts()) {
       const localNow = new Date(clock.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
@@ -416,8 +421,7 @@ export function OpsCenter() {
   const [forceLocal, setForceLocal] = useState(false);
 
   if (source === "none" && !forceLocal) {
-    const { isAuth } = useExcelLive();
-    const isFetching = isAuth && syncing;
+    const isFetching = isAuth && (waitingForAuth || waitingForOfficialRead);
 
     return (
       <div className="min-h-screen bg-background text-foreground">
@@ -430,14 +434,18 @@ export function OpsCenter() {
                 </p>
                 <h1 className="mt-2 text-2xl font-bold tracking-tight text-foreground">
                   {isFetching 
-                    ? "Aguardando leitura do OneDrive" 
+                    ? waitingForAuth
+                      ? "Finalizando conexão Microsoft"
+                      : "Aguardando leitura do OneDrive"
                     : isAuth 
                       ? "Planilha não encontrada no OneDrive" 
                       : "Conecte o Microsoft para carregar o OneDrive correto"}
                 </h1>
                 <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
                   {isFetching
-                    ? "Estamos conectando ao OneDrive e buscando a planilha oficial..."
+                    ? waitingForAuth
+                      ? "O login Microsoft foi iniciado e o painel está aguardando a sessão ficar pronta para buscar a planilha oficial."
+                      : "Estamos conectando ao OneDrive e buscando a planilha oficial..."
                     : "O painel está pausado para garantir que você visualize a planilha oficial e atualizada, evitando números locais ou cacheados que possam estar desatualizados."}
                 </p>
                 {syncError && <p className="mt-3 text-sm font-medium text-mining-red">{syncError}</p>}
