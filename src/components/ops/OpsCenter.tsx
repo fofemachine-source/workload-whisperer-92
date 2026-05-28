@@ -153,6 +153,7 @@ function FleetRow({
 
 export function OpsCenter() {
   const {
+    isAuth,
     summary,
     rows,
     fleets: fleetsAgg,
@@ -420,7 +421,6 @@ export function OpsCenter() {
   const [forceLocal, setForceLocal] = useState(false);
 
   if (source === "none" && !forceLocal) {
-    const { isAuth } = useExcelLive();
     const isFetching = isAuth && (waitingForAuth || waitingForOfficialRead);
 
     return (
