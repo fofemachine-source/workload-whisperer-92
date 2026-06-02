@@ -418,69 +418,8 @@ export function OpsCenter() {
     return { soma: Math.round(soma), total: Math.round(total), diff: Math.round(diff), pct, ok: pct < 1 };
   }, [summary]);
 
-  const [forceLocal, setForceLocal] = useState(false);
-
-  if (source === "none" && !forceLocal) {
-    const isFetching = isAuth && (waitingForAuth || waitingForOfficialRead);
-
-    return (
-      <div className="min-h-screen bg-background text-foreground">
-        <div className="mx-auto max-w-6xl px-4 py-6 md:px-6">
-          <div className="rounded-md border border-mining-yellow/30 bg-mining-yellow/10 p-6">
-            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-              <div>
-                <p className="text-xs font-mono uppercase tracking-[0.22em] text-mining-yellow">
-                  {isFetching ? "sincronizando..." : "fonte oficial necessária"}
-                </p>
-                <h1 className="mt-2 text-2xl font-bold tracking-tight text-foreground">
-                  {isFetching 
-                    ? waitingForAuth
-                      ? "Finalizando conexão Microsoft"
-                      : "Aguardando leitura do OneDrive"
-                    : isAuth 
-                      ? "Planilha não encontrada no OneDrive" 
-                      : "Conecte o Microsoft para carregar o OneDrive correto"}
-                </h1>
-                <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
-                  {isFetching
-                    ? waitingForAuth
-                      ? "O login Microsoft foi iniciado e o painel está aguardando a sessão ficar pronta para buscar a planilha oficial."
-                      : "Estamos conectando ao OneDrive e buscando a planilha oficial..."
-                    : "O painel está pausado para garantir que você visualize a planilha oficial e atualizada, evitando números locais ou cacheados que possam estar desatualizados."}
-                </p>
-                {syncError && <p className="mt-3 text-sm font-medium text-mining-red">{syncError}</p>}
-                {lastCloudUpload && (
-                  <p className="mt-3 text-xs font-mono text-muted-foreground">
-                    Último arquivo na nuvem: {lastCloudUpload.fileName} · {new Date(lastCloudUpload.uploadedAt).toLocaleString("pt-BR")}
-                  </p>
-                )}
-                {localFile && (
-                  <p className="mt-1 text-xs font-mono text-muted-foreground">
-                    Cache local detectado: {localFile.name}
-                  </p>
-                )}
-              </div>
-              <div className="flex flex-col items-end gap-2">
-                <div className="flex items-center gap-2">
-                  <MicrosoftLoginButton />
-                  <ExcelUploadButton />
-                  <Button variant="outline" onClick={handleManualRefresh} disabled={syncing} className="gap-2 border-mining-green/40 text-mining-green hover:bg-mining-green/10">
-                    <RefreshCw className={`h-4 w-4 ${syncing ? "animate-spin" : ""}`} />
-                    Tentar novamente
-                  </Button>
-                </div>
-                {(localFile || lastCloudUpload) && (
-                  <Button variant="ghost" size="sm" onClick={() => setForceLocal(true)} className="text-muted-foreground hover:text-foreground text-xs h-7">
-                    Continuar com dados locais
-                  </Button>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // Painel sempre renderiza. A conexão Microsoft/OneDrive continua disponível
+  // pelos botões do topo, mas não bloqueia mais a visualização do dashboard.
 
   const ranking = useMemo(() => {
     // 1) Preferir ranking calculado direto da aba PRODUÇÃO EH (fonte oficial).
