@@ -5,6 +5,8 @@
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
+    "diagnostic": "node src/diagnostic.js",
+    "test-ssrs": "node src/test-ssrs.js",
     "install-service": "node install-service.js",
     "uninstall-service": "node uninstall-service.js"
   },
