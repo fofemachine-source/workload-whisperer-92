@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      agente_tokens: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          id: string
+          nome: string
+          revogado_em: string | null
+          token_hash: string
+          token_prefix: string
+          ultimo_uso_em: string | null
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          id?: string
+          nome: string
+          revogado_em?: string | null
+          token_hash: string
+          token_prefix: string
+          ultimo_uso_em?: string | null
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          id?: string
+          nome?: string
+          revogado_em?: string | null
+          token_hash?: string
+          token_prefix?: string
+          ultimo_uso_em?: string | null
+        }
+        Relationships: []
+      }
       daily_production: {
         Row: {
           created_at: string | null
@@ -217,6 +250,105 @@ export type Database = {
           },
         ]
       }
+      producao_diaria: {
+        Row: {
+          atualizado_em: string
+          carga_operando: number | null
+          created_at: string
+          data_referencia: string
+          disponibilidade_fisica_df: number | null
+          equipamentos_disponiveis: number | null
+          equipamentos_utilizados: number | null
+          id: string
+          payload_bruto: Json | null
+          producao_hora: number | null
+          relatorio_origem: string
+          toneladas_total: number | null
+          transporte_operando: number | null
+          turno: string | null
+          utilizacao_ut: number | null
+        }
+        Insert: {
+          atualizado_em?: string
+          carga_operando?: number | null
+          created_at?: string
+          data_referencia: string
+          disponibilidade_fisica_df?: number | null
+          equipamentos_disponiveis?: number | null
+          equipamentos_utilizados?: number | null
+          id?: string
+          payload_bruto?: Json | null
+          producao_hora?: number | null
+          relatorio_origem?: string
+          toneladas_total?: number | null
+          transporte_operando?: number | null
+          turno?: string | null
+          utilizacao_ut?: number | null
+        }
+        Update: {
+          atualizado_em?: string
+          carga_operando?: number | null
+          created_at?: string
+          data_referencia?: string
+          disponibilidade_fisica_df?: number | null
+          equipamentos_disponiveis?: number | null
+          equipamentos_utilizados?: number | null
+          id?: string
+          payload_bruto?: Json | null
+          producao_hora?: number | null
+          relatorio_origem?: string
+          toneladas_total?: number | null
+          transporte_operando?: number | null
+          turno?: string | null
+          utilizacao_ut?: number | null
+        }
+        Relationships: []
+      }
+      sincronizacao_ssrs: {
+        Row: {
+          agente_host: string | null
+          agente_versao: string | null
+          duracao_ms: number | null
+          finalizado_em: string
+          id: string
+          iniciado_em: string
+          mensagem_erro: string | null
+          registros_atualizados: number
+          registros_inseridos: number
+          registros_recebidos: number
+          relatorio: string
+          status: string
+        }
+        Insert: {
+          agente_host?: string | null
+          agente_versao?: string | null
+          duracao_ms?: number | null
+          finalizado_em?: string
+          id?: string
+          iniciado_em?: string
+          mensagem_erro?: string | null
+          registros_atualizados?: number
+          registros_inseridos?: number
+          registros_recebidos?: number
+          relatorio: string
+          status: string
+        }
+        Update: {
+          agente_host?: string | null
+          agente_versao?: string | null
+          duracao_ms?: number | null
+          finalizado_em?: string
+          id?: string
+          iniciado_em?: string
+          mensagem_erro?: string | null
+          registros_atualizados?: number
+          registros_inseridos?: number
+          registros_recebidos?: number
+          relatorio?: string
+          status?: string
+        }
+        Relationships: []
+      }
       spreadsheet_uploads: {
         Row: {
           file_name: string
@@ -235,6 +367,42 @@ export type Database = {
           file_path?: string
           id?: string
           uploaded_at?: string
+        }
+        Relationships: []
+      }
+      ssrs_config: {
+        Row: {
+          ativo: boolean
+          caminho_relatorio: string
+          created_at: string
+          id: string
+          intervalo_sync_segundos: number
+          observacoes: string | null
+          ssrs_url: string
+          ssrs_username: string | null
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          caminho_relatorio?: string
+          created_at?: string
+          id?: string
+          intervalo_sync_segundos?: number
+          observacoes?: string | null
+          ssrs_url: string
+          ssrs_username?: string | null
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          caminho_relatorio?: string
+          created_at?: string
+          id?: string
+          intervalo_sync_segundos?: number
+          observacoes?: string | null
+          ssrs_url?: string
+          ssrs_username?: string | null
+          updated_at?: string
         }
         Relationships: []
       }

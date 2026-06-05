@@ -1,1 +1,7 @@
 project_id = "wylcqazlxytrgsoaunni"
+
+[functions.ingest-mineops]
+verify_jwt = false
+
+[functions.agente-token-create]
+verify_jwt = true
