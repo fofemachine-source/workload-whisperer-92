@@ -7,6 +7,8 @@ import { useExcelLive } from "@/context/ExcelLiveContext";
 import { ExcelUploadButton } from "@/components/dashboard/ExcelUploadButton";
 import { MicrosoftLoginButton } from "@/components/microsoft/MicrosoftLoginButton";
 import { toast } from "sonner";
+import { Link } from "react-router-dom";
+import { Settings } from "lucide-react";
 
 export function CommandTopBar() {
   const { lastUpdated, metricsLoading, workbookLoading, source, localFile, refresh, refreshWorkbook, debug, file, worksheets, cloudSyncing, lastCloudUpload, lastSyncMs, lastSyncAt } = useExcelLive();
@@ -102,6 +104,12 @@ export function CommandTopBar() {
           </Button>
           <MicrosoftLoginButton />
           <ExcelUploadButton />
+          <Link to="/admin/integracao">
+            <Button variant="outline" size="sm" className="gap-2 border-mining-yellow/40 text-mining-yellow hover:bg-mining-yellow/10">
+              <Settings className="h-4 w-4" />
+              SSRS
+            </Button>
+          </Link>
         </div>
       </div>
 
