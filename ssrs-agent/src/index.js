@@ -14,7 +14,7 @@ app.get('/health', async (req, res) => {
   res.json({
     status: "online",
     ssrs: stats.ssrsStatus,
-    supabase: stats.supabaseStatus,
+    ingest: stats.ingestStatus,
     last_sync: stats.lastSyncDate,
     records_processed: stats.lastSyncProcessed
   });
@@ -22,7 +22,12 @@ app.get('/health', async (req, res) => {
 
 app.listen(PORT, () => {
   logger.info(`Agente SSRS rodando na porta ${PORT}`);
-  
+
+  if (!process.env.INGEST_URL || !process.env.AGENT_TOKEN) {
+    logger.error("INGEST_URL e AGENT_TOKEN são obrigatórios no .env");
+    process.exit(1);
+  }
+
   const minutes = Math.floor(SYNC_INTERVAL / 60);
   const cronExpression = `*/${minutes > 0 ? minutes : 1} * * * *`;
   
