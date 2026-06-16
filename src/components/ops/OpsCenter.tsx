@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import {
   Bar,
@@ -12,12 +12,19 @@ import {
   Line,
   ComposedChart,
 } from "recharts";
-import { useExcelLive } from "@/context/ExcelLiveContext";
-import { FLEET_SIZE, FLEET_TOTAL } from "@/services/excelParser";
+import { useProducaoDiaria, type ProducaoDiariaRow } from "@/hooks/useProducaoDiaria";
 import { AnimatedTruck } from "./AnimatedTruck";
 import logoUM from "@/assets/logo-um.png";
 import { AnimatedExcavator } from "./AnimatedExcavator";
-import { supportsDateTimeFormatParts } from "@/lib/browserSupport";
+
+// Frota operacional fixa (antes vinha de excelParser).
+const FLEET_SIZE = {
+  "Komatsu 785": 25,
+  "Komatsu 730": 15,
+  EX2500: 3,
+  EX1200: 5,
+} as const;
+const FLEET_TOTAL = 48;
 
 const NEON = "#22c55e";
 const NEON_DIM = "#15803d";
