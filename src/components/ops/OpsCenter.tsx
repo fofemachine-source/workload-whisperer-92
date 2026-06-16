@@ -12,12 +12,8 @@ import {
   Line,
   ComposedChart,
 } from "recharts";
-import { Calendar, RefreshCw } from "lucide-react";
 import { useExcelLive } from "@/context/ExcelLiveContext";
 import { FLEET_SIZE, FLEET_TOTAL } from "@/services/excelParser";
-import { ExcelUploadButton } from "@/components/dashboard/ExcelUploadButton";
-import { MicrosoftLoginButton } from "@/components/microsoft/MicrosoftLoginButton";
-import { Button } from "@/components/ui/button";
 import { AnimatedTruck } from "./AnimatedTruck";
 import logoUM from "@/assets/logo-um.png";
 import { AnimatedExcavator } from "./AnimatedExcavator";
@@ -164,20 +160,9 @@ export function OpsCenter() {
     refreshWorkbook,
     metricsLoading,
     workbookLoading,
-    workbookAuthReady,
-    workbookHasLoadedOnce,
-    file,
-    worksheets,
-    workbookError,
-    metricsError,
-    localFile,
-    lastCloudUpload,
   } = useExcelLive();
   const clock = useClock();
   const syncing = metricsLoading || workbookLoading;
-  const syncError = workbookError || metricsError;
-  const waitingForAuth = source === "none" && workbookLoading && !workbookAuthReady;
-  const waitingForOfficialRead = source === "none" && workbookLoading && workbookAuthReady && !workbookHasLoadedOnce;
   const operationNow = useMemo(() => {
     if (!supportsDateTimeFormatParts()) {
       const localNow = new Date(clock.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
@@ -220,23 +205,6 @@ export function OpsCenter() {
     }
     return lastUpdated?.toLocaleDateString("pt-BR") ?? "—";
   }, [summary?.dataPlanilha, lastUpdated]);
-  const syncStatus: "error" | "syncing" | "connected" | "idle" = syncError
-    ? "error"
-    : syncing
-      ? "syncing"
-      : source === "onedrive"
-        ? "connected"
-        : "idle";
-  const syncStatusMeta = {
-    connected: { label: "ONEDRIVE CONECTADO", box: "border-mining-green/40 text-mining-green", dot: "bg-mining-green" },
-    syncing: { label: "ATUALIZANDO…", box: "border-mining-yellow/40 text-mining-yellow", dot: "bg-mining-yellow" },
-    error: { label: "ERRO DE SINCRONIZAÇÃO", box: "border-mining-red/40 text-mining-red", dot: "bg-mining-red" },
-    idle: {
-      label: "AGUARDANDO ONEDRIVE",
-      box: "border-muted-foreground/30 text-muted-foreground",
-      dot: "bg-muted-foreground",
-    },
-  }[syncStatus];
   const metasFixas = {
     mensal: 1_351_130,
     diaria: 43_584,
@@ -250,10 +218,6 @@ export function OpsCenter() {
     [],
   );
   const projectedMinaShown = recomputeProjectedForToday(summary?.acumuladoDia || 0, summary?.projetadoDia || 0);
-  const handleManualRefresh = async () => {
-    await refreshWorkbook();
-    await refresh();
-  };
 
   const acumuladoRetaludShown = summary?.acumuladoRetalud || 0;
   const projetoRetaludBase = summary?.projetadoRetalud || acumuladoRetaludShown;
@@ -491,55 +455,6 @@ export function OpsCenter() {
       <div className="absolute inset-0 pointer-events-none ops-grid-bg opacity-30" />
       <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(800px_400px_at_20%_0%,hsl(var(--mining-green)/0.12),transparent),radial-gradient(700px_400px_at_80%_100%,hsl(var(--mining-blue)/0.10),transparent)]" />
 
-      {/* TOP BAR */}
-      <header className="relative z-10 flex items-center justify-between px-3 py-0.5 border-b border-mining-green/20 bg-black/60 backdrop-blur-sm">
-        <div className="flex items-center gap-2">
-          <img src={logoUM} alt="Logo U&M" className="h-5 w-auto object-contain" />
-        </div>
-        <h1 className="text-[11px] md:text-xs font-bold tracking-[0.2em] text-foreground text-glow-neon">
-          PAINEL DE PRODUÇÃO OPERACIONAL
-        </h1>
-        <div className="flex items-center gap-2 text-[9px] font-mono leading-tight flex-wrap justify-end">
-          <div className="flex items-center gap-1.5 text-foreground">
-            <Calendar className="h-3 w-3 text-mining-green" />
-            <div>
-              <p>{clock.toLocaleDateString("pt-BR")}</p>
-              <p className="text-mining-green">{clock.toLocaleTimeString("pt-BR")}</p>
-            </div>
-          </div>
-          <div className="border-l border-mining-green/20 pl-2">
-            <p className="text-muted-foreground">TURNO ATUAL</p>
-            <p className="text-mining-green font-bold">DIA</p>
-          </div>
-          <div className="border-l border-mining-green/20 pl-2 flex items-center gap-1.5">
-            <RefreshCw
-              className={`h-3 w-3 text-mining-green ${syncing ? "animate-spin" : ""}`}
-              style={syncing ? undefined : { animationDuration: "4s" }}
-            />
-            <div>
-              <p className="text-muted-foreground">ÚLTIMO REFRESH</p>
-              <p className="text-mining-green">{lastUpdated ? lastUpdated.toLocaleTimeString("pt-BR") : "—"}</p>
-              {source === "onedrive" && file && (
-                <p className="text-[8px] text-muted-foreground truncate max-w-[140px]">
-                  {file.name} · {worksheets.length} aba(s)
-                </p>
-              )}
-            </div>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleManualRefresh}
-            disabled={syncing}
-            className="gap-1.5 border-mining-green/40 text-mining-green hover:bg-mining-green/10 h-6 px-2 text-[10px]"
-          >
-            <RefreshCw className={`h-3 w-3 ${syncing ? "animate-spin" : ""}`} />
-            Atualizar agora
-          </Button>
-          <MicrosoftLoginButton />
-          <ExcelUploadButton />
-        </div>
-      </header>
 
       <main className="relative z-10 p-3 md:p-4 grid grid-cols-12 gap-3">
         {/* LINHA 1: 4 cards principais */}
