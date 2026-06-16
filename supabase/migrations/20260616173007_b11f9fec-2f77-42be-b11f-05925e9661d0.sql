@@ -1,0 +1,1 @@
+CREATE POLICY "Deny all anon access" ON public.spreadsheet_uploads AS RESTRICTIVE FOR ALL TO anon USING (false) WITH CHECK (false);
