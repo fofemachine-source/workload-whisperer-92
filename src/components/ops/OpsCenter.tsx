@@ -310,14 +310,14 @@ export function OpsCenter() {
               <div className="flex items-center justify-between gap-2">
                 <span className="text-xl font-mono text-muted-foreground uppercase tracking-wider">ACUMULADO DIA:</span>
                 <span className="text-2xl font-mono font-bold text-mining-blue">
-                  {fmt(summary?.acumuladoDia || producaoTurno)}
+                  {fmt(acumuladoDiaMina)}
                 </span>
               </div>
               <div className="h-px bg-mining-green/15" />
               <div className="flex items-center justify-between gap-2">
                 <span className="text-xl font-mono text-muted-foreground uppercase tracking-wider">PROJETADO DIA:</span>
                 <span className="text-2xl font-mono font-bold text-mining-green text-glow-neon">
-                  {fmt(projectedMinaShown || summary?.acumuladoDia || producaoTurno)}
+                  {fmt(projetadoDiaMina)}
                 </span>
               </div>
             </div>
@@ -328,13 +328,13 @@ export function OpsCenter() {
             <div className="space-y-2 flex-1 flex flex-col justify-center">
               <div className="flex items-center justify-between gap-2">
                 <span className="text-xl font-mono text-muted-foreground uppercase tracking-wider">ACUMULADO DIA:</span>
-                <span className="text-2xl font-mono font-bold text-mining-blue">{fmt(acumuladoRetaludShown)}</span>
+                <span className="text-2xl font-mono font-bold text-mining-blue">{fmt(acumuladoDiaRetalud)}</span>
               </div>
               <div className="h-px bg-mining-green/15" />
               <div className="flex items-center justify-between gap-2">
                 <span className="text-xl font-mono text-muted-foreground uppercase tracking-wider">PROJETADO DIA:</span>
                 <span className="text-2xl font-mono font-bold text-mining-green text-glow-neon">
-                  {fmt(projetadoRetaludShown)}
+                  {fmt(projetadoDiaRetalud)}
                 </span>
               </div>
             </div>
