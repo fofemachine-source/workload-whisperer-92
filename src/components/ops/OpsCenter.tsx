@@ -155,306 +155,145 @@ function FleetRow({
 }
 
 export function OpsCenter() {
-  const {
-    isAuth,
-    summary,
-    rows,
-    fleets: fleetsAgg,
-    areas,
-    lastUpdated,
-    source,
-    refresh,
-    refreshWorkbook,
-    metricsLoading,
-    workbookLoading,
-  } = useExcelLive();
+  // ============================================================
+  // FONTE ÚNICA DE DADOS: Supabase producao_diaria
+  // (populada pelo agente SSRS via Edge Function ingest-mineops)
+  // ============================================================
+  const { data: producao, isLoading, error } = useProducaoDiaria(35);
   const clock = useClock();
-  const syncing = metricsLoading || workbookLoading;
-  const operationNow = useMemo(() => {
-    if (!supportsDateTimeFormatParts()) {
-      const localNow = new Date(clock.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
-      return {
-        todayKey: `${localNow.getFullYear()}-${String(localNow.getMonth() + 1).padStart(2, "0")}-${String(localNow.getDate()).padStart(2, "0")}`,
-        currentHour: localNow.getHours(),
-      };
-    }
+
+  // Hard reload a cada 60s (TV Dashboard)
+  useEffect(() => {
+    const hardRefresh = setInterval(() => window.location.reload(), 60000);
+    return () => clearInterval(hardRefresh);
+  }, []);
+
+  // Chave do dia local (America/Sao_Paulo) no formato YYYY-MM-DD
+  const todayKey = useMemo(() => {
     const parts = new Intl.DateTimeFormat("en-CA", {
       timeZone: "America/Sao_Paulo",
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
-      hour: "2-digit",
-      hour12: false,
     }).formatToParts(clock);
-    const get = (type: string) => parts.find((part) => part.type === type)?.value || "00";
-    return {
-      todayKey: `${get("year")}-${get("month")}-${get("day")}`,
-      currentHour: Number(get("hour")),
-    };
+    const get = (t: string) => parts.find((p) => p.type === t)?.value || "00";
+    return `${get("year")}-${get("month")}-${get("day")}`;
   }, [clock]);
-  const todayKey = operationNow.todayKey;
-  // Detecta se a planilha ativa não é de hoje. Prioriza a célula DATA: da aba
-  // PRODUÇÃO EH (verdade da operação); cai pra parsedAt se a célula não existir.
-  const planilhaDesatualizada = useMemo(() => {
-    if (summary?.dataPlanilha) return summary.dataPlanilha !== todayKey;
-    const today = new Date();
-    if (!lastUpdated) return false;
-    return (
-      lastUpdated.getFullYear() !== today.getFullYear() ||
-      lastUpdated.getMonth() !== today.getMonth() ||
-      lastUpdated.getDate() !== today.getDate()
-    );
-  }, [summary?.dataPlanilha, lastUpdated, clock]);
-  const dataPlanilhaLabel = useMemo(() => {
-    if (summary?.dataPlanilha) {
-      const [y, m, d] = summary.dataPlanilha.split("-");
-      return `${d}/${m}/${y}`;
-    }
-    return lastUpdated?.toLocaleDateString("pt-BR") ?? "—";
-  }, [summary?.dataPlanilha, lastUpdated]);
-  const metasFixas = {
-    mensal: 1_351_130,
-    diaria: 43_584,
-    horaria: 1_816,
-  };
-  const recomputeProjectedForToday = useCallback(
-    (acumulado: number, fallback: number) => {
-      if (fallback > 0) return fallback;
-      return acumulado;
-    },
-    [],
-  );
-  const projectedMinaShown = recomputeProjectedForToday(summary?.acumuladoDia || 0, summary?.projetadoDia || 0);
+  const monthKey = todayKey.slice(0, 7);
 
-  const acumuladoRetaludShown = summary?.acumuladoRetalud || 0;
-  const projetoRetaludBase = summary?.projetadoRetalud || acumuladoRetaludShown;
-  const projetadoRetaludShown = recomputeProjectedForToday(acumuladoRetaludShown, projetoRetaludBase);
-  const baseMetaMina = areas?.Mina?.meta || projectedMinaShown || 0;
-  const baseMetaRetalud = areas?.Retaludamento?.meta || projetadoRetaludShown || 0;
-  void baseMetaMina;
-  void baseMetaRetalud;
-  // Metas mensais operacionais (mai/2026).
+  const rows: ProducaoDiariaRow[] = producao ?? [];
+
+  // ----- Agregações a partir de producao_diaria -----
+  // Produção do dia (todos os turnos de hoje)
+  const rowsHoje = rows.filter((r) => r.data_referencia === todayKey);
+  const acumuladoDiaMina = rowsHoje.reduce((s, r) => s + Number(r.toneladas_total || 0), 0);
+
+  // Projetado do dia: por enquanto = acumulado (campo dedicado ainda não existe no schema)
+  const projetadoDiaMina = acumuladoDiaMina;
+
+  // Retaludamento — schema atual não separa Mina vs Retaludamento.
+  // TODO: quando o agente SSRS enviar essa segregação, mapear aqui.
+  const acumuladoDiaRetalud = 0;
+  const projetadoDiaRetalud = 0;
+
+  // Produção mensal = SUM(toneladas_total) do mês corrente
+  const rowsMes = rows.filter((r) => (r.data_referencia || "").startsWith(monthKey));
+  const producaoMensal = rowsMes.reduce((s, r) => s + Number(r.toneladas_total || 0), 0);
+
+  // T/H — média ponderada de producao_hora pelo volume.
+  // (não há coluna horas_trabalhadas; producao_hora já vem como t/h por registro.)
+  const tonH = useMemo(() => {
+    const valid = rowsMes.filter((r) => Number(r.producao_hora || 0) > 0);
+    if (valid.length === 0) return 0;
+    const numer = valid.reduce(
+      (s, r) => s + Number(r.producao_hora || 0) * Number(r.toneladas_total || 0),
+      0,
+    );
+    const denom = valid.reduce((s, r) => s + Number(r.toneladas_total || 0), 0);
+    return denom > 0 ? numer / denom : valid.reduce((s, r) => s + Number(r.producao_hora || 0), 0) / valid.length;
+  }, [rowsMes]);
+
+  // ----- Metas fixas operacionais -----
+  const metaTonH = 11500;
   const metaMensalMina = 1_351_130;
   const metaMensalRetalud = 1_241_297;
-  const metaMensalTotal = metaMensalMina + metaMensalRetalud;
-  const shareMetaMina = metaMensalTotal > 0 ? (metaMensalMina / metaMensalTotal) * 100 : 0;
-  const shareMetaRetalud = metaMensalTotal > 0 ? (metaMensalRetalud / metaMensalTotal) * 100 : 0;
-
-  // Auto refresh OneDrive a cada 30s
-  useEffect(() => {
-    if (source !== "onedrive") return;
-
-    let cancelled = false;
-    let inFlight = false;
-    let timeoutId: ReturnType<typeof setTimeout> | null = null;
-
-    // Promise com timeout — evita ficar pendurada se o OneDrive engasgar
-    const withTimeout = <T,>(p: Promise<T>, ms: number): Promise<T> =>
-      new Promise((resolve, reject) => {
-        const t = setTimeout(() => reject(new Error(`timeout ${ms}ms`)), ms);
-        p.then(
-          (v) => {
-            clearTimeout(t);
-            resolve(v);
-          },
-          (e) => {
-            clearTimeout(t);
-            reject(e);
-          },
-        );
-      });
-
-    // Retry com backoff exponencial (1s → 2s → 4s, máx 3 tentativas)
-    const runOnce = async () => {
-      const delays = [0, 1000, 2000, 4000];
-      for (let attempt = 0; attempt < delays.length; attempt++) {
-        if (cancelled) return;
-        if (delays[attempt]) await new Promise((r) => setTimeout(r, delays[attempt]));
-        try {
-          await withTimeout(refreshWorkbook(), 20000);
-          if (cancelled) return;
-          await withTimeout(refresh(), 20000);
-          console.log(
-            `[AUTO REFRESH OK] ${new Date().toLocaleTimeString()}${attempt ? ` (retry ${attempt})` : ""}`,
-          );
-          return;
-        } catch (err) {
-          console.warn(`[AUTO REFRESH] tentativa ${attempt + 1} falhou:`, err);
-          if (attempt === delays.length - 1) {
-            console.error("[AUTO REFRESH ERROR] desistindo até o próximo ciclo");
-          }
-        }
-      }
-    };
-
-    // Anti-sobreposição: nunca dispara um refresh enquanto outro está rodando
-    const tick = async () => {
-      if (inFlight || cancelled) return;
-      inFlight = true;
-      try {
-        await runOnce();
-      } finally {
-        inFlight = false;
-        if (!cancelled) timeoutId = setTimeout(tick, 30000);
-      }
-    };
-
-    tick();
-
-    return () => {
-      cancelled = true;
-      if (timeoutId) clearTimeout(timeoutId);
-    };
-  }, [source, refresh, refreshWorkbook]);
-
-  // HARD RELOAD (TV Dashboard) - Força recarregar a página a cada 60s
-  useEffect(() => {
-    const hardRefresh = setInterval(() => {
-      window.location.reload();
-    }, 60000);
-    return () => clearInterval(hardRefresh);
-  }, []);
-
-  const producaoTurno = summary?.acumuladoDia || 0;
-  const metaTurno = metasFixas.diaria;
-  const aderTurno = metaTurno > 0 ? (producaoTurno / metaTurno) * 100 : 0;
-
-  // PRODUÇÃO MENSAL (Regra Definitiva HE)
-  const producaoMensal = summary?.producaoMensal || 0;
-  const metaMensal = summary?.metaMensal || 2592427;
+  const metaMensal = metaMensalMina + metaMensalRetalud;
   const aderMensal = metaMensal > 0 ? (producaoMensal / metaMensal) * 100 : 0;
+  const shareMetaMina = (metaMensalMina / metaMensal) * 100;
+  const shareMetaRetalud = (metaMensalRetalud / metaMensal) * 100;
 
-  // T/H (Regra Definitiva HE)
-  const valorTotalHT = summary?.totalHT;
-  const totalHT = Number(valorTotalHT || 0);
+  // ----- Série horária (Toneladas por Hora) -----
+  // Sem timestamp por hora no schema: usamos os últimos 24 registros do mês
+  // ordenados por data, mostrando producao_hora de cada um.
+  const tonHSeries = useMemo(() => {
+    const ordered = [...rowsMes]
+      .sort((a, b) => (a.data_referencia || "").localeCompare(b.data_referencia || ""))
+      .slice(-24);
+    if (ordered.length === 0) {
+      return Array.from({ length: 24 }, (_, h) => ({
+        hora: `${String(h).padStart(2, "0")}:00`,
+        tonH: 0,
+        meta: metaTonH,
+      }));
+    }
+    return ordered.map((r, i) => ({
+      hora: r.turno ? `${r.data_referencia?.slice(8)}/${r.turno}` : `${String(i).padStart(2, "0")}`,
+      tonH: Math.round(Number(r.producao_hora || 0)),
+      meta: metaTonH,
+    }));
+  }, [rowsMes]);
 
-  const tonH =
-    totalHT > 0
-      ? producaoMensal / totalHT
-      : 0;
-  const metaTonH = 11500;
-
-  const opEscav = summary?.totalEscavadeiras || 8;
-  const opCam = summary?.totalCaminhoes || 35;
-  const opTotal = opEscav + opCam;
-  const pctOp = (opTotal / FLEET_TOTAL) * 100;
-
-  // Series simuladas/derivadas para os gráficos
+  // ----- Série de produção do turno (acumulada) -----
   const productionSeries = useMemo(() => {
     const hours = Array.from({ length: 13 }, (_, i) => i * 2);
-    let acc = 0;
-    const stepReal = producaoTurno / 12;
+    const stepReal = acumuladoDiaMina / 12;
+    const metaTurno = 43_584;
     const stepMeta = metaTurno / 12;
-    const prodHD785 = fleetsAgg?.["Komatsu 785"]?.totalProducao || producaoTurno * 0.55;
-    const stepHD785 = prodHD785 / 12;
+    let acc = 0;
     return hours.map((h, i) => {
       acc += stepReal;
       return {
         hora: `${String(h).padStart(2, "0")}:00`,
         realizado: i === 0 ? 0 : Math.round(acc),
         meta: Math.round(stepMeta * i),
-        hd785: Math.round(stepHD785 * i),
       };
     });
-  }, [producaoTurno, metaTurno, fleetsAgg]);
+  }, [acumuladoDiaMina]);
 
-  const tonHSeries = useMemo(() => {
-    const real = summary?.hourlySeries;
-    // Meta hora-a-hora = projetado / 24 (fallback metaTonH)
-    const projetado = projectedMinaShown || 0;
-    const metaHora = projetado > 0 ? projetado / 24 : metaTonH;
-    if (real && real.length) {
-      return real.map((p) => ({
-        hora: p.hora,
-        tonH: Math.round(p.tonH),
-        meta: Math.round(metaHora),
-      }));
-    }
-    // Fallback: 24h vazias (sem dados)
-    return Array.from({ length: 24 }, (_, h) => ({
-      hora: `${String(h).padStart(2, "0")}:00`,
-      tonH: 0,
-      meta: Math.round(metaHora),
-    }));
-  }, [summary, metaTonH, projectedMinaShown]);
+  // ----- Ranking de equipamentos -----
+  // producao_diaria não traz produtividade por equipamento. Mostra placeholder
+  // até o agente SSRS enviar essa granularidade.
+  const ranking = useMemo(
+    () => [
+      { pos: 1, name: "—", value: 0 },
+      { pos: 2, name: "—", value: 0 },
+      { pos: 3, name: "—", value: 0 },
+      { pos: 4, name: "—", value: 0 },
+      { pos: 5, name: "—", value: 0 },
+      { pos: 6, name: "—", value: 0 },
+      { pos: 7, name: "—", value: 0 },
+      { pos: 8, name: "—", value: 0 },
+    ],
+    [],
+  );
 
-  const tonHCheck = useMemo(() => {
-    const real = summary?.hourlySeries;
-    if (!real || !real.length) return null;
-    const soma = real.reduce((a, p) => a + (p.tonH || 0), 0);
-    const total = summary?.acumuladoDia || 0;
-    if (!total) return null;
-    const diff = soma - total;
-    const pct = (Math.abs(diff) / total) * 100;
-    return { soma: Math.round(soma), total: Math.round(total), diff: Math.round(diff), pct, ok: pct < 1 };
-  }, [summary]);
-
-  // Painel sempre renderiza. A conexão Microsoft/OneDrive continua disponível
-  // pelos botões do topo, mas não bloqueia mais a visualização do dashboard.
-
-  const ranking = useMemo(() => {
-    // 1) Preferir ranking calculado direto da aba PRODUÇÃO EH (fonte oficial).
-    const eh = summary?.ehRanking ?? [];
-    if (eh.length >= 1) {
-      return eh.slice(0, 8).map((r, i) => ({ pos: i + 1, name: r.equipamento, value: r.tph }));
-    }
-    const all = (rows || []).filter((r) => r.category === "escavadeira" && r.produtividade > 0);
-    // Preferir dados da aba "PORTAL Novo" quando disponível
-    const portal = all.filter((r) => /portal/i.test(r.source || ""));
-    const escav = portal.length >= 4 ? portal : all;
-    if (escav.length >= 4) {
-      return escav
-        .sort((a, b) => b.produtividade - a.produtividade)
-        .slice(0, 8)
-        .map((r, i) => ({ pos: i + 1, name: r.equipamento, value: r.produtividade }));
-    }
-    return [
-      { pos: 1, name: "EX2500-01", value: 7150 },
-      { pos: 2, name: "EX2500-02", value: 6420 },
-      { pos: 3, name: "EX1200-02", value: 5180 },
-      { pos: 4, name: "EX1200-03", value: 4750 },
-      { pos: 5, name: "EX1200-01", value: 4320 },
-      { pos: 6, name: "EX1200-04", value: 4180 },
-      { pos: 7, name: "EX1200-05", value: 3980 },
-      { pos: 8, name: "EX2500-03", value: 3760 },
-    ];
-  }, [rows, summary]);
-
-  // Frotas (DF/UT/produção por modelo) — vindas da planilha quando disponível
+  // ----- Frotas (DF/UT) -----
+  // DF/UT por modelo ainda não vem desagregado em producao_diaria.
+  // Mostramos o DF/UT geral do registro mais recente para todas as frotas.
+  const latest = rows[0];
+  const dfGeral = Number(latest?.disponibilidade_fisica_df || 0);
+  const utGeral = Number(latest?.utilizacao_ut || 0);
   const fleets = [
-    {
-      key: "EX1200" as const,
-      name: "EX1200",
-      icon: "ex" as const,
-      count: FLEET_SIZE.EX1200,
-      df: fleetsAgg?.EX1200.df ?? 87.2,
-      ut: fleetsAgg?.EX1200.ut ?? 79.2,
-    },
-    {
-      key: "EX2500" as const,
-      name: "EX2500",
-      icon: "ex" as const,
-      count: FLEET_SIZE.EX2500,
-      df: fleetsAgg?.EX2500.df ?? 88.1,
-      ut: fleetsAgg?.EX2500.ut ?? 76.5,
-    },
-    {
-      key: "Komatsu 785" as const,
-      name: "CAMINHÕES 785",
-      icon: "truck" as const,
-      count: FLEET_SIZE["Komatsu 785"],
-      df: fleetsAgg?.["Komatsu 785"].df ?? 88.4,
-      ut: fleetsAgg?.["Komatsu 785"].ut ?? 76.8,
-    },
-    {
-      key: "Komatsu 730" as const,
-      name: "CAMINHÕES 730",
-      icon: "truck" as const,
-      count: FLEET_SIZE["Komatsu 730"],
-      df: fleetsAgg?.["Komatsu 730"].df ?? 86.9,
-      ut: fleetsAgg?.["Komatsu 730"].ut ?? 79.5,
-    },
+    { key: "EX1200", name: "EX1200", icon: "ex" as const, count: FLEET_SIZE.EX1200, df: dfGeral, ut: utGeral },
+    { key: "EX2500", name: "EX2500", icon: "ex" as const, count: FLEET_SIZE.EX2500, df: dfGeral, ut: utGeral },
+    { key: "K785", name: "CAMINHÕES 785", icon: "truck" as const, count: FLEET_SIZE["Komatsu 785"], df: dfGeral, ut: utGeral },
+    { key: "K730", name: "CAMINHÕES 730", icon: "truck" as const, count: FLEET_SIZE["Komatsu 730"], df: dfGeral, ut: utGeral },
   ];
+
+  // Logs úteis em produção
+  if (error) console.error("[OpsCenter] erro producao_diaria:", error);
+  void isLoading;
+  void FLEET_TOTAL;
 
   return (
     <div className="min-h-screen bg-black text-foreground relative overflow-hidden">
