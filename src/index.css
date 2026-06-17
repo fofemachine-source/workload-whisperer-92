@@ -184,9 +184,12 @@
    em Smart TVs com GPU fraca.
    ============================================================ */
 html.tv-mode .animate-truck-drive,
+html.tv-mode .animate-footer-truck-drive,
 html.tv-mode .animate-truck-bounce,
 html.tv-mode .animate-truck-roundtrip,
+html.tv-mode .animate-truck-move,
 html.tv-mode .animate-excavator-dig,
+html.tv-mode .animate-excavator-work,
 html.tv-mode .animate-wheel-spin,
 html.tv-mode .animate-excavator-arm,
 html.tv-mode .animate-radar,
