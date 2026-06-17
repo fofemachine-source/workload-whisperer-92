@@ -650,12 +650,12 @@ export function OpsCenter() {
               <AnimatedTruck className="w-24 h-14" color={YELLOW} />
             </div>
           </div>
-          <div className="absolute bottom-1 left-0 w-full animate-drive-footer" style={{ animationDuration: "28s", animationDelay: "-9s" }}>
+          <div className="absolute bottom-1 left-0 w-full animate-drive-footer" style={{ animationDelay: "-6s" }}>
             <div className="absolute left-0">
               <AnimatedTruck className="w-24 h-14" color="#fb923c" />
             </div>
           </div>
-          <div className="absolute bottom-1 left-0 w-full animate-drive-footer" style={{ animationDuration: "34s", animationDelay: "-17s" }}>
+          <div className="absolute bottom-1 left-0 w-full animate-drive-footer" style={{ animationDelay: "-12s" }}>
             <div className="absolute left-0">
               <AnimatedTruck className="w-24 h-14" color={NEON} />
             </div>
