@@ -11,6 +11,9 @@ import {
   ResponsiveContainer,
   Line,
   ComposedChart,
+  Cell,
+  LabelList,
+  ReferenceLine,
 } from "recharts";
 import { useProducaoDiaria, type ProducaoDiariaRow } from "@/hooks/useProducaoDiaria";
 import { useProducaoFrente, useProducaoEquipamento } from "@/hooks/useProducaoKpis";
