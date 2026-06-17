@@ -6,31 +6,17 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-interface ProducaoDiariaPayload {
-  data_referencia: string;
-  turno?: string | null;
-  toneladas_total?: number | null;
-  producao_hora?: number | null;
-  disponibilidade_fisica_df?: number | null;
-  utilizacao_ut?: number | null;
-  equipamentos_disponiveis?: number | null;
-  equipamentos_utilizados?: number | null;
-  carga_operando?: number | null;
-  transporte_operando?: number | null;
-  payload_bruto?: Record<string, unknown> | null;
-}
+const STATIC_TOKEN = "UEM_MINEOPS_2026";
+const REQUIRED_FIELDS = ["data_referencia", "turno", "relatorio_origem"] as const;
 
-interface IngestBody {
-  relatorio: string;
-  agente_versao?: string;
-  agente_host?: string;
-  registros: ProducaoDiariaPayload[];
-}
-
-async function sha256Hex(input: string): Promise<string> {
-  const data = new TextEncoder().encode(input);
-  const hash = await crypto.subtle.digest("SHA-256", data);
-  return Array.from(new Uint8Array(hash)).map((b) => b.toString(16).padStart(2, "0")).join("");
+function normalizeRecord(raw: Record<string, unknown>) {
+  const r: Record<string, unknown> = { ...raw };
+  // aceitar aliases vindos do agente SQL Server
+  if (r.total_de_toneladas != null && r.toneladas_total == null) {
+    r.toneladas_total = r.total_de_toneladas;
+  }
+  delete r.total_de_toneladas;
+  return r;
 }
 
 Deno.serve(async (req) => {
@@ -42,78 +28,147 @@ Deno.serve(async (req) => {
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
   );
 
-  try {
-    const authHeader = req.headers.get("authorization") || req.headers.get("x-agent-token") || "";
-    const token = authHeader.replace(/^Bearer\s+/i, "").trim();
-    if (!token) {
-      return new Response(JSON.stringify({ error: "Token ausente" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
-    const tokenHash = await sha256Hex(token);
-    const { data: tokenRow, error: tokenErr } = await supabase
-      .from("agente_tokens")
-      .select("id, ativo, revogado_em")
-      .eq("token_hash", tokenHash)
-      .maybeSingle();
-    if (tokenErr || !tokenRow || !tokenRow.ativo || tokenRow.revogado_em) {
-      return new Response(JSON.stringify({ error: "Token inválido ou revogado" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
+  const json = (status: number, body: unknown) =>
+    new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
-    const body = (await req.json()) as IngestBody;
-    if (!body?.relatorio || !Array.isArray(body.registros)) {
-      return new Response(JSON.stringify({ error: "Payload inválido" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
-
-    // Upsert
-    let inseridos = 0;
-    let atualizados = 0;
-    let erro: string | null = null;
-
-    if (body.registros.length > 0) {
-      const rows = body.registros.map((r) => ({
-        ...r,
-        relatorio_origem: body.relatorio,
-        atualizado_em: new Date().toISOString(),
-      }));
-      const { error: upErr, count } = await supabase
-        .from("producao_diaria")
-        .upsert(rows, { onConflict: "data_referencia,turno,relatorio_origem", count: "exact" });
-      if (upErr) {
-        erro = upErr.message;
-      } else {
-        atualizados = count ?? rows.length;
-        inseridos = rows.length;
-      }
-    }
-
-    await supabase.from("agente_tokens").update({ ultimo_uso_em: new Date().toISOString() }).eq("id", tokenRow.id);
-
+  async function logSync(params: {
+    relatorio: string;
+    status: "sucesso" | "erro" | "parcial";
+    recebidos: number;
+    inseridos?: number;
+    atualizados?: number;
+    erro?: string | null;
+    agente_versao?: string | null;
+    agente_host?: string | null;
+  }) {
     await supabase.from("sincronizacao_ssrs").insert({
-      relatorio: body.relatorio,
-      status: erro ? "erro" : "sucesso",
-      registros_recebidos: body.registros.length,
-      registros_inseridos: inseridos,
-      registros_atualizados: atualizados,
+      relatorio: params.relatorio,
+      status: params.status,
+      registros_recebidos: params.recebidos,
+      registros_inseridos: params.inseridos ?? 0,
+      registros_atualizados: params.atualizados ?? 0,
       duracao_ms: Date.now() - startedAt,
-      mensagem_erro: erro,
-      agente_versao: body.agente_versao ?? null,
-      agente_host: body.agente_host ?? null,
-      finalizado_em: new Date().toISOString(),
-    });
-
-    if (erro) {
-      return new Response(JSON.stringify({ ok: false, erro }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
-    return new Response(JSON.stringify({ ok: true, recebidos: body.registros.length }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-  } catch (e) {
-    const msg = e instanceof Error ? e.message : String(e);
-    await supabase.from("sincronizacao_ssrs").insert({
-      relatorio: "desconhecido",
-      status: "erro",
-      registros_recebidos: 0,
-      duracao_ms: Date.now() - startedAt,
-      mensagem_erro: msg,
+      mensagem_erro: params.erro ?? null,
+      agente_versao: params.agente_versao ?? null,
+      agente_host: params.agente_host ?? null,
       finalizado_em: new Date().toISOString(),
     }).then(() => {}, () => {});
-    return new Response(JSON.stringify({ error: msg }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  }
+
+  try {
+    // 1) Token (Authorization: Bearer UEM_MINEOPS_2026)
+    const authHeader = req.headers.get("authorization") || req.headers.get("x-agent-token") || "";
+    const token = authHeader.replace(/^Bearer\s+/i, "").trim();
+    if (token !== STATIC_TOKEN) {
+      await logSync({ relatorio: "desconhecido", status: "erro", recebidos: 0, erro: "Token inválido" });
+      return json(401, { error: "Token inválido ou ausente. Use Authorization: Bearer <token>." });
+    }
+
+    // 2) Parse JSON
+    let raw: unknown;
+    try {
+      raw = await req.json();
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      await logSync({ relatorio: "desconhecido", status: "erro", recebidos: 0, erro: `JSON inválido: ${msg}` });
+      return json(400, { error: "JSON inválido", detalhe: msg });
+    }
+
+    // 3) Aceita ARRAY direto, { records: [...] } ou { registros: [...] }
+    let registros: Record<string, unknown>[] = [];
+    let relatorio = "sqlserver-agent";
+    let agenteVersao: string | null = null;
+    let agenteHost: string | null = null;
+
+    if (Array.isArray(raw)) {
+      registros = raw as Record<string, unknown>[];
+    } else if (raw && typeof raw === "object") {
+      const obj = raw as Record<string, unknown>;
+      if (Array.isArray(obj.records)) registros = obj.records as Record<string, unknown>[];
+      else if (Array.isArray(obj.registros)) registros = obj.registros as Record<string, unknown>[];
+      if (typeof obj.relatorio === "string") relatorio = obj.relatorio;
+      if (typeof obj.agente_versao === "string") agenteVersao = obj.agente_versao;
+      if (typeof obj.agente_host === "string") agenteHost = obj.agente_host;
+    }
+
+    if (!Array.isArray(registros) || registros.length === 0) {
+      await logSync({ relatorio, status: "erro", recebidos: 0, erro: "Payload sem registros" });
+      return json(400, {
+        error: "Payload sem registros",
+        detalhe: "Envie um array JSON, ou { records: [...] }, ou { registros: [...] }.",
+      });
+    }
+
+    // 4) Normaliza + valida campos obrigatórios
+    const normalizados: Record<string, unknown>[] = [];
+    const erros: Array<{ indice: number; faltando: string[]; registro: unknown }> = [];
+
+    registros.forEach((r, i) => {
+      if (!r || typeof r !== "object") {
+        erros.push({ indice: i, faltando: ["registro deve ser objeto"], registro: r });
+        return;
+      }
+      const n = normalizeRecord(r as Record<string, unknown>);
+      const faltando = REQUIRED_FIELDS.filter((f) => n[f] === undefined || n[f] === null || n[f] === "");
+      if (faltando.length > 0) {
+        erros.push({ indice: i, faltando: [...faltando], registro: r });
+        return;
+      }
+      n.atualizado_em = new Date().toISOString();
+      normalizados.push(n);
+    });
+
+    if (erros.length > 0) {
+      await logSync({
+        relatorio,
+        status: "erro",
+        recebidos: registros.length,
+        erro: `Campos obrigatórios ausentes em ${erros.length} registro(s)`,
+        agente_versao: agenteVersao,
+        agente_host: agenteHost,
+      });
+      return json(400, {
+        error: "Campos obrigatórios ausentes",
+        obrigatorios: REQUIRED_FIELDS,
+        registros_invalidos: erros,
+      });
+    }
+
+    // 5) Upsert
+    const { error: upErr, count } = await supabase
+      .from("producao_diaria")
+      .upsert(normalizados, { onConflict: "data_referencia,turno,relatorio_origem", count: "exact" });
+
+    if (upErr) {
+      await logSync({
+        relatorio,
+        status: "erro",
+        recebidos: registros.length,
+        erro: upErr.message,
+        agente_versao: agenteVersao,
+        agente_host: agenteHost,
+      });
+      return json(500, { error: "Falha ao gravar producao_diaria", detalhe: upErr.message });
+    }
+
+    await logSync({
+      relatorio,
+      status: "sucesso",
+      recebidos: registros.length,
+      inseridos: normalizados.length,
+      atualizados: count ?? normalizados.length,
+      agente_versao: agenteVersao,
+      agente_host: agenteHost,
+    });
+
+    return json(200, {
+      ok: true,
+      recebidos: registros.length,
+      gravados: normalizados.length,
+    });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    await logSync({ relatorio: "desconhecido", status: "erro", recebidos: 0, erro: msg });
+    return json(500, { error: "Erro interno", detalhe: msg });
   }
 });
