@@ -258,6 +258,9 @@ export function OpsCenter() {
       hora: r.turno ? `${r.data_referencia?.slice(8)}/${r.turno}` : `${String(i).padStart(2, "0")}`,
       tonH: Math.round(Number(r.producao_hora || 0)),
       meta: metaTonH,
+      data: r.data_referencia ?? "",
+      turno: r.turno ?? "",
+      toneladas: Math.round(Number(r.toneladas_total || 0)),
     }));
   }, [rowsMes]);
 
