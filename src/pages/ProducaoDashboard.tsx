@@ -206,7 +206,12 @@ export default function ProducaoDashboard() {
           </div>
         </header>
 
-        <FrentesBrutas />
+        <div style={{ border: "2px solid red", padding: 12 }}>
+          <p style={{ color: "red", fontWeight: "bold", fontFamily: "monospace" }}>
+            TESTE DE RENDERIZAÇÃO
+          </p>
+          <FrentesBrutas />
+        </div>
 
         <ValidacaoHexagonCard />
         <MonitorAtualizacao />
