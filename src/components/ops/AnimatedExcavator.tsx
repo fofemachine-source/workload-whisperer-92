@@ -1,4 +1,4 @@
-import excavatorImg from "@/assets/excavator.png";
+import excavatorImg from "@/assets/excavator_bright.png";
 
 interface Props {
   className?: string;
