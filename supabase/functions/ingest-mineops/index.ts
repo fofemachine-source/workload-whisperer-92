@@ -16,7 +16,38 @@ function normalizeRecord(raw: Record<string, unknown>) {
     r.toneladas_total = r.total_de_toneladas;
   }
   delete r.total_de_toneladas;
+  // aliases dos novos KPIs
+  const aliasMap: Record<string, string> = {
+    mina: "producao_mina",
+    retaludamento: "producao_retaludamento",
+    producao_acumulada_mes: "acumulado_mes",
+    acumulado_mensal: "acumulado_mes",
+    meta_dia: "meta_diaria",
+    meta_mes: "meta_mensal",
+    projecao: "projecao_turno",
+  };
+  for (const [from, to] of Object.entries(aliasMap)) {
+    if (r[from] != null && r[to] == null) r[to] = r[from];
+    delete r[from];
+  }
   return r;
+}
+
+// Colunas reconhecidas em producao_diaria (filtra extras como frentes/equipamentos)
+const COLUNAS_PRODUCAO = new Set([
+  "data_referencia", "turno", "relatorio_origem",
+  "toneladas_total", "producao_hora",
+  "disponibilidade_fisica_df", "utilizacao_ut",
+  "equipamentos_disponiveis", "equipamentos_utilizados",
+  "carga_operando", "transporte_operando",
+  "producao_mina", "producao_retaludamento",
+  "acumulado_mes", "meta_diaria", "meta_mensal", "projecao_turno",
+]);
+
+function pickProducao(r: Record<string, unknown>) {
+  const out: Record<string, unknown> = {};
+  for (const k of Object.keys(r)) if (COLUNAS_PRODUCAO.has(k)) out[k] = r[k];
+  return out;
 }
 
 Deno.serve(async (req) => {
@@ -134,9 +165,10 @@ Deno.serve(async (req) => {
     }
 
     // 5) Upsert
+    const producaoRows = normalizados.map(pickProducao);
     const { error: upErr, count } = await supabase
       .from("producao_diaria")
-      .upsert(normalizados, { onConflict: "data_referencia,turno,relatorio_origem", count: "exact" });
+      .upsert(producaoRows, { onConflict: "data_referencia,turno,relatorio_origem", count: "exact" });
 
     if (upErr) {
       await logSync({
@@ -148,6 +180,61 @@ Deno.serve(async (req) => {
         agente_host: agenteHost,
       });
       return json(500, { error: "Falha ao gravar producao_diaria", detalhe: upErr.message });
+    }
+
+    // 5b) Filhos: frentes (N4WN, N4WS, MORRO1, N5SUL, ...) e equipamentos (ranking EH)
+    const frentesRows: Record<string, unknown>[] = [];
+    const equipRows: Record<string, unknown>[] = [];
+    for (const n of normalizados) {
+      const ctx = {
+        data_referencia: n.data_referencia,
+        turno: n.turno,
+        relatorio_origem: n.relatorio_origem,
+      };
+      const frentes = (n.frentes ?? n.por_frente) as unknown;
+      if (Array.isArray(frentes)) {
+        for (const f of frentes as Record<string, unknown>[]) {
+          if (!f?.frente) continue;
+          frentesRows.push({
+            ...ctx,
+            frente: String(f.frente).toUpperCase(),
+            toneladas: Number(f.toneladas ?? f.total_toneladas ?? 0),
+            producao_hora: f.producao_hora != null ? Number(f.producao_hora) : null,
+          });
+        }
+      }
+      const equips = (n.equipamentos ?? n.ranking_eh) as unknown;
+      if (Array.isArray(equips)) {
+        for (const e of equips as Record<string, unknown>[]) {
+          if (!e?.equipamento) continue;
+          equipRows.push({
+            ...ctx,
+            equipamento: String(e.equipamento),
+            tipo: (e.tipo as string) ?? null,
+            toneladas: Number(e.toneladas ?? 0),
+            producao_hora: e.producao_hora != null ? Number(e.producao_hora) : null,
+            df: e.df != null ? Number(e.df) : null,
+            ut: e.ut != null ? Number(e.ut) : null,
+          });
+        }
+      }
+    }
+
+    let frentesGravadas = 0;
+    let equipGravados = 0;
+    if (frentesRows.length > 0) {
+      const { error: fErr, count: fCount } = await supabase
+        .from("producao_frente")
+        .upsert(frentesRows, { onConflict: "data_referencia,turno,relatorio_origem,frente", count: "exact" });
+      if (fErr) console.error("[ingest] frentes erro:", fErr.message);
+      else frentesGravadas = fCount ?? frentesRows.length;
+    }
+    if (equipRows.length > 0) {
+      const { error: eErr, count: eCount } = await supabase
+        .from("producao_equipamento")
+        .upsert(equipRows, { onConflict: "data_referencia,turno,relatorio_origem,equipamento", count: "exact" });
+      if (eErr) console.error("[ingest] equipamentos erro:", eErr.message);
+      else equipGravados = eCount ?? equipRows.length;
     }
 
     await logSync({
@@ -164,6 +251,8 @@ Deno.serve(async (req) => {
       ok: true,
       recebidos: registros.length,
       gravados: normalizados.length,
+      frentes_gravadas: frentesGravadas,
+      equipamentos_gravados: equipGravados,
     });
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);

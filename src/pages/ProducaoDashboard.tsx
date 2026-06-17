@@ -17,6 +17,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useProducaoDiaria } from "@/hooks/useProducaoDiaria";
+import { useProducaoFrente, useProducaoEquipamento } from "@/hooks/useProducaoKpis";
 
 const fmt = (n: number, d = 0) =>
   (n || 0).toLocaleString("pt-BR", { minimumFractionDigits: d, maximumFractionDigits: d });
@@ -34,8 +35,55 @@ function timeAgo(iso?: string | null) {
 
 export default function ProducaoDashboard() {
   const { data: producao, isLoading } = useProducaoDiaria(30);
+  const { data: frentes } = useProducaoFrente(2);
+  const { data: equipamentos } = useProducaoEquipamento(2);
   const rows = producao ?? [];
   const latest = rows[0];
+
+  // KPIs derivados da linha mais recente
+  const producaoMina = Number(latest?.producao_mina || 0);
+  const producaoRetalud = Number(latest?.producao_retaludamento || 0);
+  const dfPct = Number(latest?.disponibilidade_fisica_df || 0);
+  const utPct = Number(latest?.utilizacao_ut || 0);
+  const metaDiaria = Number(latest?.meta_diaria || 0);
+  const metaMensal = Number(latest?.meta_mensal || 0);
+  const projecaoTurno = Number(latest?.projecao_turno || 0);
+
+  // Acumulado do mês: usa o campo enviado pelo agente OU soma local
+  const monthKey = (latest?.data_referencia ?? new Date().toISOString().slice(0, 10)).slice(0, 7);
+  const acumuladoMes = useMemo(() => {
+    if (latest?.acumulado_mes != null) return Number(latest.acumulado_mes);
+    return rows
+      .filter((r) => (r.data_referencia || "").startsWith(monthKey))
+      .reduce((s, r) => s + Number(r.toneladas_total || 0), 0);
+  }, [latest, rows, monthKey]);
+
+  // Frentes do turno mais recente (N4WN, N4WS, MORRO1, N5SUL ...)
+  const frentesAtuais = useMemo(() => {
+    if (!latest || !frentes) return [];
+    return frentes
+      .filter(
+        (f) =>
+          f.data_referencia === latest.data_referencia &&
+          f.turno === latest.turno &&
+          f.relatorio_origem === latest.relatorio_origem,
+      )
+      .sort((a, b) => b.toneladas - a.toneladas);
+  }, [frentes, latest]);
+
+  // Ranking EH por tonelagem (turno mais recente, top 10)
+  const rankingEH = useMemo(() => {
+    if (!latest || !equipamentos) return [];
+    return equipamentos
+      .filter(
+        (e) =>
+          e.data_referencia === latest.data_referencia &&
+          e.turno === latest.turno &&
+          e.relatorio_origem === latest.relatorio_origem,
+      )
+      .sort((a, b) => b.toneladas - a.toneladas)
+      .slice(0, 10);
+  }, [equipamentos, latest]);
 
   const lastUpdate = latest?.atualizado_em ?? null;
   const minutesSince = lastUpdate
@@ -171,6 +219,93 @@ export default function ProducaoDashboard() {
           </Card>
         </div>
 
+        {/* KPIs DE MINERAÇÃO */}
+        <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+          <KpiCard label="⛏️ Produção Mina" value={`${fmt(producaoMina)} t`} accent="text-mining-blue" />
+          <KpiCard label="🪨 Produção Retaludamento" value={`${fmt(producaoRetalud)} t`} accent="text-mining-yellow" />
+          <KpiCard
+            label="📦 Acumulado do Mês"
+            value={`${fmt(acumuladoMes)} t`}
+            sub={metaMensal > 0 ? `${((acumuladoMes / metaMensal) * 100).toFixed(1)}% da meta` : undefined}
+            accent="text-mining-green"
+          />
+          <KpiCard
+            label="🔮 Projeção do Turno"
+            value={`${fmt(projecaoTurno)} t`}
+            accent="text-mining-green"
+          />
+          <KpiCard label="🎯 Meta Diária" value={`${fmt(metaDiaria)} t`} accent="text-mining-yellow" />
+          <KpiCard label="🎯 Meta Mensal" value={`${fmt(metaMensal)} t`} accent="text-mining-yellow" />
+          <KpiCard label="🛠️ DF (Disponibilidade Física)" value={`${dfPct.toFixed(1)}%`} accent="text-mining-green" />
+          <KpiCard label="⚙️ UT (Utilização)" value={`${utPct.toFixed(1)}%`} accent="text-mining-blue" />
+        </div>
+
+        {/* PRODUÇÃO POR FRENTE + RANKING EH */}
+        <div className="grid gap-4 lg:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm">🗺️ Produção por Frente — turno atual</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {frentesAtuais.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Sem dados de frentes para o turno atual.</p>
+              ) : (
+                <div className="space-y-2">
+                  {frentesAtuais.map((f) => {
+                    const max = frentesAtuais[0].toneladas || 1;
+                    const pct = (f.toneladas / max) * 100;
+                    return (
+                      <div key={f.id} className="flex items-center gap-3">
+                        <span className="w-20 font-mono text-sm text-foreground">{f.frente}</span>
+                        <div className="flex-1 h-3 bg-white/5 rounded overflow-hidden">
+                          <div
+                            className="h-full bg-mining-blue"
+                            style={{ width: `${pct}%`, boxShadow: "0 0 8px hsl(var(--mining-blue))" }}
+                          />
+                        </div>
+                        <span className="w-28 text-right font-mono text-sm text-mining-blue">
+                          {fmt(f.toneladas)} t
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm">🏆 Ranking EH por Tonelagem — turno atual</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {rankingEH.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Sem dados de equipamentos para o turno atual.</p>
+              ) : (
+                <div className="space-y-1.5">
+                  {rankingEH.map((e, idx) => {
+                    const max = rankingEH[0].toneladas || 1;
+                    const pct = (e.toneladas / max) * 100;
+                    return (
+                      <div key={e.id} className="flex items-center gap-2 text-sm">
+                        <span className="w-6 text-right font-mono text-muted-foreground">{idx + 1}</span>
+                        <span className="w-24 font-mono text-foreground truncate">{e.equipamento}</span>
+                        <div className="flex-1 h-2.5 bg-white/5 rounded overflow-hidden">
+                          <div
+                            className="h-full bg-mining-green"
+                            style={{ width: `${pct}%`, boxShadow: "0 0 6px #22c55e" }}
+                          />
+                        </div>
+                        <span className="w-24 text-right font-mono text-mining-green">{fmt(e.toneladas)} t</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
         {/* Gráficos */}
         <div className="grid gap-4 lg:grid-cols-2">
           <Card>
@@ -226,5 +361,29 @@ export default function ProducaoDashboard() {
         </div>
       </div>
     </div>
+  );
+}
+
+function KpiCard({
+  label,
+  value,
+  sub,
+  accent = "text-foreground",
+}: {
+  label: string;
+  value: string;
+  sub?: string;
+  accent?: string;
+}) {
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-xs font-mono uppercase text-muted-foreground">{label}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <p className={`text-2xl font-bold ${accent}`}>{value}</p>
+        {sub && <p className="text-xs text-muted-foreground mt-1">{sub}</p>}
+      </CardContent>
+    </Card>
   );
 }
