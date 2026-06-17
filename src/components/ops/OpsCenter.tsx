@@ -146,7 +146,7 @@ function FleetRow({
     <div className="flex items-center gap-3 py-2">
       <div className="w-16 shrink-0 flex items-center justify-center">
         {icon === "ex" ? (
-          <AnimatedExcavator className="w-16 h-8" color={iconColor} />
+          <AnimatedExcavator className="w-16 h-9" color={iconColor} />
         ) : (
           <AnimatedTruck className="w-16 h-8" color={iconColor} />
         )}
