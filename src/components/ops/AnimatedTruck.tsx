@@ -11,7 +11,6 @@ export function AnimatedTruck({ className, driving = true }: Props) {
     <img
       src={truckImg}
       alt="Caminhão"
-      loading="lazy"
       className={`object-contain ${driving ? "animate-truck-move" : ""} ${className ?? ""}`}
       style={{ filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }}
     />
