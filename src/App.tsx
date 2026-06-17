@@ -12,6 +12,7 @@ import { ExcelLiveProvider } from "@/context/ExcelLiveContext";
 import { isMicrosoftAuthSupported } from "@/lib/browserSupport";
 import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound.tsx";
+import ProducaoDashboard from "./pages/ProducaoDashboard";
 import SsrsConfigPage from "./pages/admin/SsrsConfigPage";
 import IntegracaoStatusPage from "./pages/admin/IntegracaoStatusPage";
 
@@ -93,6 +94,8 @@ const AppContent = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/producao" element={<ProducaoDashboard />} />
+            <Route path="/monitoramento" element={<IntegracaoStatusPage />} />
             <Route path="/admin/ssrs" element={<SsrsConfigPage />} />
             <Route path="/admin/integracao" element={<IntegracaoStatusPage />} />
             <Route path="*" element={<NotFound />} />
