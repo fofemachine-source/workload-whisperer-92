@@ -111,6 +111,12 @@ function Donut({ value, color = NEON, label }: { value: number; color?: string; 
   );
 }
 
+function thresholdColor(v: number): string {
+  if (v >= 85) return "#22c55e"; // verde
+  if (v >= 75) return "#facc15"; // amarelo
+  return "#ef4444"; // vermelho
+}
+
 function FleetRow({
   icon,
   name,
@@ -125,11 +131,13 @@ function FleetRow({
   name: string;
   count: number;
   total: number;
-  value: number;
+  value: number | null;
   meta: number;
   color?: string;
   iconColor?: string;
 }) {
+  const hasData = value !== null && Number.isFinite(value);
+  const dynamicColor = hasData ? thresholdColor(value as number) : color;
   return (
     <div className="flex items-center gap-3 py-2">
       <div className="w-16 shrink-0">
@@ -145,7 +153,15 @@ function FleetRow({
           ({count}/{total})
         </p>
       </div>
-      <Donut value={value} color={color} />
+      {hasData ? (
+        <Donut value={value as number} color={dynamicColor} />
+      ) : (
+        <div className="h-14 px-2 flex items-center justify-center">
+          <span className="text-[10px] font-mono font-bold tracking-[0.15em] text-mining-yellow/80 uppercase text-center leading-tight">
+            Aguardando<br />dados
+          </span>
+        </div>
+      )}
       <div className="text-right w-24 shrink-0">
         <p className="text-lg font-mono text-muted-foreground uppercase">Meta</p>
         <p className="text-2xl font-mono font-bold text-foreground whitespace-nowrap">{meta.toFixed(1)}%</p>
@@ -277,8 +293,16 @@ export function OpsCenter() {
   // DF/UT por modelo ainda não vem desagregado em producao_diaria.
   // Mostramos o DF/UT geral do registro mais recente para todas as frotas.
   const latest = rows[0];
-  const dfGeral = Number(latest?.disponibilidade_fisica_df || 0);
-  const utGeral = Number(latest?.utilizacao_ut || 0);
+  const dfRaw = latest?.disponibilidade_fisica_df;
+  const utRaw = latest?.utilizacao_ut;
+  const dfGeral: number | null =
+    dfRaw !== null && dfRaw !== undefined && Number.isFinite(Number(dfRaw)) && Number(dfRaw) > 0
+      ? Number(dfRaw)
+      : null;
+  const utGeral: number | null =
+    utRaw !== null && utRaw !== undefined && Number.isFinite(Number(utRaw)) && Number(utRaw) > 0
+      ? Number(utRaw)
+      : null;
   const fleets = [
     { key: "EX1200", name: "EX1200", icon: "ex" as const, count: FLEET_SIZE.EX1200, df: dfGeral, ut: utGeral },
     { key: "EX2500", name: "EX2500", icon: "ex" as const, count: FLEET_SIZE.EX2500, df: dfGeral, ut: utGeral },
