@@ -351,6 +351,11 @@ export function OpsCenter() {
         {/* STATUS STRIP — última linha de producao_diaria (tempo real) */}
         <div className="col-span-12">
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2 px-3 py-2 bg-black/70 border border-mining-green/25 rounded-md">
+            {latestRow?.relatorio_origem === "sqlserver-agent" && (
+              <span className="text-xs font-mono uppercase tracking-[0.18em] text-mining-yellow">
+                Fonte: Hexagon/JMineOps via SQL Server
+              </span>
+            )}
             <span className="text-xs font-mono uppercase tracking-[0.18em] text-mining-green">
               Última leitura SSRS
             </span>
