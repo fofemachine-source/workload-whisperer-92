@@ -72,8 +72,6 @@ export default function ProducaoDashboard() {
   }, [rows, frentes, equipamentos, latest]);
 
   // KPIs derivados da linha mais recente
-  const producaoMina = Number(latest?.producao_mina || 0);
-  const producaoRetalud = Number(latest?.producao_retaludamento || 0);
   const dfPct = Number(latest?.disponibilidade_fisica_df || 0);
   const utPct = Number(latest?.utilizacao_ut || 0);
   const metaDiaria = Number(latest?.meta_diaria || 0);
@@ -102,6 +100,25 @@ export default function ProducaoDashboard() {
       )
       .sort((a, b) => Number(b.toneladas) - Number(a.toneladas));
   }, [frentes]);
+
+  // Regra temporária: separar MINA vs RETALUDAMENTO a partir do nome da frente
+  const RETALUD_RE = /RETALUD|RETALUDAMENTO|TALUDE|GELADO/i;
+  const { producaoMina, producaoRetalud } = useMemo(() => {
+    if (frentesAtuais.length === 0) {
+      return {
+        producaoMina: Number(latest?.producao_mina || latest?.toneladas_total || 0),
+        producaoRetalud: Number(latest?.producao_retaludamento || 0),
+      };
+    }
+    let mina = 0;
+    let retalud = 0;
+    for (const f of frentesAtuais) {
+      const ton = Number(f.toneladas || 0);
+      if (RETALUD_RE.test(String(f.frente || ""))) retalud += ton;
+      else mina += ton;
+    }
+    return { producaoMina: mina, producaoRetalud: retalud };
+  }, [frentesAtuais, latest]);
 
   // Ranking EH por tonelagem (turno mais recente presente em producao_equipamento, top 10)
   const rankingEH = useMemo(() => {
@@ -269,8 +286,18 @@ export default function ProducaoDashboard() {
           />
           <KpiCard label="🎯 Meta Diária" value={`${fmt(metaDiaria)} t`} accent="text-mining-yellow" />
           <KpiCard label="🎯 Meta Mensal" value={`${fmt(metaMensal)} t`} accent="text-mining-yellow" />
-          <KpiCard label="🛠️ DF (Disponibilidade Física)" value={`${dfPct.toFixed(1)}%`} accent="text-mining-green" />
-          <KpiCard label="⚙️ UT (Utilização)" value={`${utPct.toFixed(1)}%`} accent="text-mining-blue" />
+          <KpiCard
+            label="🛠️ DF (Disponibilidade Física)"
+            value={`${dfPct.toFixed(1)}%`}
+            accent="text-mining-green"
+            tooltip="aguardando integração DF/UT"
+          />
+          <KpiCard
+            label="⚙️ UT (Utilização)"
+            value={`${utPct.toFixed(1)}%`}
+            accent="text-mining-blue"
+            tooltip="aguardando integração DF/UT"
+          />
         </div>
 
         {/* PRODUÇÃO POR FRENTE + RANKING EH */}
@@ -402,14 +429,16 @@ function KpiCard({
   value,
   sub,
   accent = "text-foreground",
+  tooltip,
 }: {
   label: string;
   value: string;
   sub?: string;
   accent?: string;
+  tooltip?: string;
 }) {
   return (
-    <Card>
+    <Card title={tooltip}>
       <CardHeader className="pb-2">
         <CardTitle className="text-xs font-mono uppercase text-muted-foreground">{label}</CardTitle>
       </CardHeader>
