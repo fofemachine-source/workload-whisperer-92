@@ -299,6 +299,33 @@ export function OpsCenter() {
 
 
       <main className="relative z-10 p-3 md:p-4 grid grid-cols-12 gap-3">
+        {/* STATUS STRIP — última linha de producao_diaria (tempo real) */}
+        <div className="col-span-12">
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 px-3 py-2 bg-black/70 border border-mining-green/25 rounded-md">
+            <span className="text-xs font-mono uppercase tracking-[0.18em] text-mining-green">
+              Última leitura SSRS
+            </span>
+            <span className="text-sm font-mono text-muted-foreground">
+              Data: <span className="text-foreground">{latestRow?.data_referencia ?? "—"}</span>
+            </span>
+            <span className="text-sm font-mono text-muted-foreground">
+              Turno: <span className="text-foreground uppercase">{latestRow?.turno ?? "—"}</span>
+            </span>
+            <span className="text-sm font-mono text-muted-foreground">
+              Origem: <span className="text-foreground">{latestRow?.relatorio_origem ?? "—"}</span>
+            </span>
+            <span className="text-sm font-mono text-muted-foreground">
+              Toneladas: <span className="text-mining-blue">{fmt(Number(latestRow?.toneladas_total || 0))}</span>
+            </span>
+            <span className="text-sm font-mono text-muted-foreground">
+              Produção/h: <span className="text-mining-green">{fmt(Number(latestRow?.producao_hora || 0))} t/h</span>
+            </span>
+            <span className="ml-auto text-[10px] font-mono text-muted-foreground">
+              {isLoading ? "atualizando..." : "● ao vivo"}
+            </span>
+          </div>
+        </div>
+
         {/* LINHA 1: 4 cards principais */}
         <div className="col-span-12 md:col-span-6 lg:col-span-3 flex">
           <CardShell title="MINA" className="flex-1 flex flex-col">
