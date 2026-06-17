@@ -8,7 +8,7 @@ interface Props {
 
 export function AnimatedExcavator({ className, animate = true }: Props) {
   return (
-    <span className={`inline-flex items-center justify-center ${className ?? ""}`} style={{ transform: "scaleX(-1)" }}>
+    <span className={`inline-flex items-center justify-center ${className ?? ""}`}>
       <img
         src={excavatorImg}
         alt="Escavadeira"
