@@ -108,7 +108,7 @@
 
   @keyframes drive-footer {
     0%   { transform: translateX(-120px); }
-    100% { transform: translateX(calc(100vw + 240px)); }
+    100% { transform: translateX(calc(100% + 120px)); }
   }
   .animate-drive-footer { animation: drive-footer 18s linear infinite; }
 
