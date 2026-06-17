@@ -96,26 +96,24 @@ export default function ProducaoDashboard() {
       .filter(
         (f) => f.data_referencia === head.data_referencia && f.turno === head.turno,
       )
+      .filter((f) => !/^\s*GELADO\s*$/i.test(String(f.frente || "")))
       .sort((a, b) => Number(b.toneladas) - Number(a.toneladas));
   }, [frentes]);
 
-  // Regra temporária: separar MINA vs RETALUDAMENTO a partir do nome da frente
-  const RETALUD_RE = /RETALUD|RETALUDAMENTO|TALUDE|GELADO/i;
+  // Regra temporária: Retaludamento = 0 até definirmos regra correta
   const { producaoMina, producaoRetalud } = useMemo(() => {
     if (frentesAtuais.length === 0) {
       return {
         producaoMina: Number(latest?.producao_mina || latest?.toneladas_total || 0),
-        producaoRetalud: Number(latest?.producao_retaludamento || 0),
+        producaoRetalud: 0,
       };
     }
     let mina = 0;
-    let retalud = 0;
     for (const f of frentesAtuais) {
       const ton = Number(f.toneladas || 0);
-      if (RETALUD_RE.test(String(f.frente || ""))) retalud += ton;
-      else mina += ton;
+      mina += ton;
     }
-    return { producaoMina: mina, producaoRetalud: retalud };
+    return { producaoMina: mina, producaoRetalud: 0 };
   }, [frentesAtuais, latest]);
 
   // Ranking EH por tonelagem (turno mais recente presente em producao_equipamento, top 10)
