@@ -209,7 +209,6 @@ export default function ProducaoDashboard() {
         <ValidacaoHexagonCard />
         <MonitorAtualizacao />
         <DiagnosticoRetaludamento />
-        <FrentesBrutas />
 
         {/* 4 cards principais */}
         <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
@@ -361,6 +360,8 @@ export default function ProducaoDashboard() {
             )}
           </CardContent>
         </Card>
+
+        <FrentesBrutas />
 
         {/* Gráficos */}
         <div className="grid gap-4 lg:grid-cols-2">

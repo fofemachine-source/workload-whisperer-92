@@ -39,7 +39,7 @@ export default function FrentesBrutas() {
         setErro(res.error.message);
       } else {
         const dados = (res.data ?? []) as FrenteRow[];
-        setRows(dados);
+        setRows(dados.slice(0, 20));
         setAtualizadoEm(new Date().toLocaleTimeString("pt-BR"));
       }
       setCarregando(false);
@@ -64,7 +64,7 @@ export default function FrentesBrutas() {
   return (
     <Card className="border-mining-yellow/40">
       <CardHeader className="pb-2 flex flex-row items-center justify-between">
-        <CardTitle className="text-sm">📋 FRENTES BRUTAS (temporário)</CardTitle>
+        <CardTitle className="text-sm">🔍 FRENTES BRUTAS (SUPABASE)</CardTitle>
         <div className="flex items-center gap-2">
           {carregando && <Badge variant="outline" className="text-xs animate-pulse">atualizando…</Badge>}
           {atualizadoEm && (
@@ -107,7 +107,12 @@ export default function FrentesBrutas() {
         )}
 
         <div className="pt-2 border-t border-white/5 text-muted-foreground">
-          Total de registros: <span className="text-foreground font-bold">{rows.length}</span>
+          Total registros: <span className="text-foreground font-bold">{rows.length}</span>
+          {"  ·  "}
+          Total frentes:{" "}
+          <span className="text-foreground font-bold">
+            {new Set(rows.map((r) => (r.frente || "").trim().toUpperCase()).filter(Boolean)).size}
+          </span>
         </div>
       </CardContent>
     </Card>
