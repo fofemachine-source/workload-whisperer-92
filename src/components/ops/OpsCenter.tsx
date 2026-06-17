@@ -335,6 +335,37 @@ export function OpsCenter() {
     { key: "K730", name: "CAMINHÕES 730", icon: "truck" as const, count: FLEET_SIZE["Komatsu 730"], df: dfGeral, ut: utGeral },
   ];
 
+  // ----- Escavadeiras por tipo (EX1200 / EX2500) -----
+  // Lista do turno mais recente de producao_equipamento, ordenada por toneladas DESC.
+  const escavadeirasPorTipo = useMemo(() => {
+    const empty = { ex1200: [] as typeof rankingEH, ex2500: [] as typeof rankingEH };
+    if (!equipamentos || equipamentos.length === 0) return empty;
+    const sorted = [...equipamentos].sort((a, b) =>
+      (b.data_referencia + b.turno).localeCompare(a.data_referencia + a.turno),
+    );
+    const head = sorted[0];
+    const turno = sorted.filter(
+      (e) => e.data_referencia === head.data_referencia && e.turno === head.turno,
+    );
+    const match = (e: (typeof turno)[number], needle: string) => {
+      const t = String(e.tipo || "").toUpperCase().replace(/\s+/g, "");
+      const n = String(e.equipamento || "").toUpperCase();
+      if (t.includes(needle)) return true;
+      // Heurística: EH-40xx => EX1200, EH-50xx => EX2500
+      const m = n.match(/EH[-\s]?(\d{2})/);
+      if (m) {
+        if (needle === "EX1200" && m[1].startsWith("40")) return true;
+        if (needle === "EX2500" && m[1].startsWith("50")) return true;
+      }
+      return false;
+    };
+    const sortDesc = (a: any, b: any) => Number(b.toneladas) - Number(a.toneladas);
+    return {
+      ex1200: turno.filter((e) => match(e, "EX1200")).sort(sortDesc),
+      ex2500: turno.filter((e) => match(e, "EX2500")).sort(sortDesc),
+    };
+  }, [equipamentos]);
+
   // Logs úteis em produção
   if (error) console.error("[OpsCenter] erro producao_diaria:", error);
   void isLoading;
