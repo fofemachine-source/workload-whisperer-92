@@ -612,10 +612,10 @@ export function OpsCenter() {
         {/* COLUNA ESQUERDA: DF/UT + ESCAVADEIRAS + CAMINHÕES + EQUIP OPERANDO */}
         <div className="col-span-12 lg:col-span-6 flex flex-col gap-3">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 flex-1">
-            <CardShell title="% DISPONIBILIDADE FÍSICA POR FROTA" className="h-full">
+            <CardShell title="ESCAVADEIRAS EX1200" className="h-full">
               <EscavadeirasList items={escavadeirasPorTipo.ex1200} />
             </CardShell>
-            <CardShell title="UTILIZAÇÃO POR FROTA" className="h-full">
+            <CardShell title="ESCAVADEIRAS EX2500" className="h-full">
               <EscavadeirasList items={escavadeirasPorTipo.ex2500} />
             </CardShell>
           </div>
@@ -707,6 +707,11 @@ function EscavadeirasList({
   items: Array<{ id: string; equipamento: string; toneladas: number }>;
 }) {
   const max = items[0]?.toneladas || 1;
+  const fmtEquip = (name: string) => {
+    const n = String(name).toUpperCase();
+    if (/^EH\d{3,4}$/.test(n)) return n.replace(/^EH/, "EH-");
+    return n;
+  };
   return (
     <div className="relative">
       <div className="absolute top-0 right-0 text-right">
@@ -723,8 +728,8 @@ function EscavadeirasList({
             const pct = (Number(e.toneladas) / max) * 100;
             return (
               <div key={e.id} className="flex items-center gap-2 text-sm">
-                <span className="w-16 font-mono font-bold text-foreground truncate" title={e.equipamento}>
-                  {e.equipamento}
+                <span className="w-20 font-mono font-bold text-foreground truncate" title={e.equipamento}>
+                  {fmtEquip(e.equipamento)}
                 </span>
                 <div className="flex-1 h-2.5 bg-white/5 rounded overflow-hidden">
                   <div
