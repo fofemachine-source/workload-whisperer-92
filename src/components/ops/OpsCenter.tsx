@@ -461,32 +461,91 @@ export function OpsCenter() {
         </div>
         <div className="col-span-12 lg:col-span-6 flex">
           <CardShell title="TONELADAS POR HORA" className="flex-1 flex flex-col">
-            <div className="flex-1 h-52">
+            <div className="flex-1 h-64">
               <ResponsiveContainer width="100%" height="100%">
-                <ComposedChart data={tonHSeries} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
-                  <CartesianGrid stroke="rgba(34,197,94,0.08)" />
-                  <XAxis dataKey="hora" stroke="#4ade80" tick={{ fontSize: 10, fontFamily: "monospace" }} />
-                  <YAxis stroke="#4ade80" tick={{ fontSize: 10, fontFamily: "monospace" }} />
+                <ComposedChart
+                  data={tonHSeries}
+                  margin={{ top: 22, right: 14, left: 4, bottom: 4 }}
+                  barCategoryGap="8%"
+                >
+                  <CartesianGrid stroke="rgba(255,255,255,0.06)" vertical={false} />
+                  <XAxis
+                    dataKey="hora"
+                    stroke="#cbd5e1"
+                    tick={{ fontSize: 11, fontFamily: "monospace", fill: "#e2e8f0" }}
+                    tickLine={false}
+                    axisLine={{ stroke: "rgba(255,255,255,0.15)" }}
+                  />
+                  <YAxis
+                    stroke="#cbd5e1"
+                    tick={{ fontSize: 11, fontFamily: "monospace", fill: "#e2e8f0" }}
+                    tickLine={false}
+                    axisLine={{ stroke: "rgba(255,255,255,0.15)" }}
+                    width={48}
+                  />
                   <Tooltip
-                    contentStyle={{
-                      background: "#000",
-                      border: `1px solid ${NEON}`,
-                      fontSize: 11,
-                      fontFamily: "monospace",
+                    cursor={{ fill: "rgba(255,255,255,0.04)" }}
+                    content={({ active, payload }) => {
+                      if (!active || !payload || !payload.length) return null;
+                      const d = payload[0].payload as {
+                        hora: string;
+                        tonH: number;
+                        toneladas: number;
+                        data: string;
+                        turno: string;
+                      };
+                      const pct = metaTonH > 0 ? (d.tonH / metaTonH) * 100 : 0;
+                      const pctColor = pct >= 100 ? NEON : pct >= 80 ? YELLOW : "#ef4444";
+                      return (
+                        <div
+                          style={{
+                            background: "#0a0a0a",
+                            border: `1px solid ${NEON}`,
+                            padding: "8px 10px",
+                            fontFamily: "monospace",
+                            fontSize: 11,
+                            color: "#e2e8f0",
+                            borderRadius: 4,
+                            lineHeight: 1.5,
+                          }}
+                        >
+                          <div style={{ color: NEON, fontWeight: 700, marginBottom: 4 }}>
+                            {d.data || "—"} {d.turno ? `· Turno ${d.turno}` : ""}
+                          </div>
+                          <div>Toneladas: <span style={{ color: "#fff" }}>{fmt(d.toneladas)} t</span></div>
+                          <div>Produção/h: <span style={{ color: "#fff" }}>{fmt(d.tonH)} t/h</span></div>
+                          <div>Meta: <span style={{ color: YELLOW }}>{fmt(metaTonH)} t/h</span></div>
+                          <div>% Meta: <span style={{ color: pctColor, fontWeight: 700 }}>{pct.toFixed(1)}%</span></div>
+                        </div>
+                      );
                     }}
-                    labelStyle={{ color: NEON }}
                   />
-                  <Bar dataKey="tonH" fill={NEON} radius={[2, 2, 0, 0]} name="Ton/h" isAnimationActive={false} />
-                  <Line
-                    type="monotone"
-                    dataKey="meta"
+                  <ReferenceLine
+                    y={metaTonH}
                     stroke={YELLOW}
-                    strokeDasharray="4 4"
+                    strokeDasharray="6 4"
                     strokeWidth={1.5}
-                    dot={false}
-                    name="Meta"
-                    isAnimationActive={false}
+                    label={{ value: `META ${fmt(metaTonH)}`, position: "right", fill: YELLOW, fontSize: 10, fontFamily: "monospace" }}
                   />
+                  <Bar
+                    dataKey="tonH"
+                    radius={[4, 4, 0, 0]}
+                    name="Ton/h"
+                    isAnimationActive={false}
+                    maxBarSize={56}
+                  >
+                    {tonHSeries.map((d, i) => {
+                      const pct = metaTonH > 0 ? (d.tonH / metaTonH) * 100 : 0;
+                      const color = pct >= 100 ? NEON : pct >= 80 ? YELLOW : "#ef4444";
+                      return <Cell key={i} fill={color} />;
+                    })}
+                    <LabelList
+                      dataKey="tonH"
+                      position="top"
+                      formatter={(v: number) => (v ? fmt(v) : "")}
+                      style={{ fill: "#e2e8f0", fontSize: 10, fontFamily: "monospace", fontWeight: 700 }}
+                    />
+                  </Bar>
                 </ComposedChart>
               </ResponsiveContainer>
             </div>
