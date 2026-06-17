@@ -21,7 +21,6 @@ import { useProducaoFrente, useProducaoEquipamento } from "@/hooks/useProducaoKp
 import ValidacaoHexagonCard from "@/components/diagnostico/ValidacaoHexagonCard";
 import MonitorAtualizacao from "@/components/diagnostico/MonitorAtualizacao";
 import DiagnosticoRetaludamento from "@/components/diagnostico/DiagnosticoRetaludamento";
-import FrentesBrutas from "@/components/diagnostico/FrentesBrutas";
 
 const fmt = (n: number, d = 0) =>
   (n || 0).toLocaleString("pt-BR", { minimumFractionDigits: d, maximumFractionDigits: d });
@@ -100,7 +99,7 @@ export default function ProducaoDashboard() {
       .filter(
         (f) => f.data_referencia === head.data_referencia && f.turno === head.turno,
       )
-      .filter((f) => !/^\s*GELADO\s*$/i.test(String(f.frente || "")))
+      .filter((f) => /^\s*MINA\s*$/i.test(String(f.frente || "")))
       .sort((a, b) => Number(b.toneladas) - Number(a.toneladas));
   }, [frentes]);
 
@@ -205,13 +204,6 @@ export default function ProducaoDashboard() {
             </Link>
           </div>
         </header>
-
-        <div style={{ border: "2px solid red", padding: 12 }}>
-          <p style={{ color: "red", fontWeight: "bold", fontFamily: "monospace" }}>
-            TESTE DE RENDERIZAÇÃO
-          </p>
-          <FrentesBrutas />
-        </div>
 
         <ValidacaoHexagonCard />
         <MonitorAtualizacao />
