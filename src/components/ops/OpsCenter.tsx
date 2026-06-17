@@ -183,10 +183,16 @@ export function OpsCenter() {
 
   const rows: ProducaoDiariaRow[] = producao ?? [];
 
+  // Linha mais recente (fonte primária para T/H e produção)
+  const latestRow = rows[0];
+
   // ----- Agregações a partir de producao_diaria -----
-  // Produção do dia (todos os turnos de hoje)
+  // Produção do dia: usa a linha mais recente (turno corrente) conforme regra do painel.
   const rowsHoje = rows.filter((r) => r.data_referencia === todayKey);
-  const acumuladoDiaMina = rowsHoje.reduce((s, r) => s + Number(r.toneladas_total || 0), 0);
+  const acumuladoDiaMina = Number(
+    latestRow?.toneladas_total ??
+      rowsHoje.reduce((s, r) => s + Number(r.toneladas_total || 0), 0),
+  );
 
   // Projetado do dia: por enquanto = acumulado (campo dedicado ainda não existe no schema)
   const projetadoDiaMina = acumuladoDiaMina;
@@ -200,18 +206,8 @@ export function OpsCenter() {
   const rowsMes = rows.filter((r) => (r.data_referencia || "").startsWith(monthKey));
   const producaoMensal = rowsMes.reduce((s, r) => s + Number(r.toneladas_total || 0), 0);
 
-  // T/H — média ponderada de producao_hora pelo volume.
-  // (não há coluna horas_trabalhadas; producao_hora já vem como t/h por registro.)
-  const tonH = useMemo(() => {
-    const valid = rowsMes.filter((r) => Number(r.producao_hora || 0) > 0);
-    if (valid.length === 0) return 0;
-    const numer = valid.reduce(
-      (s, r) => s + Number(r.producao_hora || 0) * Number(r.toneladas_total || 0),
-      0,
-    );
-    const denom = valid.reduce((s, r) => s + Number(r.toneladas_total || 0), 0);
-    return denom > 0 ? numer / denom : valid.reduce((s, r) => s + Number(r.producao_hora || 0), 0) / valid.length;
-  }, [rowsMes]);
+  // T/H — valor da linha mais recente de producao_diaria (turno atual).
+  const tonH = Number(latestRow?.producao_hora || 0);
 
   // ----- Metas fixas operacionais -----
   const metaTonH = 11500;
