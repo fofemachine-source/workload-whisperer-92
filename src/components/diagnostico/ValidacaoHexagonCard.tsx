@@ -85,7 +85,7 @@ export default function ValidacaoHexagonCard() {
             <div className="text-muted-foreground uppercase">Última leitura</div>
             {ultimo ? (
               <ul className="space-y-0.5">
-                <li>data_referencia: <span className="text-foreground">{ultimo.data_referencia}</span></li>
+                <li>data_referencia: <span className="text-foreground">{ultimo.data_referencia ? ultimo.data_referencia.split("-").reverse().join("/") : "—"}</span></li>
                 <li>turno: <span className="text-foreground">{ultimo.turno ?? "—"}</span></li>
                 <li>relatorio_origem: <span className="text-foreground">{ultimo.relatorio_origem}</span></li>
                 <li>toneladas_total: <span className="text-mining-blue">{fmt(ultimo.toneladas_total)} t</span></li>

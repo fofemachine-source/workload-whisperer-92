@@ -45,7 +45,7 @@ export default function DiagnosticoRetaludamento() {
     };
   }, []);
 
-  const ultimaData = rows[0]?.data_referencia ?? "—";
+  const ultimaData = rows[0]?.data_referencia ? rows[0].data_referencia.split("-").reverse().join("/") : "—";
   const ultimoTurno = rows[0]?.turno ?? "—";
   const temRetalud = rows.some((r) => /retalud/i.test(r.frente || ""));
 
@@ -64,7 +64,7 @@ export default function DiagnosticoRetaludamento() {
             rows.map((r) => (
               <div key={r.id} className="flex justify-between gap-2 border-b border-white/5 pb-1">
                 <span className="text-foreground uppercase">{r.frente || "(vazio)"}</span>
-                <span className="text-muted-foreground">{r.data_referencia} · {r.turno}</span>
+                <span className="text-muted-foreground">{r.data_referencia ? r.data_referencia.split("-").reverse().join("/") : "—"} · {r.turno}</span>
                 <span className="text-mining-blue">{fmt(Number(r.toneladas))} t</span>
               </div>
             ))
