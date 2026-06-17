@@ -72,8 +72,6 @@ export default function ProducaoDashboard() {
   }, [rows, frentes, equipamentos, latest]);
 
   // KPIs derivados da linha mais recente
-  const dfPct = Number(latest?.disponibilidade_fisica_df || 0);
-  const utPct = Number(latest?.utilizacao_ut || 0);
   const metaDiaria = Number(latest?.meta_diaria || 0);
   const metaMensal = Number(latest?.meta_mensal || 0);
   const projecaoTurno = Number(latest?.projecao_turno || 0);
@@ -270,7 +268,7 @@ export default function ProducaoDashboard() {
         </div>
 
         {/* KPIs DE MINERAÇÃO */}
-        <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 grid-cols-2 lg:grid-cols-3">
           <KpiCard label="⛏️ Produção Mina" value={`${fmt(producaoMina)} t`} accent="text-mining-blue" />
           <KpiCard label="🪨 Produção Retaludamento" value={`${fmt(producaoRetalud)} t`} accent="text-mining-yellow" />
           <KpiCard
@@ -286,85 +284,68 @@ export default function ProducaoDashboard() {
           />
           <KpiCard label="🎯 Meta Diária" value={`${fmt(metaDiaria)} t`} accent="text-mining-yellow" />
           <KpiCard label="🎯 Meta Mensal" value={`${fmt(metaMensal)} t`} accent="text-mining-yellow" />
-          <KpiCard
-            label="🛠️ DF (Disponibilidade Física)"
-            value={`${dfPct.toFixed(1)}%`}
-            accent="text-mining-green"
-            tooltip="aguardando integração DF/UT"
-          />
-          <KpiCard
-            label="⚙️ UT (Utilização)"
-            value={`${utPct.toFixed(1)}%`}
-            accent="text-mining-blue"
-            tooltip="aguardando integração DF/UT"
-          />
         </div>
 
-        {/* PRODUÇÃO POR FRENTE + RANKING EH */}
-        <div className="grid gap-4 lg:grid-cols-2">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm">🗺️ Produção por Frente — turno atual</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {frentesAtuais.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Sem dados de frentes para o turno atual.</p>
-              ) : (
-                <div className="space-y-2">
-                  {frentesAtuais.map((f) => {
-                    const max = frentesAtuais[0].toneladas || 1;
-                    const pct = (f.toneladas / max) * 100;
-                    return (
-                      <div key={f.id} className="flex items-center gap-3">
-                        <span className="w-20 font-mono text-sm text-foreground">{f.frente}</span>
-                        <div className="flex-1 h-3 bg-white/5 rounded overflow-hidden">
-                          <div
-                            className="h-full bg-mining-blue"
-                            style={{ width: `${pct}%`, boxShadow: "0 0 8px hsl(var(--mining-blue))" }}
-                          />
-                        </div>
-                        <span className="w-28 text-right font-mono text-sm text-mining-blue">
-                          {fmt(f.toneladas)} t
-                        </span>
+        {/* RANKING EH — turno atual */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">🏆 Ranking EH por Tonelagem — turno atual</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {rankingEH.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Sem dados de equipamentos para o turno atual.</p>
+            ) : (
+              <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+                {rankingEH.map((e, idx) => {
+                  const medal = idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : `${idx + 1}º`;
+                  return (
+                    <div key={e.id} className="flex items-center gap-3 rounded-lg border border-white/10 bg-white/5 px-3 py-2">
+                      <span className="text-lg font-bold text-mining-yellow w-8 text-center">{medal}</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-mono text-sm font-semibold text-foreground truncate">{e.equipamento}</p>
+                        <p className="text-xs text-muted-foreground">{e.tipo ?? "—"}</p>
                       </div>
-                    );
-                  })}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                      <span className="font-mono text-sm text-mining-green whitespace-nowrap">{fmt(e.toneladas)} t</span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm">🏆 Ranking EH por Tonelagem — turno atual</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {rankingEH.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Sem dados de equipamentos para o turno atual.</p>
-              ) : (
-                <div className="space-y-1.5">
-                  {rankingEH.map((e, idx) => {
-                    const max = rankingEH[0].toneladas || 1;
-                    const pct = (e.toneladas / max) * 100;
-                    return (
-                      <div key={e.id} className="flex items-center gap-2 text-sm">
-                        <span className="w-6 text-right font-mono text-muted-foreground">{idx + 1}</span>
-                        <span className="w-24 font-mono text-foreground truncate">{e.equipamento}</span>
-                        <div className="flex-1 h-2.5 bg-white/5 rounded overflow-hidden">
-                          <div
-                            className="h-full bg-mining-green"
-                            style={{ width: `${pct}%`, boxShadow: "0 0 6px #22c55e" }}
-                          />
-                        </div>
-                        <span className="w-24 text-right font-mono text-mining-green">{fmt(e.toneladas)} t</span>
+        {/* PRODUÇÃO POR FRENTE */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">🗺️ Produção por Frente — turno atual</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {frentesAtuais.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Sem dados de frentes para o turno atual.</p>
+            ) : (
+              <div className="space-y-2">
+                {frentesAtuais.map((f) => {
+                  const max = frentesAtuais[0].toneladas || 1;
+                  const pct = (f.toneladas / max) * 100;
+                  return (
+                    <div key={f.id} className="flex items-center gap-3">
+                      <span className="w-20 font-mono text-sm text-foreground">{f.frente}</span>
+                      <div className="flex-1 h-3 bg-white/5 rounded overflow-hidden">
+                        <div
+                          className="h-full bg-mining-blue"
+                          style={{ width: `${pct}%`, boxShadow: "0 0 8px hsl(var(--mining-blue))" }}
+                        />
                       </div>
-                    );
-                  })}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+                      <span className="w-28 text-right font-mono text-sm text-mining-blue">
+                        {fmt(f.toneladas)} t
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Gráficos */}
         <div className="grid gap-4 lg:grid-cols-2">
