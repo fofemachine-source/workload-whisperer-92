@@ -1,4 +1,4 @@
-import excavatorImg from "@/assets/excavator.png";
+import excavatorImg from "@/assets/excavator_bright.png";
 
 interface Props {
   className?: string;
@@ -11,9 +11,8 @@ export function AnimatedExcavator({ className, animate = true }: Props) {
     <img
       src={excavatorImg}
       alt="Escavadeira"
-      loading="lazy"
       className={`object-contain ${animate ? "animate-excavator-work" : ""} ${className ?? ""}`}
-      style={{ filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }}
+      style={{ filter: "drop-shadow(0 0 6px rgba(34,197,94,0.5)) brightness(1.3) contrast(1.1)" }}
     />
   );
 }

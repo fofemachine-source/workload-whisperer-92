@@ -1,4 +1,4 @@
-import truckImg from "@/assets/truck.png";
+import truckImg from "@/assets/truck_bright.png";
 
 interface Props {
   className?: string;
@@ -11,9 +11,8 @@ export function AnimatedTruck({ className, driving = true }: Props) {
     <img
       src={truckImg}
       alt="Caminhão"
-      loading="lazy"
       className={`object-contain ${driving ? "animate-truck-move" : ""} ${className ?? ""}`}
-      style={{ filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }}
+      style={{ filter: "drop-shadow(0 0 6px rgba(250,204,21,0.5)) brightness(1.4) contrast(1.1)" }}
     />
   );
 }
