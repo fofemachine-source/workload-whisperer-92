@@ -15,6 +15,12 @@ export interface ProducaoDiariaRow {
   equipamentos_utilizados: number | null;
   carga_operando: number | null;
   transporte_operando: number | null;
+  producao_mina: number | null;
+  producao_retaludamento: number | null;
+  acumulado_mes: number | null;
+  meta_diaria: number | null;
+  meta_mensal: number | null;
+  projecao_turno: number | null;
   atualizado_em: string;
 }
 
