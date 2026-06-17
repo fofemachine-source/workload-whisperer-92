@@ -329,27 +329,27 @@ export default function ProducaoDashboard() {
 
         {/* PRODUÇÃO POR FRENTE */}
         <Card>
-          <CardHeader>
-            <CardTitle className="text-sm">🗺️ Produção por Frente — turno atual</CardTitle>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs">🗺️ Produção por Frente — turno atual</CardTitle>
           </CardHeader>
           <CardContent>
             {frentesAtuais.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Sem dados de frentes para o turno atual.</p>
+              <p className="text-xs text-muted-foreground">Sem dados de frentes para o turno atual.</p>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 {frentesAtuais.map((f) => {
                   const max = frentesAtuais[0].toneladas || 1;
                   const pct = (f.toneladas / max) * 100;
                   return (
-                    <div key={f.id} className="flex items-center gap-3">
-                      <span className="w-20 font-mono text-sm text-foreground">{f.frente}</span>
-                      <div className="flex-1 h-3 bg-white/5 rounded overflow-hidden">
+                    <div key={f.id} className="flex items-center gap-2">
+                      <span className="w-16 font-mono text-xs text-foreground">{f.frente}</span>
+                      <div className="flex-1 h-2.5 bg-white/5 rounded overflow-hidden">
                         <div
                           className="h-full bg-mining-blue"
-                          style={{ width: `${pct}%`, boxShadow: "0 0 8px hsl(var(--mining-blue))" }}
+                          style={{ width: `${pct}%`, boxShadow: "0 0 6px hsl(var(--mining-blue))" }}
                         />
                       </div>
-                      <span className="w-28 text-right font-mono text-sm text-mining-blue">
+                      <span className="w-24 text-right font-mono text-xs text-mining-blue">
                         {fmt(f.toneladas)} t
                       </span>
                     </div>
