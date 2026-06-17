@@ -180,12 +180,12 @@ export default function ProducaoDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground p-4 md:p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
-        <header className="flex flex-wrap items-center justify-between gap-3">
+    <div className="min-h-screen bg-background text-foreground p-2 md:p-4">
+      <div className="max-w-7xl mx-auto space-y-4">
+        <header className="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold">Produção MineOPS</h1>
-            <p className="text-sm text-muted-foreground">
+            <h1 className="text-xl md:text-2xl font-bold">Produção MineOPS</h1>
+            <p className="text-xs text-muted-foreground">
               Fonte: SQL Server → Agente SSRS → Supabase · atualização a cada 30s
             </p>
           </div>
