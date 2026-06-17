@@ -99,7 +99,7 @@ export default function ProducaoDashboard() {
       .filter(
         (f) => f.data_referencia === head.data_referencia && f.turno === head.turno,
       )
-      .filter((f) => !/^\s*GELADO\s*$/i.test(String(f.frente || "")))
+      .filter((f) => /^\s*MINA\s*$/i.test(String(f.frente || "")))
       .sort((a, b) => Number(b.toneladas) - Number(a.toneladas));
   }, [frentes]);
 
