@@ -461,7 +461,7 @@ export function OpsCenter() {
         </div>
         <div className="col-span-12 lg:col-span-6 flex">
           <CardShell title="TONELADAS POR HORA" className="flex-1 flex flex-col">
-            <div className="flex-1 h-64">
+            <div className="flex-1 h-44">
               <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart
                   data={tonHSeries}
@@ -615,7 +615,7 @@ export function OpsCenter() {
             </div>
           </CardShell>
 
-          <CardShell title="🗺️ PRODUÇÃO POR FRENTE" className="flex-1 flex flex-col min-h-[260px]">
+          <CardShell title="🗺️ PRODUÇÃO POR FRENTE" className="flex-1 flex flex-col min-h-[160px]">
             <div className="space-y-1.5 flex-1">
               {frentesAtuais.length === 0 ? (
                 <p className="text-sm text-muted-foreground font-mono">Sem dados de frentes para o turno atual.</p>
@@ -643,7 +643,7 @@ export function OpsCenter() {
         </div>
 
         {/* FAIXA DE CAMINHÕES ANIMADA — banda inferior */}
-        <div className="col-span-12 relative h-14 border border-mining-green/15 rounded-md bg-black/60 overflow-hidden">
+        <div className="col-span-12 relative h-10 border border-mining-green/15 rounded-md bg-black/60 overflow-hidden">
           <div className="absolute inset-x-0 bottom-2 h-px bg-gradient-to-r from-transparent via-mining-green/40 to-transparent" />
           <div className="absolute bottom-0 left-0 animate-drive-footer">
             <AnimatedTruck className="w-24 h-14 block" color={YELLOW} driving={false} />
@@ -657,8 +657,8 @@ export function OpsCenter() {
         </div>
 
         {/* LOGO U&M */}
-        <div className="col-span-12 flex justify-center py-4">
-          <img src={logoUM} alt="Logo U&M" className="h-16 object-contain opacity-90" />
+        <div className="col-span-12 flex justify-center py-1">
+          <img src={logoUM} alt="Logo U&M" className="h-10 object-contain opacity-90" />
         </div>
       </main>
     </div>
