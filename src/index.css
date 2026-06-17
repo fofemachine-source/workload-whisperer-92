@@ -136,11 +136,11 @@
   .animate-excavator-dig { animation: excavator-dig 2.4s ease-in-out infinite; transform-origin: 70% 80%; }
 
   @keyframes excavator-work {
-    0%   { transform: scaleX(-1) rotate(0deg) translateY(0); }
-    25%  { transform: scaleX(-1) rotate(-10deg) translateY(-2px); }
-    50%  { transform: scaleX(-1) rotate(-14deg) translateY(-3px); }
-    75%  { transform: scaleX(-1) rotate(-6deg) translateY(-1px); }
-    100% { transform: scaleX(-1) rotate(0deg) translateY(0); }
+    0%   { transform: rotate(0deg) translateY(0); }
+    25%  { transform: rotate(-10deg) translateY(-2px); }
+    50%  { transform: rotate(-14deg) translateY(-3px); }
+    75%  { transform: rotate(-6deg) translateY(-1px); }
+    100% { transform: rotate(0deg) translateY(0); }
   }
   .animate-excavator-work { animation: excavator-work 2.2s ease-in-out infinite; transform-origin: 30% 85%; }
 
