@@ -13,6 +13,7 @@ import {
   ComposedChart,
 } from "recharts";
 import { useProducaoDiaria, type ProducaoDiariaRow } from "@/hooks/useProducaoDiaria";
+import { useProducaoFrente, useProducaoEquipamento } from "@/hooks/useProducaoKpis";
 import { AnimatedTruck } from "./AnimatedTruck";
 import logoUM from "@/assets/logo-um.png";
 import { AnimatedExcavator } from "./AnimatedExcavator";
@@ -176,6 +177,8 @@ export function OpsCenter() {
   // (populada pelo agente SSRS via Edge Function ingest-mineops)
   // ============================================================
   const { data: producao, isLoading, error } = useProducaoDiaria(35);
+  const { data: frentes } = useProducaoFrente(2);
+  const { data: equipamentos } = useProducaoEquipamento(2);
   const clock = useClock();
 
   // Hard reload a cada 60s (TV Dashboard)
@@ -255,39 +258,34 @@ export function OpsCenter() {
     }));
   }, [rowsMes]);
 
-  // ----- Série de produção do turno (acumulada) -----
-  const productionSeries = useMemo(() => {
-    const hours = Array.from({ length: 13 }, (_, i) => i * 2);
-    const stepReal = acumuladoDiaMina / 12;
-    const metaTurno = 43_584;
-    const stepMeta = metaTurno / 12;
-    let acc = 0;
-    return hours.map((h, i) => {
-      acc += stepReal;
-      return {
-        hora: `${String(h).padStart(2, "0")}:00`,
-        realizado: i === 0 ? 0 : Math.round(acc),
-        meta: Math.round(stepMeta * i),
-      };
-    });
-  }, [acumuladoDiaMina]);
+  // ----- Ranking EH (producao_equipamento) -----
+  const rankingEH = useMemo(() => {
+    if (!equipamentos || equipamentos.length === 0) return [];
+    const sorted = [...equipamentos].sort((a, b) =>
+      (b.data_referencia + b.turno).localeCompare(a.data_referencia + a.turno),
+    );
+    const head = sorted[0];
+    return sorted
+      .filter((e) => e.data_referencia === head.data_referencia && e.turno === head.turno)
+      .sort((a, b) => Number(b.toneladas) - Number(a.toneladas))
+      .slice(0, 10);
+  }, [equipamentos]);
 
-  // ----- Ranking de equipamentos -----
-  // producao_diaria não traz produtividade por equipamento. Mostra placeholder
-  // até o agente SSRS enviar essa granularidade.
-  const ranking = useMemo(
-    () => [
-      { pos: 1, name: "—", value: 0 },
-      { pos: 2, name: "—", value: 0 },
-      { pos: 3, name: "—", value: 0 },
-      { pos: 4, name: "—", value: 0 },
-      { pos: 5, name: "—", value: 0 },
-      { pos: 6, name: "—", value: 0 },
-      { pos: 7, name: "—", value: 0 },
-      { pos: 8, name: "—", value: 0 },
-    ],
-    [],
-  );
+  // ----- Produção por Frente (producao_frente) -----
+  const frentesAtuais = useMemo(() => {
+    if (!frentes || frentes.length === 0) return [];
+    const sorted = [...frentes].sort((a, b) =>
+      (b.data_referencia + b.turno).localeCompare(a.data_referencia + a.turno),
+    );
+    const head = sorted[0];
+    return sorted
+      .filter((f) => f.data_referencia === head.data_referencia && f.turno === head.turno)
+      .filter((f) => {
+        const nome = String(f.frente || "").toUpperCase();
+        return !nome.includes("GELADO") && !nome.includes("GEL") && !nome.includes("TESTE") && !nome.includes("DEMO");
+      })
+      .sort((a, b) => Number(b.toneladas) - Number(a.toneladas));
+  }, [frentes]);
 
   // ----- Frotas (DF/UT) -----
   // DF/UT por modelo ainda não vem desagregado em producao_diaria.
@@ -522,71 +520,59 @@ export function OpsCenter() {
           </div>
         </div>
 
-        {/* COLUNA DIREITA: RANKING + TONELADAS/H + PRODUÇÃO TURNO + OPERAÇÃO AO VIVO */}
+        {/* COLUNA DIREITA: RANKING EH + PRODUÇÃO POR FRENTE */}
         <div className="col-span-12 lg:col-span-6 flex flex-col gap-3">
-          <CardShell title="D/F T/H">
+          <CardShell title="🏆 RANKING EH">
             <div className="space-y-1.5">
-              {ranking.map((r) => {
-                const max = ranking[0]?.value || 1;
-                const pct = (r.value / max) * 100;
-                return (
-                  <div key={r.pos} className="flex items-center gap-2">
-                    <span className="w-6 text-base font-mono text-muted-foreground text-right">{r.pos}</span>
-                    <span className="w-24 text-base font-mono text-foreground">{r.name}</span>
-                    <div className="flex-1 h-3 bg-white/5 rounded-sm overflow-hidden">
-                      <div
-                        className="h-full bg-mining-green"
-                        style={{ width: `${pct}%`, boxShadow: `0 0 8px ${NEON}` }}
-                      />
+              {rankingEH.length === 0 ? (
+                <p className="text-sm text-muted-foreground font-mono">Sem dados de equipamentos para o turno atual.</p>
+              ) : (
+                rankingEH.map((e, idx) => {
+                  const max = rankingEH[0].toneladas || 1;
+                  const pct = (e.toneladas / max) * 100;
+                  const medal = idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : `${idx + 1}º`;
+                  return (
+                    <div key={e.id} className="flex items-center gap-2 text-sm">
+                      <span className="w-6 text-right font-mono text-mining-yellow font-bold">{medal}</span>
+                      <span className="w-20 font-mono text-foreground truncate" title={e.equipamento}>{e.equipamento}</span>
+                      <span className="w-24 text-xs text-muted-foreground truncate">{e.tipo ?? "—"}</span>
+                      <div className="flex-1 h-2.5 bg-white/5 rounded overflow-hidden">
+                        <div
+                          className="h-full bg-mining-green"
+                          style={{ width: `${pct}%`, boxShadow: `0 0 6px ${NEON}` }}
+                        />
+                      </div>
+                      <span className="w-20 text-right font-mono text-mining-green">{fmt(e.toneladas)} t</span>
                     </div>
-                    <span className="w-24 text-right text-base font-mono text-mining-green">{fmt(r.value)} t/h</span>
-                  </div>
-                );
-              })}
+                  );
+                })
+              )}
             </div>
           </CardShell>
 
-          <CardShell title="PRODUÇÃO DO TURNO (TONELADAS)">
-            <div className="h-28">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={productionSeries} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="prodFill" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor={NEON} stopOpacity={0.5} />
-                      <stop offset="100%" stopColor={NEON} stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid stroke="rgba(34,197,94,0.08)" />
-                  <XAxis dataKey="hora" stroke="#4ade80" tick={{ fontSize: 10, fontFamily: "monospace" }} />
-                  <YAxis stroke="#4ade80" tick={{ fontSize: 10, fontFamily: "monospace" }} />
-                  <Tooltip
-                    contentStyle={{
-                      background: "#000",
-                      border: `1px solid ${NEON}`,
-                      fontFamily: "monospace",
-                      fontSize: 11,
-                    }}
-                    labelStyle={{ color: NEON }}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="realizado"
-                    stroke={NEON}
-                    strokeWidth={2}
-                    fill="url(#prodFill)"
-                    name="Realizado"
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="meta"
-                    stroke="#9ca3af"
-                    strokeDasharray="4 4"
-                    strokeWidth={1.5}
-                    dot={false}
-                    name="Meta"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
+          <CardShell title="🗺️ PRODUÇÃO POR FRENTE">
+            <div className="space-y-1.5">
+              {frentesAtuais.length === 0 ? (
+                <p className="text-sm text-muted-foreground font-mono">Sem dados de frentes para o turno atual.</p>
+              ) : (
+                frentesAtuais.map((f) => {
+                  const max = frentesAtuais[0].toneladas || 1;
+                  const pct = (f.toneladas / max) * 100;
+                  return (
+                    <div key={f.id} className="flex items-center gap-2 text-sm">
+                      <span className="w-20 font-mono text-foreground truncate" title={f.frente}>{f.frente}</span>
+                      <div className="flex-1 h-2.5 bg-white/5 rounded overflow-hidden">
+                        <div
+                          className="h-full bg-mining-blue"
+                          style={{ width: `${pct}%`, boxShadow: `0 0 6px ${BLUE}` }}
+                        />
+                      </div>
+                      <span className="w-20 text-right font-mono text-mining-blue">{fmt(f.toneladas)} t</span>
+                      <span className="w-16 text-right font-mono text-muted-foreground text-xs">{fmt(Number(f.producao_hora || 0))} t/h</span>
+                    </div>
+                  );
+                })
+              )}
             </div>
           </CardShell>
         </div>
