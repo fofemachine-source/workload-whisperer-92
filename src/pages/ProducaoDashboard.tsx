@@ -270,7 +270,7 @@ export default function ProducaoDashboard() {
         </div>
 
         {/* KPIs DE MINERAÇÃO */}
-        <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 grid-cols-2 lg:grid-cols-3">
           <KpiCard label="⛏️ Produção Mina" value={`${fmt(producaoMina)} t`} accent="text-mining-blue" />
           <KpiCard label="🪨 Produção Retaludamento" value={`${fmt(producaoRetalud)} t`} accent="text-mining-yellow" />
           <KpiCard
@@ -286,19 +286,35 @@ export default function ProducaoDashboard() {
           />
           <KpiCard label="🎯 Meta Diária" value={`${fmt(metaDiaria)} t`} accent="text-mining-yellow" />
           <KpiCard label="🎯 Meta Mensal" value={`${fmt(metaMensal)} t`} accent="text-mining-yellow" />
-          <KpiCard
-            label="🛠️ DF (Disponibilidade Física)"
-            value={`${dfPct.toFixed(1)}%`}
-            accent="text-mining-green"
-            tooltip="aguardando integração DF/UT"
-          />
-          <KpiCard
-            label="⚙️ UT (Utilização)"
-            value={`${utPct.toFixed(1)}%`}
-            accent="text-mining-blue"
-            tooltip="aguardando integração DF/UT"
-          />
         </div>
+
+        {/* RANKING EH — turno atual */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">🏆 Ranking EH por Tonelagem — turno atual</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {rankingEH.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Sem dados de equipamentos para o turno atual.</p>
+            ) : (
+              <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+                {rankingEH.map((e, idx) => {
+                  const medal = idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : `${idx + 1}º`;
+                  return (
+                    <div key={e.id} className="flex items-center gap-3 rounded-lg border border-white/10 bg-white/5 px-3 py-2">
+                      <span className="text-lg font-bold text-mining-yellow w-8 text-center">{medal}</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-mono text-sm font-semibold text-foreground truncate">{e.equipamento}</p>
+                        <p className="text-xs text-muted-foreground">{e.tipo ?? "—"}</p>
+                      </div>
+                      <span className="font-mono text-sm text-mining-green whitespace-nowrap">{fmt(e.toneladas)} t</span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* PRODUÇÃO POR FRENTE + RANKING EH */}
         <div className="grid gap-4 lg:grid-cols-2">
