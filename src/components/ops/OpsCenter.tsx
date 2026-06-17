@@ -151,14 +151,14 @@ function FleetRow({
           <AnimatedTruck className="w-10 h-5" color={iconColor} />
         )}
       </div>
-      <div className="flex-1 min-w-0 flex items-baseline gap-1.5">
-        <span className="text-base font-mono font-bold text-mining-yellow truncate">{name}</span>
-        <span className="text-[9px] font-mono text-mining-yellow/70 uppercase tracking-wider">Realizado</span>
-        <span className="text-[10px] font-mono text-muted-foreground">
-          ({count}/{total})
-        </span>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-baseline gap-1.5">
+          <span className="text-base font-mono font-bold text-mining-yellow truncate">{name}</span>
+          <span className="text-[9px] font-mono text-mining-yellow/70 uppercase tracking-wider">Realizado</span>
+          <span className="text-[10px] font-mono text-muted-foreground">({count}/{total})</span>
+        </div>
       </div>
-      <div className="text-right shrink-0 flex items-baseline gap-1.5">
+      <div className="text-right shrink-0 flex items-baseline gap-2">
         <span className="text-[9px] font-mono text-muted-foreground uppercase tracking-wider">Meta</span>
         <span className="text-base font-mono font-bold whitespace-nowrap" style={{ color: dynamicColor }}>
           {hasData ? `${(value as number).toFixed(1)}%` : `${meta.toFixed(1)}%`}
