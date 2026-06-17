@@ -613,31 +613,10 @@ export function OpsCenter() {
         <div className="col-span-12 lg:col-span-6 flex flex-col gap-3">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 flex-1">
             <CardShell title="% DISPONIBILIDADE FÍSICA POR FROTA" className="h-full">
-              {fleets.map((f) => (
-                <FleetRow
-                  key={`df-${f.name}`}
-                  icon={f.icon}
-                  name={f.name}
-                  count={f.count}
-                  total={f.count}
-                  value={f.df}
-                  meta={85}
-                />
-              ))}
+              <EscavadeirasList items={escavadeirasPorTipo.ex1200} />
             </CardShell>
             <CardShell title="UTILIZAÇÃO POR FROTA" className="h-full">
-              {fleets.map((f) => (
-                <FleetRow
-                  key={`ut-${f.name}`}
-                  icon={f.icon}
-                  name={f.name}
-                  count={f.count}
-                  total={f.count}
-                  value={f.ut}
-                  meta={85}
-                  color={BLUE}
-                />
-              ))}
+              <EscavadeirasList items={escavadeirasPorTipo.ex2500} />
             </CardShell>
           </div>
         </div>
