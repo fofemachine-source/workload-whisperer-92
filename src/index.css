@@ -106,6 +106,12 @@
   }
   .animate-truck-drive { animation: truck-drive 18s linear infinite; }
 
+  @keyframes footer-truck-drive {
+    from { transform: translateX(-120px); }
+    to   { transform: translateX(calc(100vw + 180px)); }
+  }
+  .animate-footer-truck-drive { animation: footer-truck-drive 18s linear infinite; }
+
   @keyframes truck-roundtrip {
     0%   { transform: translateX(-15%) scaleX(1); }
     45%  { transform: translateX(115%) scaleX(1); }
@@ -123,11 +129,23 @@
   }
   .animate-excavator-dig { animation: excavator-dig 2.4s ease-in-out infinite; transform-origin: 70% 80%; }
 
+  @keyframes excavator-work {
+    0%, 100% { transform: rotate(0deg) translateY(0); }
+    50%      { transform: rotate(-3deg) translateY(-1px); }
+  }
+  .animate-excavator-work { animation: excavator-work 2.6s ease-in-out infinite; transform-origin: center bottom; }
+
   @keyframes truck-bounce {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-1.5px); }
   }
   .animate-truck-bounce { animation: truck-bounce 0.4s ease-in-out infinite; }
+
+  @keyframes truck-move {
+    0%, 100% { transform: translateX(0); }
+    50%      { transform: translateX(3px); }
+  }
+  .animate-truck-move { animation: truck-move 1.5s ease-in-out infinite; }
 
   @keyframes wheel-spin {
     from { transform: rotate(0deg); }
@@ -166,9 +184,12 @@
    em Smart TVs com GPU fraca.
    ============================================================ */
 html.tv-mode .animate-truck-drive,
+html.tv-mode .animate-footer-truck-drive,
 html.tv-mode .animate-truck-bounce,
 html.tv-mode .animate-truck-roundtrip,
+html.tv-mode .animate-truck-move,
 html.tv-mode .animate-excavator-dig,
+html.tv-mode .animate-excavator-work,
 html.tv-mode .animate-wheel-spin,
 html.tv-mode .animate-excavator-arm,
 html.tv-mode .animate-radar,
