@@ -38,7 +38,38 @@ export default function ProducaoDashboard() {
   const { data: frentes } = useProducaoFrente(2);
   const { data: equipamentos } = useProducaoEquipamento(2);
   const rows = producao ?? [];
-  const latest = rows[0];
+  // "latest" = registro mais recente que tenha métricas válidas (não a linha vazia recém-criada)
+  const latest =
+    rows.find(
+      (r) =>
+        Number(r.toneladas_total || 0) > 0 ||
+        r.producao_mina != null ||
+        r.meta_diaria != null,
+    ) ?? rows[0];
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useMemo(() => {
+    // Logs de diagnóstico solicitados
+    // eslint-disable-next-line no-console
+    console.log("[Dashboard] producao_diaria:", {
+      total: rows.length,
+      ultimo: rows[0],
+      latestComMetricas: latest,
+      dados: rows,
+    });
+    // eslint-disable-next-line no-console
+    console.log("[Dashboard] producao_frente:", {
+      total: frentes?.length ?? 0,
+      ultimo: frentes?.[0],
+      dados: frentes,
+    });
+    // eslint-disable-next-line no-console
+    console.log("[Dashboard] producao_equipamento:", {
+      total: equipamentos?.length ?? 0,
+      ultimo: equipamentos?.[0],
+      dados: equipamentos,
+    });
+  }, [rows, frentes, equipamentos, latest]);
 
   // KPIs derivados da linha mais recente
   const producaoMina = Number(latest?.producao_mina || 0);
@@ -58,32 +89,34 @@ export default function ProducaoDashboard() {
       .reduce((s, r) => s + Number(r.toneladas_total || 0), 0);
   }, [latest, rows, monthKey]);
 
-  // Frentes do turno mais recente (N4WN, N4WS, MORRO1, N5SUL ...)
+  // Frentes do turno mais recente presente na própria tabela producao_frente
   const frentesAtuais = useMemo(() => {
-    if (!latest || !frentes) return [];
-    return frentes
+    if (!frentes || frentes.length === 0) return [];
+    const sorted = [...frentes].sort((a, b) =>
+      (b.data_referencia + b.turno).localeCompare(a.data_referencia + a.turno),
+    );
+    const head = sorted[0];
+    return sorted
       .filter(
-        (f) =>
-          f.data_referencia === latest.data_referencia &&
-          f.turno === latest.turno &&
-          f.relatorio_origem === latest.relatorio_origem,
+        (f) => f.data_referencia === head.data_referencia && f.turno === head.turno,
       )
-      .sort((a, b) => b.toneladas - a.toneladas);
-  }, [frentes, latest]);
+      .sort((a, b) => Number(b.toneladas) - Number(a.toneladas));
+  }, [frentes]);
 
-  // Ranking EH por tonelagem (turno mais recente, top 10)
+  // Ranking EH por tonelagem (turno mais recente presente em producao_equipamento, top 10)
   const rankingEH = useMemo(() => {
-    if (!latest || !equipamentos) return [];
-    return equipamentos
+    if (!equipamentos || equipamentos.length === 0) return [];
+    const sorted = [...equipamentos].sort((a, b) =>
+      (b.data_referencia + b.turno).localeCompare(a.data_referencia + a.turno),
+    );
+    const head = sorted[0];
+    return sorted
       .filter(
-        (e) =>
-          e.data_referencia === latest.data_referencia &&
-          e.turno === latest.turno &&
-          e.relatorio_origem === latest.relatorio_origem,
+        (e) => e.data_referencia === head.data_referencia && e.turno === head.turno,
       )
-      .sort((a, b) => b.toneladas - a.toneladas)
+      .sort((a, b) => Number(b.toneladas) - Number(a.toneladas))
       .slice(0, 10);
-  }, [equipamentos, latest]);
+  }, [equipamentos]);
 
   const lastUpdate = latest?.atualizado_em ?? null;
   const minutesSince = lastUpdate
