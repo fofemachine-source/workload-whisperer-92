@@ -615,8 +615,8 @@ export function OpsCenter() {
             </div>
           </CardShell>
 
-          <CardShell title="🗺️ PRODUÇÃO POR FRENTE">
-            <div className="space-y-1.5">
+          <CardShell title="🗺️ PRODUÇÃO POR FRENTE" className="flex-1 flex flex-col min-h-[260px]">
+            <div className="space-y-1.5 flex-1">
               {frentesAtuais.length === 0 ? (
                 <p className="text-sm text-muted-foreground font-mono">Sem dados de frentes para o turno atual.</p>
               ) : (
