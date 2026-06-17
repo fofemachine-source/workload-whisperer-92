@@ -21,6 +21,7 @@ import { useProducaoFrente, useProducaoEquipamento } from "@/hooks/useProducaoKp
 import ValidacaoHexagonCard from "@/components/diagnostico/ValidacaoHexagonCard";
 import MonitorAtualizacao from "@/components/diagnostico/MonitorAtualizacao";
 import DiagnosticoRetaludamento from "@/components/diagnostico/DiagnosticoRetaludamento";
+import FrentesBrutas from "@/components/diagnostico/FrentesBrutas";
 
 const fmt = (n: number, d = 0) =>
   (n || 0).toLocaleString("pt-BR", { minimumFractionDigits: d, maximumFractionDigits: d });
@@ -208,6 +209,7 @@ export default function ProducaoDashboard() {
         <ValidacaoHexagonCard />
         <MonitorAtualizacao />
         <DiagnosticoRetaludamento />
+        <FrentesBrutas />
 
         {/* 4 cards principais */}
         <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
