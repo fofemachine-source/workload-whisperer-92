@@ -180,12 +180,12 @@ export default function ProducaoDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground p-4 md:p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
-        <header className="flex flex-wrap items-center justify-between gap-3">
+    <div className="min-h-screen bg-background text-foreground p-2 md:p-4">
+      <div className="max-w-7xl mx-auto space-y-4">
+        <header className="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold">Produção MineOPS</h1>
-            <p className="text-sm text-muted-foreground">
+            <h1 className="text-xl md:text-2xl font-bold">Produção MineOPS</h1>
+            <p className="text-xs text-muted-foreground">
               Fonte: SQL Server → Agente SSRS → Supabase · atualização a cada 30s
             </p>
           </div>
@@ -210,62 +210,62 @@ export default function ProducaoDashboard() {
         <DiagnosticoRetaludamento />
 
         {/* 4 cards principais */}
-        <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
           <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-xs font-mono uppercase text-muted-foreground flex items-center gap-2">
+            <CardHeader className="pb-1">
+              <CardTitle className="text-[11px] font-mono uppercase text-muted-foreground flex items-center gap-2">
                 <Database className="h-3 w-3" /> 📊 Produção Total do Dia
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold text-mining-blue">
-                {fmt(Number(latest?.toneladas_total || 0))} <span className="text-base">t</span>
+              <p className="text-2xl font-bold text-mining-blue">
+                {fmt(Number(latest?.toneladas_total || 0))} <span className="text-sm">t</span>
               </p>
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-[11px] text-muted-foreground mt-0.5">
                 {latest?.data_referencia ?? "—"}
               </p>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-xs font-mono uppercase text-muted-foreground flex items-center gap-2">
+            <CardHeader className="pb-1">
+              <CardTitle className="text-[11px] font-mono uppercase text-muted-foreground flex items-center gap-2">
                 <Gauge className="h-3 w-3" /> ⚡ Produção / Hora
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold text-mining-green">
-                {fmt(Number(latest?.producao_hora || 0))} <span className="text-base">t/h</span>
+              <p className="text-2xl font-bold text-mining-green">
+                {fmt(Number(latest?.producao_hora || 0))} <span className="text-sm">t/h</span>
               </p>
-              <p className="text-xs text-muted-foreground mt-1">Última leitura</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">Última leitura</p>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-xs font-mono uppercase text-muted-foreground flex items-center gap-2">
+            <CardHeader className="pb-1">
+              <CardTitle className="text-[11px] font-mono uppercase text-muted-foreground flex items-center gap-2">
                 <Clock className="h-3 w-3" /> 🕒 Última Atualização
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold">{timeAgo(lastUpdate)}</p>
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-xl font-bold">{timeAgo(lastUpdate)}</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">
                 {lastUpdate ? new Date(lastUpdate).toLocaleString("pt-BR") : "sem dados"}
               </p>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-xs font-mono uppercase text-muted-foreground flex items-center gap-2">
+            <CardHeader className="pb-1">
+              <CardTitle className="text-[11px] font-mono uppercase text-muted-foreground flex items-center gap-2">
                 <Activity className="h-3 w-3" /> 🏭 Turno Atual
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold text-mining-yellow uppercase">
+              <p className="text-2xl font-bold text-mining-yellow uppercase">
                 {latest?.turno ?? "—"}
               </p>
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-[11px] text-muted-foreground mt-0.5">
                 Origem: {latest?.relatorio_origem ?? "—"}
               </p>
             </CardContent>
@@ -273,7 +273,7 @@ export default function ProducaoDashboard() {
         </div>
 
         {/* KPIs DE MINERAÇÃO + RANKING EH */}
-        <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
           <KpiCard label="⛏️ Produção Mina" value={`${fmt(producaoMina)} t`} accent="text-mining-blue" />
           <KpiCard label="🪨 Produção Retaludamento" value={`${fmt(producaoRetalud)} t`} accent="text-mining-yellow" />
           <KpiCard
@@ -290,34 +290,34 @@ export default function ProducaoDashboard() {
           <KpiCard label="🎯 Meta Diária" value={`${fmt(metaDiaria)} t`} accent="text-mining-yellow" />
           <KpiCard label="🎯 Meta Mensal" value={`${fmt(metaMensal)} t`} accent="text-mining-yellow" />
 
-          {/* RANKING EH — ocupa 2 colunas no lugar do antigo D/F T/H */}
+          {/* RANKING EH — ocupa 2 colunas */}
           <Card className="lg:col-span-2">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-xs font-mono uppercase text-muted-foreground flex items-center gap-2">
+            <CardHeader className="pb-1">
+              <CardTitle className="text-[11px] font-mono uppercase text-muted-foreground flex items-center gap-2">
                 <Gauge className="h-3 w-3" /> 🏆 Ranking EH por Tonelagem
               </CardTitle>
             </CardHeader>
             <CardContent>
               {rankingEH.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Sem dados de equipamentos para o turno atual.</p>
+                <p className="text-xs text-muted-foreground">Sem dados de equipamentos para o turno atual.</p>
               ) : (
-                <div className="space-y-1.5">
+                <div className="space-y-1">
                   {rankingEH.map((e, idx) => {
                     const max = rankingEH[0].toneladas || 1;
                     const pct = (e.toneladas / max) * 100;
                     const medal = idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : `${idx + 1}º`;
                     return (
-                      <div key={e.id} className="flex items-center gap-2 text-sm">
-                        <span className="w-8 text-right font-mono text-mining-yellow font-bold">{medal}</span>
-                        <span className="w-20 font-mono text-foreground truncate" title={e.equipamento}>{e.equipamento}</span>
-                        <span className="w-24 text-xs text-muted-foreground truncate">{e.tipo ?? "—"}</span>
-                        <div className="flex-1 h-2.5 bg-white/5 rounded overflow-hidden">
+                      <div key={e.id} className="flex items-center gap-2 text-xs">
+                        <span className="w-6 text-right font-mono text-mining-yellow font-bold">{medal}</span>
+                        <span className="w-16 font-mono text-foreground truncate" title={e.equipamento}>{e.equipamento}</span>
+                        <span className="w-20 text-[10px] text-muted-foreground truncate">{e.tipo ?? "—"}</span>
+                        <div className="flex-1 h-2 bg-white/5 rounded overflow-hidden">
                           <div
                             className="h-full bg-mining-green"
-                            style={{ width: `${pct}%`, boxShadow: "0 0 6px hsl(var(--mining-green))" }}
+                            style={{ width: `${pct}%`, boxShadow: "0 0 4px hsl(var(--mining-green))" }}
                           />
                         </div>
-                        <span className="w-20 text-right font-mono text-mining-green">{fmt(e.toneladas)} t</span>
+                        <span className="w-16 text-right font-mono text-mining-green">{fmt(e.toneladas)} t</span>
                       </div>
                     );
                   })}
@@ -329,27 +329,27 @@ export default function ProducaoDashboard() {
 
         {/* PRODUÇÃO POR FRENTE */}
         <Card>
-          <CardHeader>
-            <CardTitle className="text-sm">🗺️ Produção por Frente — turno atual</CardTitle>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs">🗺️ Produção por Frente — turno atual</CardTitle>
           </CardHeader>
           <CardContent>
             {frentesAtuais.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Sem dados de frentes para o turno atual.</p>
+              <p className="text-xs text-muted-foreground">Sem dados de frentes para o turno atual.</p>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 {frentesAtuais.map((f) => {
                   const max = frentesAtuais[0].toneladas || 1;
                   const pct = (f.toneladas / max) * 100;
                   return (
-                    <div key={f.id} className="flex items-center gap-3">
-                      <span className="w-20 font-mono text-sm text-foreground">{f.frente}</span>
-                      <div className="flex-1 h-3 bg-white/5 rounded overflow-hidden">
+                    <div key={f.id} className="flex items-center gap-2">
+                      <span className="w-16 font-mono text-xs text-foreground">{f.frente}</span>
+                      <div className="flex-1 h-2.5 bg-white/5 rounded overflow-hidden">
                         <div
                           className="h-full bg-mining-blue"
-                          style={{ width: `${pct}%`, boxShadow: "0 0 8px hsl(var(--mining-blue))" }}
+                          style={{ width: `${pct}%`, boxShadow: "0 0 6px hsl(var(--mining-blue))" }}
                         />
                       </div>
-                      <span className="w-28 text-right font-mono text-sm text-mining-blue">
+                      <span className="w-24 text-right font-mono text-xs text-mining-blue">
                         {fmt(f.toneladas)} t
                       </span>
                     </div>
@@ -361,20 +361,20 @@ export default function ProducaoDashboard() {
         </Card>
 
         {/* Gráficos */}
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className="grid gap-3 lg:grid-cols-2">
           <Card>
-            <CardHeader>
-              <CardTitle className="text-sm">📈 Produção Diária — últimos 30 dias</CardTitle>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xs">📈 Produção Diária — últimos 30 dias</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="h-72">
+              <div className="h-56">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={dailySeries} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                  <LineChart data={dailySeries} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
                     <CartesianGrid stroke="rgba(255,255,255,0.06)" />
-                    <XAxis dataKey="data" stroke="#9ca3af" tick={{ fontSize: 11 }} />
-                    <YAxis stroke="#9ca3af" tick={{ fontSize: 11 }} />
+                    <XAxis dataKey="data" stroke="#9ca3af" tick={{ fontSize: 10 }} />
+                    <YAxis stroke="#9ca3af" tick={{ fontSize: 10 }} />
                     <Tooltip
-                      contentStyle={{ background: "#0a0a0a", border: "1px solid #22c55e", fontSize: 12 }}
+                      contentStyle={{ background: "#0a0a0a", border: "1px solid #22c55e", fontSize: 11 }}
                       formatter={(v: number) => [`${fmt(v)} t`, "Toneladas"]}
                     />
                     <Line
@@ -382,7 +382,7 @@ export default function ProducaoDashboard() {
                       dataKey="toneladas"
                       stroke="#22c55e"
                       strokeWidth={2}
-                      dot={{ r: 3, fill: "#22c55e" }}
+                      dot={{ r: 2, fill: "#22c55e" }}
                     />
                   </LineChart>
                 </ResponsiveContainer>
@@ -391,21 +391,21 @@ export default function ProducaoDashboard() {
           </Card>
 
           <Card>
-            <CardHeader>
-              <CardTitle className="text-sm">📈 Produção por Turno</CardTitle>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xs">📈 Produção por Turno</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="h-72">
+              <div className="h-56">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={turnoSeries} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                  <BarChart data={turnoSeries} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
                     <CartesianGrid stroke="rgba(255,255,255,0.06)" />
-                    <XAxis dataKey="turno" stroke="#9ca3af" tick={{ fontSize: 11 }} />
-                    <YAxis stroke="#9ca3af" tick={{ fontSize: 11 }} />
+                    <XAxis dataKey="turno" stroke="#9ca3af" tick={{ fontSize: 10 }} />
+                    <YAxis stroke="#9ca3af" tick={{ fontSize: 10 }} />
                     <Tooltip
-                      contentStyle={{ background: "#0a0a0a", border: "1px solid #facc15", fontSize: 12 }}
+                      contentStyle={{ background: "#0a0a0a", border: "1px solid #facc15", fontSize: 11 }}
                       formatter={(v: number) => [`${fmt(v)} t`, "Toneladas"]}
                     />
-                    <Legend wrapperStyle={{ fontSize: 11 }} />
+                    <Legend wrapperStyle={{ fontSize: 10 }} />
                     <Bar dataKey="toneladas" fill="#facc15" radius={[4, 4, 0, 0]} name="Toneladas" />
                   </BarChart>
                 </ResponsiveContainer>
@@ -433,12 +433,12 @@ function KpiCard({
 }) {
   return (
     <Card title={tooltip}>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-xs font-mono uppercase text-muted-foreground">{label}</CardTitle>
+      <CardHeader className="pb-1">
+        <CardTitle className="text-[11px] font-mono uppercase text-muted-foreground">{label}</CardTitle>
       </CardHeader>
       <CardContent>
-        <p className={`text-2xl font-bold ${accent}`}>{value}</p>
-        {sub && <p className="text-xs text-muted-foreground mt-1">{sub}</p>}
+        <p className={`text-lg font-bold ${accent}`}>{value}</p>
+        {sub && <p className="text-[11px] text-muted-foreground mt-0.5">{sub}</p>}
       </CardContent>
     </Card>
   );
