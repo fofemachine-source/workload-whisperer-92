@@ -210,62 +210,62 @@ export default function ProducaoDashboard() {
         <DiagnosticoRetaludamento />
 
         {/* 4 cards principais */}
-        <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
           <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-xs font-mono uppercase text-muted-foreground flex items-center gap-2">
+            <CardHeader className="pb-1">
+              <CardTitle className="text-[11px] font-mono uppercase text-muted-foreground flex items-center gap-2">
                 <Database className="h-3 w-3" /> 📊 Produção Total do Dia
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold text-mining-blue">
-                {fmt(Number(latest?.toneladas_total || 0))} <span className="text-base">t</span>
+              <p className="text-2xl font-bold text-mining-blue">
+                {fmt(Number(latest?.toneladas_total || 0))} <span className="text-sm">t</span>
               </p>
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-[11px] text-muted-foreground mt-0.5">
                 {latest?.data_referencia ?? "—"}
               </p>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-xs font-mono uppercase text-muted-foreground flex items-center gap-2">
+            <CardHeader className="pb-1">
+              <CardTitle className="text-[11px] font-mono uppercase text-muted-foreground flex items-center gap-2">
                 <Gauge className="h-3 w-3" /> ⚡ Produção / Hora
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold text-mining-green">
-                {fmt(Number(latest?.producao_hora || 0))} <span className="text-base">t/h</span>
+              <p className="text-2xl font-bold text-mining-green">
+                {fmt(Number(latest?.producao_hora || 0))} <span className="text-sm">t/h</span>
               </p>
-              <p className="text-xs text-muted-foreground mt-1">Última leitura</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">Última leitura</p>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-xs font-mono uppercase text-muted-foreground flex items-center gap-2">
+            <CardHeader className="pb-1">
+              <CardTitle className="text-[11px] font-mono uppercase text-muted-foreground flex items-center gap-2">
                 <Clock className="h-3 w-3" /> 🕒 Última Atualização
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold">{timeAgo(lastUpdate)}</p>
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-xl font-bold">{timeAgo(lastUpdate)}</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">
                 {lastUpdate ? new Date(lastUpdate).toLocaleString("pt-BR") : "sem dados"}
               </p>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-xs font-mono uppercase text-muted-foreground flex items-center gap-2">
+            <CardHeader className="pb-1">
+              <CardTitle className="text-[11px] font-mono uppercase text-muted-foreground flex items-center gap-2">
                 <Activity className="h-3 w-3" /> 🏭 Turno Atual
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold text-mining-yellow uppercase">
+              <p className="text-2xl font-bold text-mining-yellow uppercase">
                 {latest?.turno ?? "—"}
               </p>
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-[11px] text-muted-foreground mt-0.5">
                 Origem: {latest?.relatorio_origem ?? "—"}
               </p>
             </CardContent>
