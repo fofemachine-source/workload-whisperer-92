@@ -144,11 +144,11 @@ function FleetRow({
   const dynamicColor = hasData ? thresholdColor(value as number) : color;
   return (
     <div className="flex items-center gap-3 py-2">
-      <div className="w-20 shrink-0">
+      <div className="w-24 shrink-0 flex items-center justify-center">
         {icon === "ex" ? (
-          <AnimatedExcavator className="w-20 h-10" color={iconColor} />
+          <AnimatedExcavator className="w-24 h-12" color={iconColor} />
         ) : (
-          <AnimatedTruck className="w-20 h-10" color={iconColor} />
+          <AnimatedTruck className="w-24 h-12" color={iconColor} />
         )}
       </div>
       <div className="flex-1 min-w-0">
