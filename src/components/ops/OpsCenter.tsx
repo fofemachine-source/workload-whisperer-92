@@ -13,6 +13,7 @@ import {
   ComposedChart,
 } from "recharts";
 import { useProducaoDiaria, type ProducaoDiariaRow } from "@/hooks/useProducaoDiaria";
+import { useProducaoFrente, useProducaoEquipamento } from "@/hooks/useProducaoKpis";
 import { AnimatedTruck } from "./AnimatedTruck";
 import logoUM from "@/assets/logo-um.png";
 import { AnimatedExcavator } from "./AnimatedExcavator";
