@@ -107,10 +107,10 @@
   .animate-truck-drive { animation: truck-drive 18s linear infinite; }
 
   @keyframes drive-footer {
-    0%   { transform: translateX(-120px); }
-    100% { transform: translateX(calc(100% + 120px)); }
+    0%   { transform: translateX(-140px); }
+    100% { transform: translateX(calc(100vw + 20px)); }
   }
-  .animate-drive-footer { animation: drive-footer 18s linear infinite; }
+  .animate-drive-footer { animation: drive-footer 18s linear infinite; will-change: transform; }
 
   @keyframes footer-truck-drive {
     from { transform: translateX(-120px); }
