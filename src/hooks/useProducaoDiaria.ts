@@ -32,6 +32,8 @@ export function useProducaoDiaria(dias = 30) {
       if (error) throw error;
       return (data ?? []) as ProducaoDiariaRow[];
     },
+    refetchInterval: 30_000,
+    refetchOnWindowFocus: true,
   });
 
   useEffect(() => {
@@ -75,6 +77,8 @@ export function useSincronizacoes(limit = 50) {
       if (error) throw error;
       return (data ?? []) as SincronizacaoRow[];
     },
+    refetchInterval: 30_000,
+    refetchOnWindowFocus: true,
   });
 
   useEffect(() => {
