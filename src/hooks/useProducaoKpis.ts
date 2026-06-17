@@ -46,13 +46,21 @@ export function useProducaoFrente(dias = 7) {
     queryFn: async () => {
       const desde = new Date();
       desde.setDate(desde.getDate() - dias);
-      const { data, error } = await supabase
+      const res = await supabase
         .from("producao_frente")
-        .select("*")
+        .select("*", { count: "exact" })
         .gte("data_referencia", desde.toISOString().slice(0, 10))
         .order("data_referencia", { ascending: false });
-      if (error) throw error;
-      return (data ?? []) as ProducaoFrenteRow[];
+      // eslint-disable-next-line no-console
+      console.log("[Supabase] producao_frente", {
+        count: res.count,
+        rows: res.data?.length ?? 0,
+        status: res.status,
+        error: res.error,
+        data: res.data,
+      });
+      if (res.error) throw res.error;
+      return (res.data ?? []) as ProducaoFrenteRow[];
     },
     refetchInterval: 30_000,
   });
@@ -66,13 +74,21 @@ export function useProducaoEquipamento(dias = 7) {
     queryFn: async () => {
       const desde = new Date();
       desde.setDate(desde.getDate() - dias);
-      const { data, error } = await supabase
+      const res = await supabase
         .from("producao_equipamento")
-        .select("*")
+        .select("*", { count: "exact" })
         .gte("data_referencia", desde.toISOString().slice(0, 10))
         .order("toneladas", { ascending: false });
-      if (error) throw error;
-      return (data ?? []) as ProducaoEquipamentoRow[];
+      // eslint-disable-next-line no-console
+      console.log("[Supabase] producao_equipamento", {
+        count: res.count,
+        rows: res.data?.length ?? 0,
+        status: res.status,
+        error: res.error,
+        data: res.data,
+      });
+      if (res.error) throw res.error;
+      return (res.data ?? []) as ProducaoEquipamentoRow[];
     },
     refetchInterval: 30_000,
   });
