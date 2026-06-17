@@ -143,32 +143,26 @@ function FleetRow({
   const hasData = value !== null && Number.isFinite(value);
   const dynamicColor = hasData ? thresholdColor(value as number) : color;
   return (
-    <div className="flex items-center gap-3 py-2">
-      <div className="w-16 shrink-0 flex items-center justify-center">
+    <div className="flex items-center gap-2 py-0.5">
+      <div className="w-10 shrink-0 flex items-center justify-center">
         {icon === "ex" ? (
-          <AnimatedExcavator className="w-16 h-9" color={iconColor} />
+          <AnimatedExcavator className="w-10 h-6" color={iconColor} />
         ) : (
-          <AnimatedTruck className="w-16 h-8" color={iconColor} />
+          <AnimatedTruck className="w-10 h-5" color={iconColor} />
         )}
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-lg font-mono font-bold text-foreground truncate">{name}</p>
-        <p className="text-xs font-mono text-muted-foreground">
-          ({count}/{total})
-        </p>
-      </div>
-      {hasData ? (
-        <Donut value={value as number} color={dynamicColor} />
-      ) : (
-        <div className="h-14 px-2 flex items-center justify-center">
-          <span className="text-[10px] font-mono font-bold tracking-[0.15em] text-mining-yellow/80 uppercase text-center leading-tight">
-            Aguardando<br />dados
-          </span>
+        <div className="flex items-baseline gap-1.5">
+          <span className="text-base font-mono font-bold text-mining-yellow truncate">{name}</span>
+          <span className="text-[9px] font-mono text-mining-yellow/70 uppercase tracking-wider">Realizado</span>
+          <span className="text-[10px] font-mono text-muted-foreground">({count}/{total})</span>
         </div>
-      )}
-      <div className="text-right w-24 shrink-0">
-        <p className="text-[10px] font-mono text-muted-foreground uppercase">Meta</p>
-        <p className="text-lg font-mono font-bold text-foreground whitespace-nowrap">{meta.toFixed(1)}%</p>
+      </div>
+      <div className="text-right shrink-0 flex items-baseline gap-2">
+        <span className="text-[9px] font-mono text-muted-foreground uppercase tracking-wider">Meta</span>
+        <span className="text-base font-mono font-bold whitespace-nowrap" style={{ color: dynamicColor }}>
+          {hasData ? `${(value as number).toFixed(1)}%` : `${meta.toFixed(1)}%`}
+        </span>
       </div>
     </div>
   );
