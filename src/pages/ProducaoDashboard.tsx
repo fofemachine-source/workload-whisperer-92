@@ -222,7 +222,9 @@ export default function ProducaoDashboard() {
                 {fmt(Number(latest?.toneladas_total || 0))} <span className="text-sm">t</span>
               </p>
               <p className="text-[11px] text-muted-foreground mt-0.5">
-                {latest?.data_referencia ?? "—"}
+                {latest?.data_referencia
+                  ? latest.data_referencia.split("-").reverse().join("/")
+                  : "—"}
               </p>
             </CardContent>
           </Card>
