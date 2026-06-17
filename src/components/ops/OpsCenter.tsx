@@ -647,17 +647,17 @@ export function OpsCenter() {
           <div className="absolute inset-x-0 bottom-2 h-px bg-gradient-to-r from-transparent via-mining-green/40 to-transparent" />
           <div className="absolute bottom-1 left-0 w-full animate-drive-footer">
             <div className="absolute left-0">
-              <AnimatedTruck className="w-24 h-14" color={YELLOW} />
+              <AnimatedTruck className="w-24 h-14" color={YELLOW} driving={false} />
             </div>
           </div>
           <div className="absolute bottom-1 left-0 w-full animate-drive-footer" style={{ animationDelay: "-6s" }}>
             <div className="absolute left-0">
-              <AnimatedTruck className="w-24 h-14" color="#fb923c" />
+              <AnimatedTruck className="w-24 h-14" color="#fb923c" driving={false} />
             </div>
           </div>
           <div className="absolute bottom-1 left-0 w-full animate-drive-footer" style={{ animationDelay: "-12s" }}>
             <div className="absolute left-0">
-              <AnimatedTruck className="w-24 h-14" color={NEON} />
+              <AnimatedTruck className="w-24 h-14" color={NEON} driving={false} />
             </div>
           </div>
         </div>
