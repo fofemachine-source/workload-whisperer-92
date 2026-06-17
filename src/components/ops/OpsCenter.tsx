@@ -184,8 +184,32 @@ export function OpsCenter() {
   const { data: equipamentos } = useProducaoEquipamento(2);
   const clock = useClock();
 
-  // Atualização suave: react-query já refaz fetch em background a cada 30s
-  // (sem recarregar a página, evitando a "piscada" na TV).
+  // Atualização suave: react-query refaz fetch em background a cada 30s
+  // + Supabase Realtime nos hooks (sem recarregar a página, sem piscar).
+
+  // [HEXAGON CHECK] valida pipeline SQL Server → agent → Supabase → Dashboard
+  useEffect(() => {
+    // eslint-disable-next-line no-console
+    console.log("[HEXAGON CHECK] Supabase conectado");
+    // eslint-disable-next-line no-console
+    console.log("[HEXAGON CHECK] producao_diaria linhas:", producao?.length ?? 0);
+    // eslint-disable-next-line no-console
+    console.log("[HEXAGON CHECK] producao_frente linhas:", frentes?.length ?? 0);
+    // eslint-disable-next-line no-console
+    console.log("[HEXAGON CHECK] producao_equipamento linhas:", equipamentos?.length ?? 0);
+    const ult = producao?.[0];
+    if (ult) {
+      // eslint-disable-next-line no-console
+      console.log("[HEXAGON CHECK] ultimo registro:", {
+        data: ult.data_referencia,
+        turno: ult.turno,
+        toneladas: ult.toneladas_total,
+        atualizado_em: ult.atualizado_em,
+      });
+      // eslint-disable-next-line no-console
+      console.log("[HEXAGON CHECK] origem:", ult.relatorio_origem);
+    }
+  }, [producao, frentes, equipamentos]);
 
   // Chave do dia local (America/Sao_Paulo) no formato YYYY-MM-DD
   const todayKey = useMemo(() => {
@@ -327,6 +351,11 @@ export function OpsCenter() {
         {/* STATUS STRIP — última linha de producao_diaria (tempo real) */}
         <div className="col-span-12">
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2 px-3 py-2 bg-black/70 border border-mining-green/25 rounded-md">
+            {latestRow?.relatorio_origem === "sqlserver-agent" && (
+              <span className="text-xs font-mono uppercase tracking-[0.18em] text-mining-yellow">
+                Fonte: Hexagon/JMineOps via SQL Server
+              </span>
+            )}
             <span className="text-xs font-mono uppercase tracking-[0.18em] text-mining-green">
               Última leitura SSRS
             </span>

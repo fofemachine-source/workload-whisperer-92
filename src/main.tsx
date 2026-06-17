@@ -1,7 +1,6 @@
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
-import { startAutoReload } from "./lib/autoReload";
 
 // Modo TV/Kiosk: detecta telas grandes e adiciona classe para reduzir
 // animações, sombras e blur (alivia GPU em Smart TVs antigas).
@@ -38,6 +37,3 @@ if (typeof Node !== "undefined") {
 }
 
 createRoot(document.getElementById("root")!).render(<App />);
-
-// Mantém a TV sempre na versão mais recente publicada (checa a cada 30s)
-startAutoReload(30_000);
