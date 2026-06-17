@@ -265,8 +265,8 @@ export default function ProducaoDashboard() {
           </Card>
         </div>
 
-        {/* KPIs DE MINERAÇÃO */}
-        <div className="grid gap-4 grid-cols-2 lg:grid-cols-3">
+        {/* KPIs DE MINERAÇÃO + RANKING EH */}
+        <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
           <KpiCard label="⛏️ Produção Mina" value={`${fmt(producaoMina)} t`} accent="text-mining-blue" />
           <KpiCard label="🪨 Produção Retaludamento" value={`${fmt(producaoRetalud)} t`} accent="text-mining-yellow" />
           <KpiCard
@@ -282,35 +282,43 @@ export default function ProducaoDashboard() {
           />
           <KpiCard label="🎯 Meta Diária" value={`${fmt(metaDiaria)} t`} accent="text-mining-yellow" />
           <KpiCard label="🎯 Meta Mensal" value={`${fmt(metaMensal)} t`} accent="text-mining-yellow" />
-        </div>
 
-        {/* RANKING EH — turno atual */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm">🏆 Ranking EH por Tonelagem — turno atual</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {rankingEH.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Sem dados de equipamentos para o turno atual.</p>
-            ) : (
-              <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-                {rankingEH.map((e, idx) => {
-                  const medal = idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : `${idx + 1}º`;
-                  return (
-                    <div key={e.id} className="flex items-center gap-3 rounded-lg border border-white/10 bg-white/5 px-3 py-2">
-                      <span className="text-lg font-bold text-mining-yellow w-8 text-center">{medal}</span>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-mono text-sm font-semibold text-foreground truncate">{e.equipamento}</p>
-                        <p className="text-xs text-muted-foreground">{e.tipo ?? "—"}</p>
+          {/* RANKING EH — ocupa 2 colunas no lugar do antigo D/F T/H */}
+          <Card className="lg:col-span-2">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xs font-mono uppercase text-muted-foreground flex items-center gap-2">
+                <Gauge className="h-3 w-3" /> 🏆 Ranking EH por Tonelagem
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {rankingEH.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Sem dados de equipamentos para o turno atual.</p>
+              ) : (
+                <div className="space-y-1.5">
+                  {rankingEH.map((e, idx) => {
+                    const max = rankingEH[0].toneladas || 1;
+                    const pct = (e.toneladas / max) * 100;
+                    const medal = idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : `${idx + 1}º`;
+                    return (
+                      <div key={e.id} className="flex items-center gap-2 text-sm">
+                        <span className="w-8 text-right font-mono text-mining-yellow font-bold">{medal}</span>
+                        <span className="w-20 font-mono text-foreground truncate" title={e.equipamento}>{e.equipamento}</span>
+                        <span className="w-24 text-xs text-muted-foreground truncate">{e.tipo ?? "—"}</span>
+                        <div className="flex-1 h-2.5 bg-white/5 rounded overflow-hidden">
+                          <div
+                            className="h-full bg-mining-green"
+                            style={{ width: `${pct}%`, boxShadow: "0 0 6px hsl(var(--mining-green))" }}
+                          />
+                        </div>
+                        <span className="w-20 text-right font-mono text-mining-green">{fmt(e.toneladas)} t</span>
                       </div>
-                      <span className="font-mono text-sm text-mining-green whitespace-nowrap">{fmt(e.toneladas)} t</span>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
 
         {/* PRODUÇÃO POR FRENTE */}
         <Card>
