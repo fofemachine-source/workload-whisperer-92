@@ -335,6 +335,37 @@ export function OpsCenter() {
     { key: "K730", name: "CAMINHÕES 730", icon: "truck" as const, count: FLEET_SIZE["Komatsu 730"], df: dfGeral, ut: utGeral },
   ];
 
+  // ----- Escavadeiras por tipo (EX1200 / EX2500) -----
+  // Lista do turno mais recente de producao_equipamento, ordenada por toneladas DESC.
+  const escavadeirasPorTipo = useMemo(() => {
+    const empty = { ex1200: [] as typeof rankingEH, ex2500: [] as typeof rankingEH };
+    if (!equipamentos || equipamentos.length === 0) return empty;
+    const sorted = [...equipamentos].sort((a, b) =>
+      (b.data_referencia + b.turno).localeCompare(a.data_referencia + a.turno),
+    );
+    const head = sorted[0];
+    const turno = sorted.filter(
+      (e) => e.data_referencia === head.data_referencia && e.turno === head.turno,
+    );
+    const match = (e: (typeof turno)[number], needle: string) => {
+      const t = String(e.tipo || "").toUpperCase().replace(/\s+/g, "");
+      const n = String(e.equipamento || "").toUpperCase();
+      if (t.includes(needle)) return true;
+      // Heurística: EH-40xx => EX1200, EH-50xx => EX2500
+      const m = n.match(/EH[-\s]?(\d{2})/);
+      if (m) {
+        if (needle === "EX1200" && m[1].startsWith("40")) return true;
+        if (needle === "EX2500" && m[1].startsWith("50")) return true;
+      }
+      return false;
+    };
+    const sortDesc = (a: any, b: any) => Number(b.toneladas) - Number(a.toneladas);
+    return {
+      ex1200: turno.filter((e) => match(e, "EX1200")).sort(sortDesc),
+      ex2500: turno.filter((e) => match(e, "EX2500")).sort(sortDesc),
+    };
+  }, [equipamentos]);
+
   // Logs úteis em produção
   if (error) console.error("[OpsCenter] erro producao_diaria:", error);
   void isLoading;
@@ -582,31 +613,10 @@ export function OpsCenter() {
         <div className="col-span-12 lg:col-span-6 flex flex-col gap-3">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 flex-1">
             <CardShell title="% DISPONIBILIDADE FÍSICA POR FROTA" className="h-full">
-              {fleets.map((f) => (
-                <FleetRow
-                  key={`df-${f.name}`}
-                  icon={f.icon}
-                  name={f.name}
-                  count={f.count}
-                  total={f.count}
-                  value={f.df}
-                  meta={85}
-                />
-              ))}
+              <EscavadeirasList items={escavadeirasPorTipo.ex1200} />
             </CardShell>
             <CardShell title="UTILIZAÇÃO POR FROTA" className="h-full">
-              {fleets.map((f) => (
-                <FleetRow
-                  key={`ut-${f.name}`}
-                  icon={f.icon}
-                  name={f.name}
-                  count={f.count}
-                  total={f.count}
-                  value={f.ut}
-                  meta={85}
-                  color={BLUE}
-                />
-              ))}
+              <EscavadeirasList items={escavadeirasPorTipo.ex2500} />
             </CardShell>
           </div>
         </div>
@@ -687,6 +697,49 @@ export function OpsCenter() {
           <img src={logoUM} alt="Logo U&M" className="h-12 object-contain opacity-90" />
         </div>
       </main>
+    </div>
+  );
+}
+
+function EscavadeirasList({
+  items,
+}: {
+  items: Array<{ id: string; equipamento: string; toneladas: number }>;
+}) {
+  const max = items[0]?.toneladas || 1;
+  return (
+    <div className="relative">
+      <div className="absolute top-0 right-0 text-right">
+        <p className="text-[10px] font-mono text-muted-foreground uppercase leading-none">Meta</p>
+        <p className="text-sm font-mono font-bold text-foreground leading-tight">85%</p>
+      </div>
+      {items.length === 0 ? (
+        <p className="text-sm text-muted-foreground font-mono py-4">
+          Sem dados de escavadeiras para o turno atual.
+        </p>
+      ) : (
+        <div className="space-y-2 pr-14">
+          {items.map((e) => {
+            const pct = (Number(e.toneladas) / max) * 100;
+            return (
+              <div key={e.id} className="flex items-center gap-2 text-sm">
+                <span className="w-16 font-mono font-bold text-foreground truncate" title={e.equipamento}>
+                  {e.equipamento}
+                </span>
+                <div className="flex-1 h-2.5 bg-white/5 rounded overflow-hidden">
+                  <div
+                    className="h-full bg-mining-green"
+                    style={{ width: `${pct}%`, boxShadow: "0 0 6px #22c55e" }}
+                  />
+                </div>
+                <span className="w-20 text-right font-mono text-mining-green">
+                  {(Number(e.toneladas) || 0).toLocaleString("pt-BR", { maximumFractionDigits: 0 })} t
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
