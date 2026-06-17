@@ -114,7 +114,6 @@ Deno.serve(async (req) => {
         erros.push({ indice: i, faltando: [...faltando], registro: r });
         return;
       }
-      n.atualizado_em = new Date().toISOString();
       normalizados.push(n);
     });
 
