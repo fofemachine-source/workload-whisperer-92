@@ -252,6 +252,7 @@ export type Database = {
       }
       producao_diaria: {
         Row: {
+          acumulado_mes: number | null
           atualizado_em: string
           carga_operando: number | null
           created_at: string
@@ -260,8 +261,13 @@ export type Database = {
           equipamentos_disponiveis: number | null
           equipamentos_utilizados: number | null
           id: string
+          meta_diaria: number | null
+          meta_mensal: number | null
           payload_bruto: Json | null
           producao_hora: number | null
+          producao_mina: number | null
+          producao_retaludamento: number | null
+          projecao_turno: number | null
           relatorio_origem: string
           toneladas_total: number | null
           transporte_operando: number | null
@@ -269,6 +275,7 @@ export type Database = {
           utilizacao_ut: number | null
         }
         Insert: {
+          acumulado_mes?: number | null
           atualizado_em?: string
           carga_operando?: number | null
           created_at?: string
@@ -277,8 +284,13 @@ export type Database = {
           equipamentos_disponiveis?: number | null
           equipamentos_utilizados?: number | null
           id?: string
+          meta_diaria?: number | null
+          meta_mensal?: number | null
           payload_bruto?: Json | null
           producao_hora?: number | null
+          producao_mina?: number | null
+          producao_retaludamento?: number | null
+          projecao_turno?: number | null
           relatorio_origem?: string
           toneladas_total?: number | null
           transporte_operando?: number | null
@@ -286,6 +298,7 @@ export type Database = {
           utilizacao_ut?: number | null
         }
         Update: {
+          acumulado_mes?: number | null
           atualizado_em?: string
           carga_operando?: number | null
           created_at?: string
@@ -294,13 +307,93 @@ export type Database = {
           equipamentos_disponiveis?: number | null
           equipamentos_utilizados?: number | null
           id?: string
+          meta_diaria?: number | null
+          meta_mensal?: number | null
           payload_bruto?: Json | null
           producao_hora?: number | null
+          producao_mina?: number | null
+          producao_retaludamento?: number | null
+          projecao_turno?: number | null
           relatorio_origem?: string
           toneladas_total?: number | null
           transporte_operando?: number | null
           turno?: string | null
           utilizacao_ut?: number | null
+        }
+        Relationships: []
+      }
+      producao_equipamento: {
+        Row: {
+          atualizado_em: string
+          data_referencia: string
+          df: number | null
+          equipamento: string
+          id: string
+          producao_hora: number | null
+          relatorio_origem: string
+          tipo: string | null
+          toneladas: number
+          turno: string
+          ut: number | null
+        }
+        Insert: {
+          atualizado_em?: string
+          data_referencia: string
+          df?: number | null
+          equipamento: string
+          id?: string
+          producao_hora?: number | null
+          relatorio_origem: string
+          tipo?: string | null
+          toneladas?: number
+          turno: string
+          ut?: number | null
+        }
+        Update: {
+          atualizado_em?: string
+          data_referencia?: string
+          df?: number | null
+          equipamento?: string
+          id?: string
+          producao_hora?: number | null
+          relatorio_origem?: string
+          tipo?: string | null
+          toneladas?: number
+          turno?: string
+          ut?: number | null
+        }
+        Relationships: []
+      }
+      producao_frente: {
+        Row: {
+          atualizado_em: string
+          data_referencia: string
+          frente: string
+          id: string
+          producao_hora: number | null
+          relatorio_origem: string
+          toneladas: number
+          turno: string
+        }
+        Insert: {
+          atualizado_em?: string
+          data_referencia: string
+          frente: string
+          id?: string
+          producao_hora?: number | null
+          relatorio_origem: string
+          toneladas?: number
+          turno: string
+        }
+        Update: {
+          atualizado_em?: string
+          data_referencia?: string
+          frente?: string
+          id?: string
+          producao_hora?: number | null
+          relatorio_origem?: string
+          toneladas?: number
+          turno?: string
         }
         Relationships: []
       }
