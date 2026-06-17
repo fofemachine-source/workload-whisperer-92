@@ -1,0 +1,1 @@
+DROP TRIGGER IF EXISTS trg_producao_diaria_updated ON public.producao_diaria;
