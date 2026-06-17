@@ -106,6 +106,23 @@
   }
   .animate-truck-drive { animation: truck-drive 18s linear infinite; }
 
+  @keyframes truck-roundtrip {
+    0%   { transform: translateX(-15%) scaleX(1); }
+    45%  { transform: translateX(115%) scaleX(1); }
+    50%  { transform: translateX(115%) scaleX(-1); }
+    95%  { transform: translateX(-15%) scaleX(-1); }
+    100% { transform: translateX(-15%) scaleX(1); }
+  }
+  .animate-truck-roundtrip { animation: truck-roundtrip 22s ease-in-out infinite; }
+
+  @keyframes excavator-dig {
+    0%, 100% { transform: translateY(0) rotate(-2deg); }
+    25%      { transform: translateY(-1px) rotate(1deg); }
+    50%      { transform: translateY(0) rotate(3deg); }
+    75%      { transform: translateY(-1px) rotate(1deg); }
+  }
+  .animate-excavator-dig { animation: excavator-dig 2.4s ease-in-out infinite; transform-origin: 70% 80%; }
+
   @keyframes truck-bounce {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-1.5px); }
@@ -150,6 +167,8 @@
    ============================================================ */
 html.tv-mode .animate-truck-drive,
 html.tv-mode .animate-truck-bounce,
+html.tv-mode .animate-truck-roundtrip,
+html.tv-mode .animate-excavator-dig,
 html.tv-mode .animate-wheel-spin,
 html.tv-mode .animate-excavator-arm,
 html.tv-mode .animate-radar,
