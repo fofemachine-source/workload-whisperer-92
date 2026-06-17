@@ -645,14 +645,20 @@ export function OpsCenter() {
         {/* FAIXA DE CAMINHÕES ANIMADA — banda inferior */}
         <div className="col-span-12 relative h-14 border border-mining-green/15 rounded-md bg-black/60 overflow-hidden">
           <div className="absolute inset-x-0 bottom-2 h-px bg-gradient-to-r from-transparent via-mining-green/40 to-transparent" />
-          <div className="absolute bottom-1 left-0 animate-drive-footer">
-            <AnimatedTruck className="w-24 h-14" color={YELLOW} />
+          <div className="absolute inset-0 animate-drive-footer">
+            <div className="absolute bottom-1 left-0">
+              <AnimatedTruck className="w-24 h-14" color={YELLOW} />
+            </div>
           </div>
-          <div className="absolute bottom-1 left-0 animate-drive-footer" style={{ animationDuration: "28s", animationDelay: "-9s" }}>
-            <AnimatedTruck className="w-24 h-14" color="#fb923c" />
+          <div className="absolute inset-0 animate-drive-footer" style={{ animationDuration: "28s", animationDelay: "-9s" }}>
+            <div className="absolute bottom-1 left-0">
+              <AnimatedTruck className="w-24 h-14" color="#fb923c" />
+            </div>
           </div>
-          <div className="absolute bottom-1 left-0 animate-drive-footer" style={{ animationDuration: "34s", animationDelay: "-17s" }}>
-            <AnimatedTruck className="w-24 h-14" color={NEON} />
+          <div className="absolute inset-0 animate-drive-footer" style={{ animationDuration: "34s", animationDelay: "-17s" }}>
+            <div className="absolute bottom-1 left-0">
+              <AnimatedTruck className="w-24 h-14" color={NEON} />
+            </div>
           </div>
         </div>
 
