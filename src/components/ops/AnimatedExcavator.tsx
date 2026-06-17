@@ -12,7 +12,7 @@ export function AnimatedExcavator({ className, animate = true }: Props) {
       src={excavatorImg}
       alt="Escavadeira"
       className={`object-contain ${animate ? "animate-excavator-work" : ""} ${className ?? ""}`}
-      style={{ filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }}
+      style={{ filter: "drop-shadow(0 0 6px rgba(34,197,94,0.5)) brightness(1.3) contrast(1.1)" }}
     />
   );
 }

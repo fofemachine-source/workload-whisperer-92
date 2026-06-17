@@ -645,8 +645,20 @@ export function OpsCenter() {
         {/* FAIXA DE CAMINHÕES ANIMADA — banda inferior */}
         <div className="col-span-12 relative h-14 border border-mining-green/15 rounded-md bg-black/60 overflow-hidden">
           <div className="absolute inset-x-0 bottom-2 h-px bg-gradient-to-r from-transparent via-mining-green/40 to-transparent" />
-          <div className="absolute bottom-1" style={{ left: "30%" }}>
-            <AnimatedTruck className="w-24 h-14" color={YELLOW} driving={false} />
+          <div className="absolute bottom-1 left-0 w-full animate-drive-footer">
+            <div className="absolute left-0">
+              <AnimatedTruck className="w-24 h-14" color={YELLOW} />
+            </div>
+          </div>
+          <div className="absolute bottom-1 left-0 w-full animate-drive-footer" style={{ animationDelay: "-6s" }}>
+            <div className="absolute left-0">
+              <AnimatedTruck className="w-24 h-14" color="#fb923c" />
+            </div>
+          </div>
+          <div className="absolute bottom-1 left-0 w-full animate-drive-footer" style={{ animationDelay: "-12s" }}>
+            <div className="absolute left-0">
+              <AnimatedTruck className="w-24 h-14" color={NEON} />
+            </div>
           </div>
         </div>
 
