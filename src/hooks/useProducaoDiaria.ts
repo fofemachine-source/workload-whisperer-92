@@ -30,13 +30,21 @@ export function useProducaoDiaria(dias = 30) {
     queryFn: async () => {
       const desde = new Date();
       desde.setDate(desde.getDate() - dias);
-      const { data, error } = await supabase
+      const res = await supabase
         .from("producao_diaria")
-        .select("*")
+        .select("*", { count: "exact" })
         .gte("data_referencia", desde.toISOString().slice(0, 10))
         .order("data_referencia", { ascending: false });
-      if (error) throw error;
-      return (data ?? []) as ProducaoDiariaRow[];
+      // eslint-disable-next-line no-console
+      console.log("[Supabase] producao_diaria", {
+        count: res.count,
+        rows: res.data?.length ?? 0,
+        status: res.status,
+        error: res.error,
+        data: res.data,
+      });
+      if (res.error) throw res.error;
+      return (res.data ?? []) as ProducaoDiariaRow[];
     },
     refetchInterval: 30_000,
     refetchOnWindowFocus: true,
