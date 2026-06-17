@@ -320,7 +320,7 @@ export function OpsCenter() {
   void FLEET_TOTAL;
 
   return (
-    <div className="min-h-screen bg-black text-foreground relative overflow-hidden">
+    <div className="h-auto bg-black text-foreground relative overflow-hidden">
       {/* fundo HUD */}
       <div className="absolute inset-0 pointer-events-none ops-grid-bg opacity-30" />
       <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(800px_400px_at_20%_0%,hsl(var(--mining-green)/0.12),transparent),radial-gradient(700px_400px_at_80%_100%,hsl(var(--mining-blue)/0.10),transparent)]" />
@@ -427,7 +427,7 @@ export function OpsCenter() {
         {/* LINHA 2: META TOTAL MAIO + TONELADAS POR HORA */}
         <div className="col-span-12 lg:col-span-6 flex">
           <CardShell title="META MENSAL" className="flex-1 flex flex-col">
-            <div className="grid gap-6 grid-cols-2 min-h-[132px] flex-1">
+            <div className="grid gap-6 grid-cols-2 min-h-[100px] flex-1">
               <div className="flex flex-col justify-between">
                 <div>
                   <p className="text-lg font-mono uppercase tracking-[0.18em] text-muted-foreground">Mina</p>
@@ -461,7 +461,7 @@ export function OpsCenter() {
         </div>
         <div className="col-span-12 lg:col-span-6 flex">
           <CardShell title="TONELADAS POR HORA" className="flex-1 flex flex-col">
-            <div className="flex-1 h-64">
+            <div className="flex-1 h-44">
               <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart
                   data={tonHSeries}
@@ -615,7 +615,7 @@ export function OpsCenter() {
             </div>
           </CardShell>
 
-          <CardShell title="🗺️ PRODUÇÃO POR FRENTE" className="flex-1 flex flex-col min-h-[260px]">
+          <CardShell title="🗺️ PRODUÇÃO POR FRENTE" className="flex-1 flex flex-col min-h-[160px]">
             <div className="space-y-1.5 flex-1">
               {frentesAtuais.length === 0 ? (
                 <p className="text-sm text-muted-foreground font-mono">Sem dados de frentes para o turno atual.</p>
@@ -643,7 +643,7 @@ export function OpsCenter() {
         </div>
 
         {/* FAIXA DE CAMINHÕES ANIMADA — banda inferior */}
-        <div className="col-span-12 relative h-14 border border-mining-green/15 rounded-md bg-black/60 overflow-hidden">
+        <div className="col-span-12 relative h-10 border border-mining-green/15 rounded-md bg-black/60 overflow-hidden">
           <div className="absolute inset-x-0 bottom-2 h-px bg-gradient-to-r from-transparent via-mining-green/40 to-transparent" />
           <div className="absolute bottom-0 left-0 animate-drive-footer">
             <AnimatedTruck className="w-24 h-14 block" color={YELLOW} driving={false} />
@@ -657,8 +657,8 @@ export function OpsCenter() {
         </div>
 
         {/* LOGO U&M */}
-        <div className="col-span-12 flex justify-center py-4">
-          <img src={logoUM} alt="Logo U&M" className="h-16 object-contain opacity-90" />
+        <div className="col-span-12 flex justify-center py-1">
+          <img src={logoUM} alt="Logo U&M" className="h-10 object-contain opacity-90" />
         </div>
       </main>
     </div>
