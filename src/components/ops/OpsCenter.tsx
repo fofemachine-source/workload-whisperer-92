@@ -152,8 +152,8 @@ function FleetRow({
         )}
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-2xl font-mono font-bold text-foreground truncate">{name}</p>
-        <p className="text-base font-mono text-muted-foreground">
+        <p className="text-lg font-mono font-bold text-foreground truncate">{name}</p>
+        <p className="text-xs font-mono text-muted-foreground">
           ({count}/{total})
         </p>
       </div>
@@ -167,8 +167,8 @@ function FleetRow({
         </div>
       )}
       <div className="text-right w-24 shrink-0">
-        <p className="text-lg font-mono text-muted-foreground uppercase">Meta</p>
-        <p className="text-2xl font-mono font-bold text-foreground whitespace-nowrap">{meta.toFixed(1)}%</p>
+        <p className="text-[10px] font-mono text-muted-foreground uppercase">Meta</p>
+        <p className="text-lg font-mono font-bold text-foreground whitespace-nowrap">{meta.toFixed(1)}%</p>
       </div>
     </div>
   );
