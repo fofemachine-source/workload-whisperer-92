@@ -72,8 +72,6 @@ export default function ProducaoDashboard() {
   }, [rows, frentes, equipamentos, latest]);
 
   // KPIs derivados da linha mais recente
-  const dfPct = Number(latest?.disponibilidade_fisica_df || 0);
-  const utPct = Number(latest?.utilizacao_ut || 0);
   const metaDiaria = Number(latest?.meta_diaria || 0);
   const metaMensal = Number(latest?.meta_mensal || 0);
   const projecaoTurno = Number(latest?.projecao_turno || 0);
