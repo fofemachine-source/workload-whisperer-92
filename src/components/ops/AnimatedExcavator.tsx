@@ -1,4 +1,4 @@
-import excavatorAsset from "@/assets/excavator_ex1200.png.asset.json";
+import excavatorAsset from "@/assets/excavator_hq.png.asset.json";
 
 interface Props {
   className?: string;
