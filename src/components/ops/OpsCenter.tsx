@@ -338,8 +338,15 @@ export function OpsCenter() {
   // ----- Escavadeiras por tipo (EX1200 / EX2500) -----
   // Lista do turno mais recente de producao_equipamento, ordenada por toneladas DESC.
   const escavadeirasPorTipo = useMemo(() => {
-    const empty = { ex1200: [] as typeof rankingEH, ex2500: [] as typeof rankingEH };
-    if (!equipamentos || equipamentos.length === 0) return empty;
+    // Frota fixa esperada
+    const FROTA_EX1200 = ["EH-4026", "EH-4035", "EH-4039", "EH-4041", "EH-4047"];
+    const FROTA_EX2500 = ["EH-5003", "EH-5004", "EH-5036"];
+    const mkEmpty = (nome: string) => ({ id: `fix-${nome}`, equipamento: nome, toneladas: 0 });
+    const baseEmpty = {
+      ex1200: FROTA_EX1200.map(mkEmpty),
+      ex2500: FROTA_EX2500.map(mkEmpty),
+    };
+    if (!equipamentos || equipamentos.length === 0) return baseEmpty;
     const sorted = [...equipamentos].sort((a, b) =>
       (b.data_referencia + b.turno).localeCompare(a.data_referencia + a.turno),
     );
@@ -360,9 +367,28 @@ export function OpsCenter() {
       return false;
     };
     const sortDesc = (a: any, b: any) => Number(b.toneladas) - Number(a.toneladas);
+    const normalize = (name: string) => {
+      const n = String(name).toUpperCase().replace(/\s+/g, "");
+      const m = n.match(/^EH-?(\d{3,4})$/);
+      return m ? `EH-${m[1]}` : n;
+    };
+    const mergeFrota = (frota: string[], needle: string) => {
+      const dados = turno.filter((e) => match(e, needle));
+      const byName = new Map<string, { id: string; equipamento: string; toneladas: number }>();
+      // começa com a frota fixa zerada
+      for (const nome of frota) {
+        byName.set(nome, { id: `fix-${nome}`, equipamento: nome, toneladas: 0 });
+      }
+      // sobrescreve / adiciona com dados reais
+      for (const e of dados) {
+        const nome = normalize(e.equipamento);
+        byName.set(nome, { id: e.id, equipamento: nome, toneladas: Number(e.toneladas) || 0 });
+      }
+      return Array.from(byName.values()).sort(sortDesc);
+    };
     return {
-      ex1200: turno.filter((e) => match(e, "EX1200")).sort(sortDesc),
-      ex2500: turno.filter((e) => match(e, "EX2500")).sort(sortDesc),
+      ex1200: mergeFrota(FROTA_EX1200, "EX1200"),
+      ex2500: mergeFrota(FROTA_EX2500, "EX2500"),
     };
   }, [equipamentos]);
 
