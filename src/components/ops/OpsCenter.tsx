@@ -258,39 +258,34 @@ export function OpsCenter() {
     }));
   }, [rowsMes]);
 
-  // ----- Série de produção do turno (acumulada) -----
-  const productionSeries = useMemo(() => {
-    const hours = Array.from({ length: 13 }, (_, i) => i * 2);
-    const stepReal = acumuladoDiaMina / 12;
-    const metaTurno = 43_584;
-    const stepMeta = metaTurno / 12;
-    let acc = 0;
-    return hours.map((h, i) => {
-      acc += stepReal;
-      return {
-        hora: `${String(h).padStart(2, "0")}:00`,
-        realizado: i === 0 ? 0 : Math.round(acc),
-        meta: Math.round(stepMeta * i),
-      };
-    });
-  }, [acumuladoDiaMina]);
+  // ----- Ranking EH (producao_equipamento) -----
+  const rankingEH = useMemo(() => {
+    if (!equipamentos || equipamentos.length === 0) return [];
+    const sorted = [...equipamentos].sort((a, b) =>
+      (b.data_referencia + b.turno).localeCompare(a.data_referencia + a.turno),
+    );
+    const head = sorted[0];
+    return sorted
+      .filter((e) => e.data_referencia === head.data_referencia && e.turno === head.turno)
+      .sort((a, b) => Number(b.toneladas) - Number(a.toneladas))
+      .slice(0, 10);
+  }, [equipamentos]);
 
-  // ----- Ranking de equipamentos -----
-  // producao_diaria não traz produtividade por equipamento. Mostra placeholder
-  // até o agente SSRS enviar essa granularidade.
-  const ranking = useMemo(
-    () => [
-      { pos: 1, name: "—", value: 0 },
-      { pos: 2, name: "—", value: 0 },
-      { pos: 3, name: "—", value: 0 },
-      { pos: 4, name: "—", value: 0 },
-      { pos: 5, name: "—", value: 0 },
-      { pos: 6, name: "—", value: 0 },
-      { pos: 7, name: "—", value: 0 },
-      { pos: 8, name: "—", value: 0 },
-    ],
-    [],
-  );
+  // ----- Produção por Frente (producao_frente) -----
+  const frentesAtuais = useMemo(() => {
+    if (!frentes || frentes.length === 0) return [];
+    const sorted = [...frentes].sort((a, b) =>
+      (b.data_referencia + b.turno).localeCompare(a.data_referencia + a.turno),
+    );
+    const head = sorted[0];
+    return sorted
+      .filter((f) => f.data_referencia === head.data_referencia && f.turno === head.turno)
+      .filter((f) => {
+        const nome = String(f.frente || "").toUpperCase();
+        return !nome.includes("GELADO") && !nome.includes("GEL") && !nome.includes("TESTE") && !nome.includes("DEMO");
+      })
+      .sort((a, b) => Number(b.toneladas) - Number(a.toneladas));
+  }, [frentes]);
 
   // ----- Frotas (DF/UT) -----
   // DF/UT por modelo ainda não vem desagregado em producao_diaria.
