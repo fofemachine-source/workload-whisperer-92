@@ -320,7 +320,7 @@ export function OpsCenter() {
   void FLEET_TOTAL;
 
   return (
-    <div className="min-h-screen bg-black text-foreground relative overflow-hidden">
+    <div className="h-auto bg-black text-foreground relative overflow-hidden">
       {/* fundo HUD */}
       <div className="absolute inset-0 pointer-events-none ops-grid-bg opacity-30" />
       <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(800px_400px_at_20%_0%,hsl(var(--mining-green)/0.12),transparent),radial-gradient(700px_400px_at_80%_100%,hsl(var(--mining-blue)/0.10),transparent)]" />
