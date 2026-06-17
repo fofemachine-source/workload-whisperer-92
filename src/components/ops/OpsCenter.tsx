@@ -177,6 +177,8 @@ export function OpsCenter() {
   // (populada pelo agente SSRS via Edge Function ingest-mineops)
   // ============================================================
   const { data: producao, isLoading, error } = useProducaoDiaria(35);
+  const { data: frentes } = useProducaoFrente(2);
+  const { data: equipamentos } = useProducaoEquipamento(2);
   const clock = useClock();
 
   // Hard reload a cada 60s (TV Dashboard)
