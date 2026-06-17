@@ -361,20 +361,20 @@ export default function ProducaoDashboard() {
         </Card>
 
         {/* Gráficos */}
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className="grid gap-3 lg:grid-cols-2">
           <Card>
-            <CardHeader>
-              <CardTitle className="text-sm">📈 Produção Diária — últimos 30 dias</CardTitle>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xs">📈 Produção Diária — últimos 30 dias</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="h-72">
+              <div className="h-56">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={dailySeries} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                  <LineChart data={dailySeries} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
                     <CartesianGrid stroke="rgba(255,255,255,0.06)" />
-                    <XAxis dataKey="data" stroke="#9ca3af" tick={{ fontSize: 11 }} />
-                    <YAxis stroke="#9ca3af" tick={{ fontSize: 11 }} />
+                    <XAxis dataKey="data" stroke="#9ca3af" tick={{ fontSize: 10 }} />
+                    <YAxis stroke="#9ca3af" tick={{ fontSize: 10 }} />
                     <Tooltip
-                      contentStyle={{ background: "#0a0a0a", border: "1px solid #22c55e", fontSize: 12 }}
+                      contentStyle={{ background: "#0a0a0a", border: "1px solid #22c55e", fontSize: 11 }}
                       formatter={(v: number) => [`${fmt(v)} t`, "Toneladas"]}
                     />
                     <Line
@@ -382,7 +382,7 @@ export default function ProducaoDashboard() {
                       dataKey="toneladas"
                       stroke="#22c55e"
                       strokeWidth={2}
-                      dot={{ r: 3, fill: "#22c55e" }}
+                      dot={{ r: 2, fill: "#22c55e" }}
                     />
                   </LineChart>
                 </ResponsiveContainer>
@@ -391,21 +391,21 @@ export default function ProducaoDashboard() {
           </Card>
 
           <Card>
-            <CardHeader>
-              <CardTitle className="text-sm">📈 Produção por Turno</CardTitle>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xs">📈 Produção por Turno</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="h-72">
+              <div className="h-56">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={turnoSeries} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                  <BarChart data={turnoSeries} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
                     <CartesianGrid stroke="rgba(255,255,255,0.06)" />
-                    <XAxis dataKey="turno" stroke="#9ca3af" tick={{ fontSize: 11 }} />
-                    <YAxis stroke="#9ca3af" tick={{ fontSize: 11 }} />
+                    <XAxis dataKey="turno" stroke="#9ca3af" tick={{ fontSize: 10 }} />
+                    <YAxis stroke="#9ca3af" tick={{ fontSize: 10 }} />
                     <Tooltip
-                      contentStyle={{ background: "#0a0a0a", border: "1px solid #facc15", fontSize: 12 }}
+                      contentStyle={{ background: "#0a0a0a", border: "1px solid #facc15", fontSize: 11 }}
                       formatter={(v: number) => [`${fmt(v)} t`, "Toneladas"]}
                     />
-                    <Legend wrapperStyle={{ fontSize: 11 }} />
+                    <Legend wrapperStyle={{ fontSize: 10 }} />
                     <Bar dataKey="toneladas" fill="#facc15" radius={[4, 4, 0, 0]} name="Toneladas" />
                   </BarChart>
                 </ResponsiveContainer>
@@ -433,12 +433,12 @@ function KpiCard({
 }) {
   return (
     <Card title={tooltip}>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-xs font-mono uppercase text-muted-foreground">{label}</CardTitle>
+      <CardHeader className="pb-1">
+        <CardTitle className="text-[11px] font-mono uppercase text-muted-foreground">{label}</CardTitle>
       </CardHeader>
       <CardContent>
-        <p className={`text-2xl font-bold ${accent}`}>{value}</p>
-        {sub && <p className="text-xs text-muted-foreground mt-1">{sub}</p>}
+        <p className={`text-lg font-bold ${accent}`}>{value}</p>
+        {sub && <p className="text-[11px] text-muted-foreground mt-0.5">{sub}</p>}
       </CardContent>
     </Card>
   );
