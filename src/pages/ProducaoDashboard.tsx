@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useProducaoDiaria } from "@/hooks/useProducaoDiaria";
 import { useProducaoFrente, useProducaoEquipamento } from "@/hooks/useProducaoKpis";
+import ValidacaoHexagonCard from "@/components/diagnostico/ValidacaoHexagonCard";
 
 const fmt = (n: number, d = 0) =>
   (n || 0).toLocaleString("pt-BR", { minimumFractionDigits: d, maximumFractionDigits: d });
@@ -201,6 +202,8 @@ export default function ProducaoDashboard() {
             </Link>
           </div>
         </header>
+
+        <ValidacaoHexagonCard />
 
         {/* 4 cards principais */}
         <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
