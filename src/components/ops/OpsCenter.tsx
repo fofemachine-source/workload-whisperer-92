@@ -740,30 +740,29 @@ function EscavadeirasList({
   };
   return (
     <div className="relative">
-      <div className="absolute top-0 right-0 text-right">
-        <p className="text-[10px] font-mono text-muted-foreground uppercase leading-none">Meta</p>
-        <p className="text-sm font-mono font-bold text-foreground leading-tight">85%</p>
-      </div>
       {items.length === 0 ? (
-        <p className="text-sm text-muted-foreground font-mono py-4">
+        <p className="text-base text-muted-foreground font-mono py-4">
           Sem dados de escavadeiras para o turno atual.
         </p>
       ) : (
-        <div className="space-y-2 pr-14">
-          {items.map((e) => {
+        <div className="space-y-2">
+          {items.map((e, idx) => {
             const pct = (Number(e.toneladas) / max) * 100;
             return (
-              <div key={e.id} className="flex items-center gap-2 text-sm">
-                <span className="w-20 font-mono font-bold text-foreground truncate" title={e.equipamento}>
+              <div key={e.id} className="flex items-center gap-3 text-base">
+                <span className="w-7 text-right font-mono font-bold text-mining-yellow">
+                  {idx + 1}.
+                </span>
+                <span className="w-24 font-mono font-bold text-foreground truncate" title={e.equipamento}>
                   {fmtEquip(e.equipamento)}
                 </span>
-                <div className="flex-1 h-2.5 bg-white/5 rounded overflow-hidden">
+                <div className="flex-1 h-3 bg-white/5 rounded overflow-hidden">
                   <div
                     className="h-full bg-mining-green"
                     style={{ width: `${pct}%`, boxShadow: "0 0 6px #22c55e" }}
                   />
                 </div>
-                <span className="w-20 text-right font-mono text-mining-green">
+                <span className="w-24 text-right font-mono font-bold text-mining-green text-base">
                   {(Number(e.toneladas) || 0).toLocaleString("pt-BR", { maximumFractionDigits: 0 })} t
                 </span>
               </div>
