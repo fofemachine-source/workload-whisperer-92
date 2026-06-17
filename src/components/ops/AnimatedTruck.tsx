@@ -1,4 +1,4 @@
-import truckImg from "@/assets/truck_new.png";
+import truckImg from "@/assets/truck_bright.png";
 
 interface Props {
   className?: string;
