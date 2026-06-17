@@ -427,7 +427,7 @@ export function OpsCenter() {
         {/* LINHA 2: META TOTAL MAIO + TONELADAS POR HORA */}
         <div className="col-span-12 lg:col-span-6 flex">
           <CardShell title="META MENSAL" className="flex-1 flex flex-col">
-            <div className="grid gap-6 grid-cols-2 min-h-[132px] flex-1">
+            <div className="grid gap-6 grid-cols-2 min-h-[100px] flex-1">
               <div className="flex flex-col justify-between">
                 <div>
                   <p className="text-lg font-mono uppercase tracking-[0.18em] text-muted-foreground">Mina</p>
