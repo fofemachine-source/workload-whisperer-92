@@ -20,6 +20,7 @@ import { useProducaoFrente, useProducaoEquipamento } from "@/hooks/useProducaoKp
 import { AnimatedTruck } from "./AnimatedTruck";
 import logoUM from "@/assets/logo-um.png";
 import { AnimatedExcavator } from "./AnimatedExcavator";
+import truckImg from "@/assets/truck_bright.png";
 
 // Frota operacional fixa (antes vinha de excelParser).
 const FLEET_SIZE = {
