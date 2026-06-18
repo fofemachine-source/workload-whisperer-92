@@ -333,7 +333,7 @@ export function OpsCenter() {
     { key: "EX1200", name: "EX1200", icon: "ex" as const, count: FLEET_SIZE.EX1200, df: dfGeral, ut: utGeral },
     { key: "EX2500", name: "EX2500", icon: "ex" as const, count: FLEET_SIZE.EX2500, df: dfGeral, ut: utGeral },
     { key: "K785", name: "CAMINHÕES 785", icon: "truck" as const, count: FLEET_SIZE["Komatsu 785"], df: dfGeral, ut: utGeral },
-    { key: "K730", name: "CAMINHÕES 730", icon: "truck" as const, count: FLEET_SIZE["Komatsu 730"], df: dfGeral, ut: utGeral },
+    { key: "K777", name: "CAMINHÕES 777", icon: "truck" as const, count: FLEET_SIZE["Komatsu 730"], df: dfGeral, ut: utGeral },
   ];
 
   // ----- Escavadeiras por tipo (EX1200 / EX2500) -----
