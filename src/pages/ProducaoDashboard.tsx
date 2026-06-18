@@ -21,13 +21,6 @@ import { useProducaoFrente, useProducaoEquipamento } from "@/hooks/useProducaoKp
 import ValidacaoHexagonCard from "@/components/diagnostico/ValidacaoHexagonCard";
 import MonitorAtualizacao from "@/components/diagnostico/MonitorAtualizacao";
 import DiagnosticoRetaludamento from "@/components/diagnostico/DiagnosticoRetaludamento";
-import truckImg from "@/assets/truck_bright.png";
-
-// Frota fixa de caminhões agrupada por modelo
-const FROTA_CAMINHOES = [
-  { modelo: "785", total: 25 },
-  { modelo: "777", total: 15 },
-];
 
 const fmt = (n: number, d = 0) =>
   (n || 0).toLocaleString("pt-BR", { minimumFractionDigits: d, maximumFractionDigits: d });
@@ -126,8 +119,8 @@ export default function ProducaoDashboard() {
     return { producaoMina: mina, producaoRetalud: 0 };
   }, [frentesAtuais, latest]);
 
-  // Ranking CR por tonelagem (turno mais recente presente em producao_equipamento, top 10)
-  const rankingCR = useMemo(() => {
+  // Ranking EH por tonelagem (turno mais recente presente em producao_equipamento, top 10)
+  const rankingEH = useMemo(() => {
     if (!equipamentos || equipamentos.length === 0) return [];
     const sorted = [...equipamentos].sort((a, b) =>
       (b.data_referencia + b.turno).localeCompare(a.data_referencia + a.turno),
@@ -137,10 +130,6 @@ export default function ProducaoDashboard() {
       .filter(
         (e) => e.data_referencia === head.data_referencia && e.turno === head.turno,
       )
-      .filter((e) => {
-        const code = String(e.equipamento || "").toUpperCase();
-        return code.startsWith("CR");
-      })
       .sort((a, b) => Number(b.toneladas) - Number(a.toneladas))
       .slice(0, 10);
   }, [equipamentos]);
@@ -303,37 +292,39 @@ export default function ProducaoDashboard() {
           <KpiCard label="🎯 Meta Diária" value={`${fmt(metaDiaria)} t`} accent="text-mining-yellow" />
           <KpiCard label="🎯 Meta Mensal" value={`${fmt(metaMensal)} t`} accent="text-mining-yellow" />
 
-          {/* CAMINHÕES — agrupado por frota/modelo */}
-          <Card className="lg:col-span-2 bg-black border-mining-green/40">
+          {/* RANKING EH — ocupa 2 colunas */}
+          <Card className="lg:col-span-2">
             <CardHeader className="pb-1">
-              <CardTitle className="text-[11px] font-mono uppercase text-mining-green flex items-center gap-2">
-                🚛 Caminhões
+              <CardTitle className="text-[11px] font-mono uppercase text-muted-foreground flex items-center gap-2">
+                <Gauge className="h-3 w-3" /> 🏆 Ranking EH por Tonelagem
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                {FROTA_CAMINHOES.map((f) => {
-                  const ativos = f.total; // sem telemetria de status, ativos = total
-                  return (
-                    <div key={f.modelo} className="flex items-center gap-3 text-left">
-                      <img
-                        src={truckImg}
-                        alt={`Caminhão ${f.modelo}`}
-                        className="h-8 w-auto object-contain"
-                        style={{ filter: "drop-shadow(0 0 4px hsl(var(--mining-green)/0.5))" }}
-                      />
-                      <div className="flex flex-col leading-tight">
-                        <span className="font-mono text-mining-green text-sm font-bold tracking-wider">
-                          CAMINHÕES {f.modelo}
-                        </span>
-                        <span className="font-mono text-mining-green/80 text-xs">
-                          ({ativos}/{f.total})
-                        </span>
+              {rankingEH.length === 0 ? (
+                <p className="text-xs text-muted-foreground">Sem dados de equipamentos para o período selecionado.</p>
+              ) : (
+                <div className="space-y-1">
+                  {rankingEH.map((e, idx) => {
+                    const max = rankingEH[0].toneladas || 1;
+                    const pct = (e.toneladas / max) * 100;
+                    const medal = idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : `${idx + 1}º`;
+                    return (
+                      <div key={e.id} className="flex items-center gap-2 text-xs">
+                        <span className="w-6 text-right font-mono text-mining-yellow font-bold">{medal}</span>
+                        <span className="w-16 font-mono text-foreground truncate" title={e.equipamento}>{e.equipamento}</span>
+                        <span className="w-20 text-[10px] text-muted-foreground truncate">{e.tipo ?? "—"}</span>
+                        <div className="flex-1 h-2 bg-white/5 rounded overflow-hidden">
+                          <div
+                            className="h-full bg-mining-green"
+                            style={{ width: `${pct}%`, boxShadow: "0 0 4px hsl(var(--mining-green))" }}
+                          />
+                        </div>
+                        <span className="w-16 text-right font-mono text-mining-green">{fmt(e.toneladas)} t</span>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
