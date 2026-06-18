@@ -119,8 +119,8 @@ export default function ProducaoDashboard() {
     return { producaoMina: mina, producaoRetalud: 0 };
   }, [frentesAtuais, latest]);
 
-  // Ranking EH por tonelagem (turno mais recente presente em producao_equipamento, top 10)
-  const rankingEH = useMemo(() => {
+  // Ranking CR por tonelagem (turno mais recente presente em producao_equipamento, top 10)
+  const rankingCR = useMemo(() => {
     if (!equipamentos || equipamentos.length === 0) return [];
     const sorted = [...equipamentos].sort((a, b) =>
       (b.data_referencia + b.turno).localeCompare(a.data_referencia + a.turno),
@@ -130,6 +130,10 @@ export default function ProducaoDashboard() {
       .filter(
         (e) => e.data_referencia === head.data_referencia && e.turno === head.turno,
       )
+      .filter((e) => {
+        const code = String(e.equipamento || "").toUpperCase();
+        return code.startsWith("CR");
+      })
       .sort((a, b) => Number(b.toneladas) - Number(a.toneladas))
       .slice(0, 10);
   }, [equipamentos]);
