@@ -21,13 +21,6 @@ import { useProducaoFrente, useProducaoEquipamento } from "@/hooks/useProducaoKp
 import ValidacaoHexagonCard from "@/components/diagnostico/ValidacaoHexagonCard";
 import MonitorAtualizacao from "@/components/diagnostico/MonitorAtualizacao";
 import DiagnosticoRetaludamento from "@/components/diagnostico/DiagnosticoRetaludamento";
-import truckImg from "@/assets/truck_bright.png";
-
-// Frota fixa de caminhões agrupada por modelo
-const FROTA_CAMINHOES = [
-  { modelo: "785", total: 25 },
-  { modelo: "777", total: 15 },
-];
 
 const fmt = (n: number, d = 0) =>
   (n || 0).toLocaleString("pt-BR", { minimumFractionDigits: d, maximumFractionDigits: d });
