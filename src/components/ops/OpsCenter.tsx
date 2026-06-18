@@ -286,6 +286,20 @@ export function OpsCenter() {
     }));
   }, [rowsMes]);
 
+  // ----- Ranking CR (producao_equipamento) — TOP 6 caminhões -----
+  const rankingCR = useMemo(() => {
+    if (!equipamentos || equipamentos.length === 0) return [];
+    const sorted = [...equipamentos].sort((a, b) =>
+      (b.data_referencia + b.turno).localeCompare(a.data_referencia + a.turno),
+    );
+    const head = sorted[0];
+    return sorted
+      .filter((e) => e.data_referencia === head.data_referencia && e.turno === head.turno)
+      .filter((e) => /^CR[-\s]?\d+/i.test(String(e.equipamento || "")))
+      .sort((a, b) => Number(b.toneladas) - Number(a.toneladas))
+      .slice(0, 6);
+  }, [equipamentos]);
+
   // ----- Ranking EH (producao_equipamento) -----
   const rankingEH = useMemo(() => {
     if (!equipamentos || equipamentos.length === 0) return [];
