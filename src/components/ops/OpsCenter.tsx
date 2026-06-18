@@ -659,69 +659,14 @@ export function OpsCenter() {
           </CardShell>
         </div>
 
-        {/* COLUNA ESQUERDA: CAMINHÕES + PRODUÇÃO POR FRENTE */}
-        <div className="col-span-12 lg:col-span-6 flex flex-col gap-3">
-          <CardShell title="CAMINHÕES">
-            <div className="space-y-3">
-              {[
-                { modelo: "785", total: 25 },
-                { modelo: "777", total: 15 },
-              ].map((f) => (
-                <div key={f.modelo} className="flex items-center gap-3">
-                  <img
-                    src={truckImg}
-                    alt={`Caminhão ${f.modelo}`}
-                    className="h-8 w-auto object-contain"
-                    style={{ filter: `drop-shadow(0 0 6px ${NEON})` }}
-                  />
-                  <div className="flex flex-col leading-tight">
-                    <span className="font-mono text-mining-green text-base font-bold tracking-wider">
-                      CAMINHÕES {f.modelo}
-                    </span>
-                    <span className="font-mono text-mining-green/80 text-sm">
-                      ({f.total}/{f.total})
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardShell>
-
-          <CardShell title="PRODUÇÃO POR FRENTE" className="flex-1 flex flex-col min-h-[200px]">
-            <div className="space-y-1.5 flex-1">
-              {frentesAtuais.length === 0 ? (
-                <p className="text-sm text-muted-foreground font-mono">Sem dados de frentes para o turno atual.</p>
-              ) : (
-                frentesAtuais.map((f) => {
-                  const max = frentesAtuais[0].toneladas || 1;
-                  const pct = (f.toneladas / max) * 100;
-                  return (
-                    <div key={f.id} className="flex items-center gap-2 text-sm">
-                      <span className="w-20 font-mono text-foreground truncate" title={f.frente}>{f.frente}</span>
-                      <div className="flex-1 h-2.5 bg-white/5 rounded overflow-hidden">
-                        <div
-                          className="h-full bg-mining-blue"
-                          style={{ width: `${pct}%`, boxShadow: `0 0 6px ${BLUE}` }}
-                        />
-                      </div>
-                      <span className="w-20 text-right font-mono text-mining-blue">{fmt(f.toneladas)} t</span>
-                      <span className="w-16 text-right font-mono text-muted-foreground text-xs">{fmt(Number(f.producao_hora || 0))} t/h</span>
-                    </div>
-                  );
-                })
-              )}
-            </div>
-          </CardShell>
-        </div>
-
-        {/* COLUNA DIREITA: TOP 6 CAMINHÕES CR + PRODUÇÃO POR FRENTE */}
+        {/* COLUNA ESQUERDA: TOP 6 CAMINHÕES */}
         <div className="col-span-12 lg:col-span-6 flex flex-col gap-3">
           <CardShell title="🏆 TOP 6 CAMINHÕES">
             {rankingCR.length === 0 ? (
               <p className="text-sm text-muted-foreground font-mono">Nenhum caminhão CR com produção no período selecionado.</p>
             ) : (
               <div className="space-y-3">
-                {rankingCR.map((e, idx) => {
+                {rankingCR.map((e) => {
                   const max = rankingCR[0].toneladas || 1;
                   const pct = (e.toneladas / max) * 100;
                   return (
@@ -745,6 +690,37 @@ export function OpsCenter() {
                           <ProgressBar value={pct} />
                         </div>
                       </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </CardShell>
+        </div>
+
+        {/* COLUNA DIREITA: RANKING EH + PRODUÇÃO POR FRENTE */}
+        <div className="col-span-12 lg:col-span-6 flex flex-col gap-3">
+          <CardShell title="🏆 RANKING EH">
+            {rankingEH.length === 0 ? (
+              <p className="text-sm text-muted-foreground font-mono">Sem dados de equipamentos para o período selecionado.</p>
+            ) : (
+              <div className="space-y-2">
+                {rankingEH.map((e, idx) => {
+                  const max = rankingEH[0].toneladas || 1;
+                  const pct = (e.toneladas / max) * 100;
+                  const rankColor = idx === 0 ? "text-mining-yellow" : idx === 1 ? "text-mining-yellow/80" : idx === 2 ? "text-mining-yellow/60" : "text-muted-foreground";
+                  return (
+                    <div key={e.id} className="flex items-center gap-2 text-sm">
+                      <span className={`w-7 text-right font-mono font-bold ${rankColor}`}>{idx + 1}º</span>
+                      <span className="w-16 font-mono text-foreground truncate" title={e.equipamento}>{e.equipamento}</span>
+                      <span className="w-24 text-[10px] text-muted-foreground truncate">{e.tipo ?? "—"}</span>
+                      <div className="flex-1 h-2 bg-white/5 rounded overflow-hidden">
+                        <div
+                          className="h-full bg-mining-green"
+                          style={{ width: `${pct}%`, boxShadow: "0 0 4px hsl(var(--mining-green))" }}
+                        />
+                      </div>
+                      <span className="w-16 text-right font-mono text-mining-green">{fmt(e.toneladas)} t</span>
                     </div>
                   );
                 })}
