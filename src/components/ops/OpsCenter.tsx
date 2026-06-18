@@ -333,7 +333,7 @@ export function OpsCenter() {
     { key: "EX1200", name: "EX1200", icon: "ex" as const, count: FLEET_SIZE.EX1200, df: dfGeral, ut: utGeral },
     { key: "EX2500", name: "EX2500", icon: "ex" as const, count: FLEET_SIZE.EX2500, df: dfGeral, ut: utGeral },
     { key: "K785", name: "CAMINHÕES 785", icon: "truck" as const, count: FLEET_SIZE["Komatsu 785"], df: dfGeral, ut: utGeral },
-    { key: "K730", name: "CAMINHÕES 730", icon: "truck" as const, count: FLEET_SIZE["Komatsu 730"], df: dfGeral, ut: utGeral },
+    { key: "K777", name: "CAMINHÕES 777", icon: "truck" as const, count: FLEET_SIZE["Komatsu 730"], df: dfGeral, ut: utGeral },
   ];
 
   // ----- Escavadeiras por tipo (EX1200 / EX2500) -----
@@ -636,22 +636,10 @@ export function OpsCenter() {
           </CardShell>
         </div>
 
-        {/* COLUNA ESQUERDA: DF/UT + ESCAVADEIRAS + CAMINHÕES + EQUIP OPERANDO */}
+        {/* COLUNA ESQUERDA: CAMINHÕES + PRODUÇÃO POR FRENTE */}
         <div className="col-span-12 lg:col-span-6 flex flex-col gap-3">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 flex-1">
-            <CardShell title="ESCAVADEIRAS EX1200" className="h-full">
-              <EscavadeirasList items={escavadeirasPorTipo.ex1200} />
-            </CardShell>
-            <CardShell title="ESCAVADEIRAS EX2500" className="h-full">
-              <EscavadeirasList items={escavadeirasPorTipo.ex2500} />
-            </CardShell>
-          </div>
-        </div>
-
-        {/* COLUNA DIREITA: RANKING EH + PRODUÇÃO POR FRENTE */}
-        <div className="col-span-12 lg:col-span-6 flex flex-col gap-3">
-          <CardShell title="🚛 CAMINHÕES">
-            <div className="space-y-4">
+          <CardShell title="CAMINHÕES">
+            <div className="space-y-3">
               {[
                 { modelo: "785", total: 25 },
                 { modelo: "777", total: 15 },
@@ -676,7 +664,64 @@ export function OpsCenter() {
             </div>
           </CardShell>
 
-          <CardShell title="🗺️ PRODUÇÃO POR FRENTE" className="flex-1 flex flex-col min-h-[200px]">
+          <CardShell title="PRODUÇÃO POR FRENTE" className="flex-1 flex flex-col min-h-[200px]">
+            <div className="space-y-1.5 flex-1">
+              {frentesAtuais.length === 0 ? (
+                <p className="text-sm text-muted-foreground font-mono">Sem dados de frentes para o turno atual.</p>
+              ) : (
+                frentesAtuais.map((f) => {
+                  const max = frentesAtuais[0].toneladas || 1;
+                  const pct = (f.toneladas / max) * 100;
+                  return (
+                    <div key={f.id} className="flex items-center gap-2 text-sm">
+                      <span className="w-20 font-mono text-foreground truncate" title={f.frente}>{f.frente}</span>
+                      <div className="flex-1 h-2.5 bg-white/5 rounded overflow-hidden">
+                        <div
+                          className="h-full bg-mining-blue"
+                          style={{ width: `${pct}%`, boxShadow: `0 0 6px ${BLUE}` }}
+                        />
+                      </div>
+                      <span className="w-20 text-right font-mono text-mining-blue">{fmt(f.toneladas)} t</span>
+                      <span className="w-16 text-right font-mono text-muted-foreground text-xs">{fmt(Number(f.producao_hora || 0))} t/h</span>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </CardShell>
+        </div>
+
+        {/* COLUNA DIREITA: RANKING EH + PRODUÇÃO POR FRENTE */}
+        <div className="col-span-12 lg:col-span-6 flex flex-col gap-3">
+          <CardShell title="RANKING EH">
+            {rankingEH.length === 0 ? (
+              <p className="text-sm text-muted-foreground font-mono">Sem dados de equipamentos para o período selecionado.</p>
+            ) : (
+              <div className="space-y-2">
+                {rankingEH.map((e, idx) => {
+                  const max = rankingEH[0].toneladas || 1;
+                  const pct = (e.toneladas / max) * 100;
+                  const medal = idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : `${idx + 1}º`;
+                  return (
+                    <div key={e.id} className="flex items-center gap-2 text-sm">
+                      <span className="w-7 text-right font-mono text-mining-yellow font-bold">{medal}</span>
+                      <span className="w-16 font-mono text-foreground truncate" title={e.equipamento}>{e.equipamento}</span>
+                      <span className="w-24 text-[11px] text-muted-foreground truncate">{e.tipo ?? "—"}</span>
+                      <div className="flex-1 h-2.5 bg-white/5 rounded overflow-hidden">
+                        <div
+                          className="h-full bg-mining-green"
+                          style={{ width: `${pct}%`, boxShadow: "0 0 6px #22c55e" }}
+                        />
+                      </div>
+                      <span className="w-20 text-right font-mono text-mining-green">{fmt(e.toneladas)} t</span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </CardShell>
+
+          <CardShell title="PRODUÇÃO POR FRENTE" className="flex-1 flex flex-col min-h-[200px]">
             <div className="space-y-1.5 flex-1">
               {frentesAtuais.length === 0 ? (
                 <p className="text-sm text-muted-foreground font-mono">Sem dados de frentes para o turno atual.</p>
