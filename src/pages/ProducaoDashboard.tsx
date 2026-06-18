@@ -296,20 +296,20 @@ export default function ProducaoDashboard() {
           <KpiCard label="🎯 Meta Diária" value={`${fmt(metaDiaria)} t`} accent="text-mining-yellow" />
           <KpiCard label="🎯 Meta Mensal" value={`${fmt(metaMensal)} t`} accent="text-mining-yellow" />
 
-          {/* RANKING EH — ocupa 2 colunas */}
+          {/* RANKING CR — ocupa 2 colunas */}
           <Card className="lg:col-span-2">
             <CardHeader className="pb-1">
               <CardTitle className="text-[11px] font-mono uppercase text-muted-foreground flex items-center gap-2">
-                <Gauge className="h-3 w-3" /> 🏆 Ranking EH por Tonelagem
+                <Gauge className="h-3 w-3" /> 🏆 Ranking CR por Tonelagem
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {rankingEH.length === 0 ? (
-                <p className="text-xs text-muted-foreground">Sem dados de equipamentos para o turno atual.</p>
+              {rankingCR.length === 0 ? (
+                <p className="text-xs text-muted-foreground">Nenhum caminhão CR com produção no período selecionado.</p>
               ) : (
                 <div className="space-y-1">
-                  {rankingEH.map((e, idx) => {
-                    const max = rankingEH[0].toneladas || 1;
+                  {rankingCR.map((e, idx) => {
+                    const max = rankingCR[0].toneladas || 1;
                     const pct = (e.toneladas / max) * 100;
                     const medal = idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : `${idx + 1}º`;
                     return (
