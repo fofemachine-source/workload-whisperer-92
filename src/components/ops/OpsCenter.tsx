@@ -286,6 +286,20 @@ export function OpsCenter() {
     }));
   }, [rowsMes]);
 
+  // ----- Ranking CR (producao_equipamento) — TOP 6 caminhões -----
+  const rankingCR = useMemo(() => {
+    if (!equipamentos || equipamentos.length === 0) return [];
+    const sorted = [...equipamentos].sort((a, b) =>
+      (b.data_referencia + b.turno).localeCompare(a.data_referencia + a.turno),
+    );
+    const head = sorted[0];
+    return sorted
+      .filter((e) => e.data_referencia === head.data_referencia && e.turno === head.turno)
+      .filter((e) => /^CR[-\s]?\d+/i.test(String(e.equipamento || "")))
+      .sort((a, b) => Number(b.toneladas) - Number(a.toneladas))
+      .slice(0, 6);
+  }, [equipamentos]);
+
   // ----- Ranking EH (producao_equipamento) -----
   const rankingEH = useMemo(() => {
     if (!equipamentos || equipamentos.length === 0) return [];
@@ -691,29 +705,37 @@ export function OpsCenter() {
           </CardShell>
         </div>
 
-        {/* COLUNA DIREITA: RANKING EH + PRODUÇÃO POR FRENTE */}
+        {/* COLUNA DIREITA: TOP 6 CAMINHÕES CR + PRODUÇÃO POR FRENTE */}
         <div className="col-span-12 lg:col-span-6 flex flex-col gap-3">
-          <CardShell title="RANKING EH">
-            {rankingEH.length === 0 ? (
-              <p className="text-sm text-muted-foreground font-mono">Sem dados de equipamentos para o período selecionado.</p>
+          <CardShell title="🏆 TOP 6 CAMINHÕES">
+            {rankingCR.length === 0 ? (
+              <p className="text-sm text-muted-foreground font-mono">Nenhum caminhão CR com produção no período selecionado.</p>
             ) : (
-              <div className="space-y-2">
-                {rankingEH.map((e, idx) => {
-                  const max = rankingEH[0].toneladas || 1;
+              <div className="space-y-3">
+                {rankingCR.map((e, idx) => {
+                  const max = rankingCR[0].toneladas || 1;
                   const pct = (e.toneladas / max) * 100;
-                  const medal = idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : `${idx + 1}º`;
                   return (
-                    <div key={e.id} className="flex items-center gap-2 text-sm">
-                      <span className="w-7 text-right font-mono text-mining-yellow font-bold">{medal}</span>
-                      <span className="w-16 font-mono text-foreground truncate" title={e.equipamento}>{e.equipamento}</span>
-                      <span className="w-24 text-[11px] text-muted-foreground truncate">{e.tipo ?? "—"}</span>
-                      <div className="flex-1 h-2.5 bg-white/5 rounded overflow-hidden">
-                        <div
-                          className="h-full bg-mining-green"
-                          style={{ width: `${pct}%`, boxShadow: "0 0 6px #22c55e" }}
-                        />
+                    <div key={e.id} className="flex items-center gap-3">
+                      <img
+                        src={truckImg}
+                        alt={`Caminhão ${e.equipamento}`}
+                        className="h-8 w-auto object-contain shrink-0"
+                        style={{ filter: `drop-shadow(0 0 6px ${NEON})` }}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <span className="font-mono text-foreground text-base font-bold tracking-wider">
+                            {String(e.equipamento || "").toUpperCase().replace(/^CR[-\s]?/, "CR")}
+                          </span>
+                          <span className="font-mono text-mining-green text-sm font-bold">
+                            {fmt(e.toneladas)} t
+                          </span>
+                        </div>
+                        <div className="mt-1">
+                          <ProgressBar value={pct} />
+                        </div>
                       </div>
-                      <span className="w-20 text-right font-mono text-mining-green">{fmt(e.toneladas)} t</span>
                     </div>
                   );
                 })}
