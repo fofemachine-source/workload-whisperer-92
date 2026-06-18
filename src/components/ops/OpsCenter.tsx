@@ -650,31 +650,29 @@ export function OpsCenter() {
 
         {/* COLUNA DIREITA: RANKING EH + PRODUÇÃO POR FRENTE */}
         <div className="col-span-12 lg:col-span-6 flex flex-col gap-3">
-          <CardShell title="🏆 RANKING EH">
-            <div className="space-y-1.5">
-              {rankingEH.length === 0 ? (
-                <p className="text-sm text-muted-foreground font-mono">Sem dados de equipamentos para o turno atual.</p>
-              ) : (
-                rankingEH.map((e, idx) => {
-                  const max = rankingEH[0].toneladas || 1;
-                  const pct = (e.toneladas / max) * 100;
-                  const medal = idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : `${idx + 1}º`;
-                  return (
-                    <div key={e.id} className="flex items-center gap-2 text-sm">
-                      <span className="w-6 text-right font-mono text-mining-yellow font-bold">{medal}</span>
-                      <span className="w-20 font-mono text-foreground truncate" title={e.equipamento}>{e.equipamento}</span>
-                      <span className="w-24 text-xs text-muted-foreground truncate">{e.tipo ?? "—"}</span>
-                      <div className="flex-1 h-2.5 bg-white/5 rounded overflow-hidden">
-                        <div
-                          className="h-full bg-mining-green"
-                          style={{ width: `${pct}%`, boxShadow: `0 0 6px ${NEON}` }}
-                        />
-                      </div>
-                      <span className="w-20 text-right font-mono text-mining-green">{fmt(e.toneladas)} t</span>
-                    </div>
-                  );
-                })
-              )}
+          <CardShell title="🚛 CAMINHÕES">
+            <div className="space-y-4">
+              {[
+                { modelo: "785", total: 25 },
+                { modelo: "777", total: 15 },
+              ].map((f) => (
+                <div key={f.modelo} className="flex items-center gap-3">
+                  <img
+                    src={truckImg}
+                    alt={`Caminhão ${f.modelo}`}
+                    className="h-8 w-auto object-contain"
+                    style={{ filter: `drop-shadow(0 0 6px ${NEON})` }}
+                  />
+                  <div className="flex flex-col leading-tight">
+                    <span className="font-mono text-mining-green text-base font-bold tracking-wider">
+                      CAMINHÕES {f.modelo}
+                    </span>
+                    <span className="font-mono text-mining-green/80 text-sm">
+                      ({f.total}/{f.total})
+                    </span>
+                  </div>
+                </div>
+              ))}
             </div>
           </CardShell>
 
