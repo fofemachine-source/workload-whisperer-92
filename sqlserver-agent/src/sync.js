@@ -6,7 +6,7 @@ require("dotenv/config");
 const axios = require("axios");
 const sql = require("mssql");
 
-const AGENT_VERSION = "3.0.1-jmineops-real";
+const AGENT_VERSION = "3.1.0-jmineops-realtime";
 const AGENT_NAME = process.env.AGENT_NAME || "sqlserver-agent";
 const INGEST_URL = process.env.INGEST_URL;
 const AGENT_TOKEN = process.env.AGENT_TOKEN;
@@ -39,6 +39,22 @@ function getPool() {
     });
   }
   return poolPromise;
+}
+
+// Testa conexão real ao SQL Server (SELECT GETDATE()).
+// Em caso de falha, descarta o pool atual para forçar nova conexão na próxima tentativa.
+async function testConnection() {
+  try {
+    const pool = await getPool();
+    const r = await pool.request().query("SELECT GETDATE() AS data_servidor;");
+    sqlStatus = "connected";
+    return { ok: true, data_servidor: r.recordset?.[0]?.data_servidor ?? null };
+  } catch (e) {
+    sqlStatus = "error";
+    try { if (poolPromise) { const p = await poolPromise.catch(() => null); if (p?.close) await p.close(); } } catch {}
+    poolPromise = null;
+    return { ok: false, error: String(e.message || e) };
+  }
 }
 
 let lastSync = null;
@@ -281,4 +297,4 @@ function getStats() {
   return { sqlStatus, ingestStatus, lastSync, lastCount, agentVersion: AGENT_VERSION };
 }
 
-module.exports = { runSync, getStats, AGENT_VERSION };
+module.exports = { runSync, getStats, testConnection, AGENT_VERSION };
