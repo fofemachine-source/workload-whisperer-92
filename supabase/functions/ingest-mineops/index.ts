@@ -84,6 +84,18 @@ Deno.serve(async (req) => {
       agente_host: params.agente_host ?? null,
       finalizado_em: new Date().toISOString(),
     }).then(() => {}, () => {});
+
+    // Log paralelo no sync_logs (formato simplificado para o painel)
+    await supabase.from("sync_logs").insert({
+      origem: params.relatorio || "sqlserver-agent",
+      status: params.status,
+      mensagem: params.status === "sucesso"
+        ? `${params.inseridos ?? 0} registro(s) gravado(s)`
+        : (params.erro ?? "erro desconhecido"),
+      ultima_sincronizacao: new Date().toISOString(),
+      total_registros: params.inseridos ?? params.recebidos ?? 0,
+      erro: params.status === "erro" ? (params.erro ?? null) : null,
+    }).then(() => {}, () => {});
   }
 
   try {
