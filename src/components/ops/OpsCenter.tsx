@@ -21,6 +21,7 @@ import { AnimatedTruck } from "./AnimatedTruck";
 import logoUM from "@/assets/logo-um.png";
 import { AnimatedExcavator } from "./AnimatedExcavator";
 import truckImg from "@/assets/truck_bright.png";
+import AlertaSincronizacaoHexagon from "@/components/diagnostico/AlertaSincronizacaoHexagon";
 
 // Frota operacional fixa (antes vinha de excelParser).
 const FLEET_SIZE = {
@@ -429,6 +430,11 @@ export function OpsCenter() {
 
 
       <main className="relative z-10 p-4 md:p-6 grid grid-cols-12 gap-4">
+        {/* Alerta de comunicação com o agente Hexagon */}
+        <div className="col-span-12">
+          <AlertaSincronizacaoHexagon />
+        </div>
+
         {/* STATUS STRIP — última linha de producao_diaria (tempo real) */}
         <div className="col-span-12">
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2 px-3 py-2 bg-black/70 border border-mining-green/25 rounded-md">
