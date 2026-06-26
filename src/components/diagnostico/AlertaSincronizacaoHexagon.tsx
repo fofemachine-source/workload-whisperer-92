@@ -3,13 +3,14 @@ import { AlertTriangle, WifiOff, CheckCircle2 } from "lucide-react";
 import { useProducaoDiaria } from "@/hooks/useProducaoDiaria";
 
 /**
- * Banner de alerta de comunicação com o agente Hexagon/JMineOps.
+ * Cartão "Comunicação Hexagon".
  *
- * - <= 10 min: verde (OK)
- * - 10–30 min: amarelo ("Comunicação atrasada com Hexagon")
- * - > 30 min: vermelho ("Comunicação parada. Verificar agente local no servidor SQL.")
+ * Fluxo: Hexagon/JMineOps → SQL Server (192.168.17.15) → agente Node.js local
+ *        → Supabase → Lovable. O frontend lê apenas do Supabase.
  *
- * Mantém o último dado disponível e mostra "Dado desatualizado desde DD/MM/AAAA HH:mm".
+ * - <= 5 min:  verde  (Comunicação OK)
+ * - 5–15 min:  amarelo (Comunicação atrasada com Hexagon)
+ * - > 15 min:  vermelho (Comunicação parada — verificar agente local)
  */
 export default function AlertaSincronizacaoHexagon() {
   const { data } = useProducaoDiaria(7);
@@ -41,32 +42,35 @@ export default function AlertaSincronizacaoHexagon() {
 
   let cor = "border-mining-green/40 bg-mining-green/10 text-mining-green";
   let Icon = CheckCircle2;
-  let titulo = "Comunicação OK com Hexagon/JMineOps";
+  let titulo = "COMUNICAÇÃO HEXAGON: OK";
 
-  if (diffMin > 30) {
+  if (diffMin > 15) {
     cor = "border-mining-red/50 bg-mining-red/10 text-mining-red";
     Icon = WifiOff;
-    titulo = "Comunicação parada. Verificar agente local no servidor SQL.";
-  } else if (diffMin > 10) {
+    titulo = "COMUNICAÇÃO HEXAGON: PARADA — verificar agente local no servidor SQL";
+  } else if (diffMin > 5) {
     cor = "border-mining-yellow/50 bg-mining-yellow/10 text-mining-yellow";
     Icon = AlertTriangle;
-    titulo = "Comunicação atrasada com Hexagon";
+    titulo = "COMUNICAÇÃO HEXAGON: ATRASADA";
   }
 
   return (
     <div className={`flex flex-wrap items-center gap-3 px-3 py-2 border rounded-md font-mono text-xs ${cor}`}>
       <Icon className="h-4 w-4 shrink-0" />
       <span className="uppercase tracking-[0.12em] font-bold">{titulo}</span>
-      {diffMin > 10 && (
+      {diffMin > 5 && (
         <span className="text-muted-foreground normal-case">
           Dado desatualizado desde <span className="text-foreground">{fmtData}</span> ({Math.floor(diffMin)} min atrás)
         </span>
       )}
-      {diffMin <= 10 && (
+      {diffMin <= 5 && (
         <span className="text-muted-foreground normal-case">
           última sincronização <span className="text-foreground">{fmtData}</span>
         </span>
       )}
+      <span className="ml-auto text-muted-foreground normal-case">
+        origem: <span className="text-foreground">agente-sqlserver</span>
+      </span>
     </div>
   );
 }
