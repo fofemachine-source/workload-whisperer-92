@@ -9,6 +9,34 @@ const corsHeaders = {
 const STATIC_TOKEN = "UEM_MINEOPS_2026";
 const REQUIRED_FIELDS = ["data_referencia", "turno", "relatorio_origem"] as const;
 
+// ============================================================
+// Suporte a novas views Hexagon/JMineOps (kind != "producao_diaria")
+// Payload novo:
+//   {
+//     kind: "producao_view" | "viagens" | "tempo_estado" | "tempo_ciclo" | "tempo_detalhado",
+//     records: [ { ...campos normalizados, raw: {linha bruta} } ],
+//     relatorio?, agente_versao?, agente_host?
+//   }
+// ============================================================
+const KIND_TABLE: Record<string, string> = {
+  producao_view: "producao_view",
+  viagens: "viagens_acompanhamento",
+  tempo_estado: "tempo_estado",
+  tempo_ciclo: "tempo_ciclo",
+  tempo_detalhado: "tempo_detalhado",
+};
+
+async function sha256Hex(s: string) {
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
+  return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+async function hashRow(r: Record<string, unknown>) {
+  // hash determinístico baseado nas chaves ordenadas + valor da raw
+  const stable = JSON.stringify(r, Object.keys(r).sort());
+  return await sha256Hex(stable);
+}
+
 function normalizeRecord(raw: Record<string, unknown>) {
   const r: Record<string, unknown> = { ...raw };
   // aceitar aliases vindos do agente SQL Server
@@ -115,6 +143,44 @@ Deno.serve(async (req) => {
       const msg = e instanceof Error ? e.message : String(e);
       await logSync({ relatorio: "desconhecido", status: "erro", recebidos: 0, erro: `JSON inválido: ${msg}` });
       return json(400, { error: "JSON inválido", detalhe: msg });
+    }
+
+    // 2.5) Roteamento por kind (novas views Hexagon)
+    if (raw && typeof raw === "object" && !Array.isArray(raw)) {
+      const obj = raw as Record<string, unknown>;
+      const kind = typeof obj.kind === "string" ? obj.kind : null;
+      if (kind && KIND_TABLE[kind]) {
+        const table = KIND_TABLE[kind];
+        const records = Array.isArray(obj.records) ? (obj.records as Record<string, unknown>[]) : [];
+        const relatorioK = (typeof obj.relatorio === "string" ? obj.relatorio : "sqlserver-agent") + ":" + kind;
+        if (records.length === 0) {
+          await logSync({ relatorio: relatorioK, status: "erro", recebidos: 0, erro: "records vazio" });
+          return json(400, { error: "records vazio para kind=" + kind });
+        }
+        const rows: Record<string, unknown>[] = [];
+        for (const r of records) {
+          if (!r || typeof r !== "object") continue;
+          if (!r.data_referencia) continue;
+          const rawCol = (r.raw && typeof r.raw === "object") ? r.raw as Record<string, unknown> : r;
+          const h = await hashRow(rawCol as Record<string, unknown>);
+          rows.push({ ...r, raw: rawCol, raw_hash: h, relatorio_origem: r.relatorio_origem ?? "sqlserver-agent" });
+        }
+        const { error: upErr, count } = await supabase
+          .from(table)
+          .upsert(rows, { onConflict: "data_referencia,raw_hash", count: "exact", ignoreDuplicates: false });
+        if (upErr) {
+          await logSync({ relatorio: relatorioK, status: "erro", recebidos: records.length, erro: upErr.message });
+          return json(500, { error: `Falha ao gravar ${table}`, detalhe: upErr.message });
+        }
+        await logSync({
+          relatorio: relatorioK,
+          status: "sucesso",
+          recebidos: records.length,
+          inseridos: count ?? rows.length,
+          atualizados: count ?? rows.length,
+        });
+        return json(200, { ok: true, kind, table, recebidos: records.length, gravados: rows.length });
+      }
     }
 
     // 3) Aceita ARRAY direto, { records: [...] } ou { registros: [...] }
