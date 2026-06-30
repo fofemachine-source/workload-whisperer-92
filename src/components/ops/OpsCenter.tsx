@@ -258,17 +258,10 @@ export function OpsCenter() {
     const ordered = [...rowsMes]
       .sort((a, b) => (a.data_referencia || "").localeCompare(b.data_referencia || ""))
       .slice(-24);
-    if (ordered.length === 0) {
-      return Array.from({ length: 24 }, (_, h) => ({
-        hora: `${String(h).padStart(2, "0")}:00`,
-        tonH: 0,
-        meta: metaTonH,
-      }));
-    }
+    if (ordered.length === 0) return [];
     return ordered.map((r, i) => ({
       hora: r.turno ? `${r.data_referencia?.slice(8)}/${r.turno}` : `${String(i).padStart(2, "0")}`,
       tonH: Math.round(Number(r.producao_hora || 0)),
-      meta: metaTonH,
       data: r.data_referencia ?? "",
       turno: r.turno ?? "",
       toneladas: Math.round(Number(r.toneladas_total || 0)),
