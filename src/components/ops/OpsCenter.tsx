@@ -13,24 +13,21 @@ import {
   ComposedChart,
   Cell,
   LabelList,
-  ReferenceLine,
 } from "recharts";
 import { useProducaoDiaria, type ProducaoDiariaRow } from "@/hooks/useProducaoDiaria";
 import { useProducaoFrente, useProducaoEquipamento } from "@/hooks/useProducaoKpis";
+import {
+  useProducaoView,
+  useViagens,
+  useTempoCiclo,
+  useTempoDetalhado,
+} from "@/hooks/useHexagonViews";
 import { AnimatedTruck } from "./AnimatedTruck";
 import logoUM from "@/assets/logo-um.png";
 import { AnimatedExcavator } from "./AnimatedExcavator";
+import { HexagonViewsPanel } from "./HexagonViewsPanel";
 import truckImg from "@/assets/truck_bright.png";
 import AlertaSincronizacaoHexagon from "@/components/diagnostico/AlertaSincronizacaoHexagon";
-
-// Frota operacional fixa (antes vinha de excelParser).
-const FLEET_SIZE = {
-  "Komatsu 785": 25,
-  "Komatsu 730": 15,
-  EX2500: 3,
-  EX1200: 5,
-} as const;
-const FLEET_TOTAL = 48;
 
 const NEON = "#22c55e";
 const NEON_DIM = "#15803d";
@@ -123,58 +120,7 @@ function thresholdColor(v: number): string {
   return "#ef4444"; // vermelho
 }
 
-function FleetRow({
-  icon,
-  name,
-  count,
-  total,
-  value,
-  meta,
-  color = NEON,
-  iconColor = YELLOW,
-}: {
-  icon: "ex" | "truck";
-  name: string;
-  count: number;
-  total: number;
-  value: number | null;
-  meta: number;
-  color?: string;
-  iconColor?: string;
-}) {
-  const hasData = value !== null && Number.isFinite(value);
-  const dynamicColor = hasData ? thresholdColor(value as number) : color;
-  return (
-    <div className="flex items-center gap-3 py-2">
-      <div className="w-16 shrink-0 flex items-center justify-center">
-        {icon === "ex" ? (
-          <AnimatedExcavator className="w-16 h-9" color={iconColor} />
-        ) : (
-          <AnimatedTruck className="w-16 h-8" color={iconColor} />
-        )}
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-lg font-mono font-bold text-foreground truncate">{name}</p>
-        <p className="text-xs font-mono text-muted-foreground">
-          ({count}/{total})
-        </p>
-      </div>
-      {hasData ? (
-        <Donut value={value as number} color={dynamicColor} />
-      ) : (
-        <div className="h-14 px-2 flex items-center justify-center">
-          <span className="text-[10px] font-mono font-bold tracking-[0.15em] text-mining-yellow/80 uppercase text-center leading-tight">
-            Aguardando<br />dados
-          </span>
-        </div>
-      )}
-      <div className="text-right w-24 shrink-0">
-        <p className="text-[10px] font-mono text-muted-foreground uppercase">Meta</p>
-        <p className="text-lg font-mono font-bold text-foreground whitespace-nowrap">{meta.toFixed(1)}%</p>
-      </div>
-    </div>
-  );
-}
+// (FleetRow removido — dados de meta não fazem mais parte do dashboard)
 
 export function OpsCenter() {
   // ============================================================
@@ -254,15 +200,6 @@ export function OpsCenter() {
   // T/H — valor da linha mais recente de producao_diaria (turno atual).
   const tonH = Number(latestRow?.producao_hora || 0);
 
-  // ----- Metas fixas operacionais -----
-  const metaTonH = 11500;
-  const metaMensalMina = 1_351_130;
-  const metaMensalRetalud = 1_241_297;
-  const metaMensal = metaMensalMina + metaMensalRetalud;
-  const aderMensal = metaMensal > 0 ? (producaoMensal / metaMensal) * 100 : 0;
-  const shareMetaMina = (metaMensalMina / metaMensal) * 100;
-  const shareMetaRetalud = (metaMensalRetalud / metaMensal) * 100;
-
   // ----- Série horária (Toneladas por Hora) -----
   // Sem timestamp por hora no schema: usamos os últimos 24 registros do mês
   // ordenados por data, mostrando producao_hora de cada um.
@@ -270,17 +207,10 @@ export function OpsCenter() {
     const ordered = [...rowsMes]
       .sort((a, b) => (a.data_referencia || "").localeCompare(b.data_referencia || ""))
       .slice(-24);
-    if (ordered.length === 0) {
-      return Array.from({ length: 24 }, (_, h) => ({
-        hora: `${String(h).padStart(2, "0")}:00`,
-        tonH: 0,
-        meta: metaTonH,
-      }));
-    }
+    if (ordered.length === 0) return [];
     return ordered.map((r, i) => ({
       hora: r.turno ? `${r.data_referencia?.slice(8)}/${r.turno}` : `${String(i).padStart(2, "0")}`,
       tonH: Math.round(Number(r.producao_hora || 0)),
-      meta: metaTonH,
       data: r.data_referencia ?? "",
       turno: r.turno ?? "",
       toneladas: Math.round(Number(r.toneladas_total || 0)),
@@ -289,25 +219,16 @@ export function OpsCenter() {
 
   // ----- Ranking CR (producao_equipamento) — TOP 6 caminhões -----
   const rankingCR = useMemo(() => {
-    const mockCR = [
-      { id: "mock-cr2532", equipamento: "CR2532", toneladas: 2450 },
-      { id: "mock-cr2524", equipamento: "CR2524", toneladas: 2210 },
-      { id: "mock-cr2530", equipamento: "CR2530", toneladas: 1980 },
-      { id: "mock-cr2518", equipamento: "CR2518", toneladas: 1750 },
-      { id: "mock-cr2527", equipamento: "CR2527", toneladas: 1620 },
-      { id: "mock-cr2535", equipamento: "CR2535", toneladas: 1480 },
-    ];
-    if (!equipamentos || equipamentos.length === 0) return mockCR;
+    if (!equipamentos || equipamentos.length === 0) return [];
     const sorted = [...equipamentos].sort((a, b) =>
       (b.data_referencia + b.turno).localeCompare(a.data_referencia + a.turno),
     );
     const head = sorted[0];
-    const real = sorted
+    return sorted
       .filter((e) => e.data_referencia === head.data_referencia && e.turno === head.turno)
       .filter((e) => /^CR[-\s]?\d+/i.test(String(e.equipamento || "")))
       .sort((a, b) => Number(b.toneladas) - Number(a.toneladas))
       .slice(0, 6);
-    return real.length > 0 ? real : mockCR;
   }, [equipamentos]);
 
   // ----- Ranking EH (producao_equipamento) -----
@@ -353,25 +274,13 @@ export function OpsCenter() {
     utRaw !== null && utRaw !== undefined && Number.isFinite(Number(utRaw)) && Number(utRaw) > 0
       ? Number(utRaw)
       : null;
-  const fleets = [
-    { key: "EX1200", name: "EX1200", icon: "ex" as const, count: FLEET_SIZE.EX1200, df: dfGeral, ut: utGeral },
-    { key: "EX2500", name: "EX2500", icon: "ex" as const, count: FLEET_SIZE.EX2500, df: dfGeral, ut: utGeral },
-    { key: "K785", name: "CAMINHÕES 785", icon: "truck" as const, count: FLEET_SIZE["Komatsu 785"], df: dfGeral, ut: utGeral },
-    { key: "K777", name: "CAMINHÕES 777", icon: "truck" as const, count: FLEET_SIZE["Komatsu 730"], df: dfGeral, ut: utGeral },
-  ];
+  void dfGeral;
+  void utGeral;
 
   // ----- Escavadeiras por tipo (EX1200 / EX2500) -----
   // Lista do turno mais recente de producao_equipamento, ordenada por toneladas DESC.
   const escavadeirasPorTipo = useMemo(() => {
-    // Frota fixa esperada
-    const FROTA_EX1200 = ["EH-4026", "EH-4035", "EH-4039", "EH-4041", "EH-4047"];
-    const FROTA_EX2500 = ["EH-5003", "EH-5004", "EH-5036"];
-    const mkEmpty = (nome: string) => ({ id: `fix-${nome}`, equipamento: nome, toneladas: 0 });
-    const baseEmpty = {
-      ex1200: FROTA_EX1200.map(mkEmpty),
-      ex2500: FROTA_EX2500.map(mkEmpty),
-    };
-    if (!equipamentos || equipamentos.length === 0) return baseEmpty;
+    if (!equipamentos || equipamentos.length === 0) return { ex1200: [], ex2500: [] };
     const sorted = [...equipamentos].sort((a, b) =>
       (b.data_referencia + b.turno).localeCompare(a.data_referencia + a.turno),
     );
@@ -397,30 +306,17 @@ export function OpsCenter() {
       const m = n.match(/^EH-?(\d{3,4})$/);
       return m ? `EH-${m[1]}` : n;
     };
-    const mergeFrota = (frota: string[], needle: string) => {
-      const dados = turno.filter((e) => match(e, needle));
-      const byName = new Map<string, { id: string; equipamento: string; toneladas: number }>();
-      // começa com a frota fixa zerada
-      for (const nome of frota) {
-        byName.set(nome, { id: `fix-${nome}`, equipamento: nome, toneladas: 0 });
-      }
-      // sobrescreve / adiciona com dados reais
-      for (const e of dados) {
-        const nome = normalize(e.equipamento);
-        byName.set(nome, { id: e.id, equipamento: nome, toneladas: Number(e.toneladas) || 0 });
-      }
-      return Array.from(byName.values()).sort(sortDesc);
-    };
-    return {
-      ex1200: mergeFrota(FROTA_EX1200, "EX1200"),
-      ex2500: mergeFrota(FROTA_EX2500, "EX2500"),
-    };
+    const pickReal = (needle: string) =>
+      turno
+        .filter((e) => match(e, needle))
+        .map((e) => ({ id: e.id, equipamento: normalize(e.equipamento), toneladas: Number(e.toneladas) || 0 }))
+        .sort(sortDesc);
+    return { ex1200: pickReal("EX1200"), ex2500: pickReal("EX2500") };
   }, [equipamentos]);
 
   // Logs úteis em produção
   if (error) console.error("[OpsCenter] erro producao_diaria:", error);
   void isLoading;
-  void FLEET_TOTAL;
 
   return (
     <div className="h-auto bg-black text-foreground relative overflow-hidden">
@@ -507,19 +403,10 @@ export function OpsCenter() {
         <div className="col-span-12 md:col-span-6 lg:col-span-3 flex">
           <CardShell title="PRODUÇÃO MENSAL" className="flex-1 flex flex-col">
             <div className="flex-1 flex flex-col justify-center">
-              <div className="flex items-end justify-between">
-                <p className="text-2xl font-mono font-bold text-mining-green text-glow-neon">
-                  {fmt(producaoMensal)} <span className="text-xl">t</span>
-                </p>
-                <p className="text-2xl font-mono font-bold text-foreground">{aderMensal.toFixed(1)}%</p>
-              </div>
-              <div className="mt-2 flex items-center justify-between text-lg font-mono text-muted-foreground">
-                <span>META: {fmt(metaMensal)} t</span>
-                <span>DA META</span>
-              </div>
-              <div className="mt-1.5 relative">
-                <ProgressBar value={aderMensal} />
-              </div>
+              <p className="text-2xl font-mono font-bold text-mining-green text-glow-neon">
+                {producaoMensal > 0 ? <>{fmt(producaoMensal)} <span className="text-xl">t</span></> : "Sem dados reais"}
+              </p>
+              <p className="mt-2 text-sm font-mono text-muted-foreground uppercase">Acumulado do mês</p>
             </div>
           </CardShell>
         </div>
@@ -527,53 +414,19 @@ export function OpsCenter() {
           <CardShell title="T/H" className="flex-1 flex flex-col">
             <div className="flex-1 flex flex-col justify-center">
               <p className="text-2xl font-mono font-bold text-mining-green text-glow-neon">
-                {fmt(tonH)} <span className="text-xl">t/h</span>
+                {tonH > 0 ? <>{fmt(tonH)} <span className="text-xl">t/h</span></> : "Sem dados reais"}
               </p>
-              <div className="mt-3 text-lg font-mono text-muted-foreground">META: {fmt(metaTonH)} t/h</div>
-              <div className="mt-1.5 relative">
-                <ProgressBar value={(tonH / metaTonH) * 100} color={BLUE} />
-              </div>
+              <p className="mt-2 text-sm font-mono text-muted-foreground uppercase">Turno atual</p>
             </div>
           </CardShell>
         </div>
 
-        {/* LINHA 2: META TOTAL MAIO + TONELADAS POR HORA */}
-        <div className="col-span-12 lg:col-span-6 flex">
-          <CardShell title="META MENSAL" className="flex-1 flex flex-col">
-            <div className="grid gap-6 grid-cols-2 min-h-[120px] flex-1">
-              <div className="flex flex-col justify-between">
-                <div>
-                  <p className="text-lg font-mono uppercase tracking-[0.18em] text-muted-foreground">Mina</p>
-                  <p className="mt-3 text-4xl font-mono font-bold text-mining-yellow">{fmt(metaMensalMina)}</p>
-                </div>
-                <div className="mt-3">
-                  <p className="text-xl font-mono uppercase tracking-[0.18em] text-muted-foreground">
-                    {shareMetaMina.toFixed(1)}% da meta
-                  </p>
-                  <div className="mt-2">
-                    <ProgressBar value={shareMetaMina} color={YELLOW} />
-                  </div>
-                </div>
-              </div>
-              <div className="flex flex-col justify-between">
-                <div>
-                  <p className="text-lg font-mono uppercase tracking-[0.18em] text-muted-foreground">Retaludamento</p>
-                  <p className="mt-3 text-4xl font-mono font-bold text-mining-yellow">{fmt(metaMensalRetalud)}</p>
-                </div>
-                <div className="mt-3">
-                  <p className="text-xl font-mono uppercase tracking-[0.18em] text-muted-foreground">
-                    {shareMetaRetalud.toFixed(1)}% da meta
-                  </p>
-                  <div className="mt-2">
-                    <ProgressBar value={shareMetaRetalud} color={YELLOW} />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </CardShell>
-        </div>
-        <div className="col-span-12 lg:col-span-6 flex">
+        {/* LINHA 2: TONELADAS POR HORA (full width) */}
+        <div className="col-span-12 flex">
           <CardShell title="TONELADAS POR HORA" className="flex-1 flex flex-col">
+           {tonHSeries.length === 0 ? (
+            <p className="text-base text-muted-foreground font-mono p-6">Sem dados reais disponíveis para o período.</p>
+           ) : (
             <div className="flex-1 h-56">
               <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart
@@ -607,8 +460,6 @@ export function OpsCenter() {
                         data: string;
                         turno: string;
                       };
-                      const pct = metaTonH > 0 ? (d.tonH / metaTonH) * 100 : 0;
-                      const pctColor = pct >= 100 ? NEON : pct >= 80 ? YELLOW : "#ef4444";
                       return (
                         <div
                           style={{
@@ -627,18 +478,9 @@ export function OpsCenter() {
                           </div>
                           <div>Toneladas: <span style={{ color: "#fff" }}>{fmt(d.toneladas)} t</span></div>
                           <div>Produção/h: <span style={{ color: "#fff" }}>{fmt(d.tonH)} t/h</span></div>
-                          <div>Meta: <span style={{ color: YELLOW }}>{fmt(metaTonH)} t/h</span></div>
-                          <div>% Meta: <span style={{ color: pctColor, fontWeight: 700 }}>{pct.toFixed(1)}%</span></div>
                         </div>
                       );
                     }}
-                  />
-                  <ReferenceLine
-                    y={metaTonH}
-                    stroke={YELLOW}
-                    strokeDasharray="6 4"
-                    strokeWidth={1.5}
-                    label={{ value: `META ${fmt(metaTonH)}`, position: "right", fill: YELLOW, fontSize: 10, fontFamily: "monospace" }}
                   />
                   <Bar
                     dataKey="tonH"
@@ -647,11 +489,9 @@ export function OpsCenter() {
                     isAnimationActive={false}
                     maxBarSize={56}
                   >
-                    {tonHSeries.map((d, i) => {
-                      const pct = metaTonH > 0 ? (d.tonH / metaTonH) * 100 : 0;
-                      const color = pct >= 100 ? NEON : pct >= 80 ? YELLOW : "#ef4444";
-                      return <Cell key={i} fill={color} />;
-                    })}
+                    {tonHSeries.map((_, i) => (
+                      <Cell key={i} fill={NEON} />
+                    ))}
                     <LabelList
                       dataKey="tonH"
                       position="top"
@@ -662,6 +502,7 @@ export function OpsCenter() {
                 </ComposedChart>
               </ResponsiveContainer>
             </div>
+           )}
           </CardShell>
         </div>
 
@@ -762,6 +603,11 @@ export function OpsCenter() {
         </div>
 
         {/* FAIXA DE CAMINHÕES ANIMADA — banda inferior */}
+        {/* === HEXAGON VIEWS (Viagens / Tempo de Ciclo / Tempo Detalhado) === */}
+        <div className="col-span-12">
+          <HexagonViewsPanel />
+        </div>
+
         <div className="col-span-12 relative h-12 border border-mining-green/15 rounded-md bg-black/60 overflow-hidden">
           <div className="absolute inset-x-0 bottom-2 h-px bg-gradient-to-r from-transparent via-mining-green/40 to-transparent" />
           <div className="absolute bottom-0 left-0 animate-drive-footer">

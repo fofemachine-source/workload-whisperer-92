@@ -18,9 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useProducaoDiaria } from "@/hooks/useProducaoDiaria";
 import { useProducaoFrente, useProducaoEquipamento } from "@/hooks/useProducaoKpis";
-import ValidacaoHexagonCard from "@/components/diagnostico/ValidacaoHexagonCard";
-import MonitorAtualizacao from "@/components/diagnostico/MonitorAtualizacao";
-import DiagnosticoRetaludamento from "@/components/diagnostico/DiagnosticoRetaludamento";
+import AlertaSincronizacaoHexagon from "@/components/diagnostico/AlertaSincronizacaoHexagon";
 
 const fmt = (n: number, d = 0) =>
   (n || 0).toLocaleString("pt-BR", { minimumFractionDigits: d, maximumFractionDigits: d });
@@ -74,9 +72,7 @@ export default function ProducaoDashboard() {
     });
   }, [rows, frentes, equipamentos, latest]);
 
-  // KPIs derivados da linha mais recente
-  const metaDiaria = Number(latest?.meta_diaria || 0);
-  const metaMensal = Number(latest?.meta_mensal || 0);
+  // Projeção real (vinda da linha mais recente). Sem meta.
   const projecaoTurno = Number(latest?.projecao_turno || 0);
 
   // Acumulado do mês: usa o campo enviado pelo agente OU soma local
@@ -205,9 +201,7 @@ export default function ProducaoDashboard() {
           </div>
         </header>
 
-        <ValidacaoHexagonCard />
-        <MonitorAtualizacao />
-        <DiagnosticoRetaludamento />
+        <AlertaSincronizacaoHexagon />
 
         {/* 4 cards principais */}
         <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
@@ -281,16 +275,13 @@ export default function ProducaoDashboard() {
           <KpiCard
             label="📦 Acumulado do Mês"
             value={`${fmt(acumuladoMes)} t`}
-            sub={metaMensal > 0 ? `${((acumuladoMes / metaMensal) * 100).toFixed(1)}% da meta` : undefined}
             accent="text-mining-green"
           />
           <KpiCard
             label="🔮 Projeção do Turno"
-            value={`${fmt(projecaoTurno)} t`}
+            value={projecaoTurno > 0 ? `${fmt(projecaoTurno)} t` : "Sem projeção"}
             accent="text-mining-green"
           />
-          <KpiCard label="🎯 Meta Diária" value={`${fmt(metaDiaria)} t`} accent="text-mining-yellow" />
-          <KpiCard label="🎯 Meta Mensal" value={`${fmt(metaMensal)} t`} accent="text-mining-yellow" />
 
           {/* RANKING EH — ocupa 2 colunas */}
           <Card className="lg:col-span-2">
