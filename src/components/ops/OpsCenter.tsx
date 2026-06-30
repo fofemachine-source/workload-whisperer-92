@@ -350,12 +350,8 @@ export function OpsCenter() {
     utRaw !== null && utRaw !== undefined && Number.isFinite(Number(utRaw)) && Number(utRaw) > 0
       ? Number(utRaw)
       : null;
-  const fleets = [
-    { key: "EX1200", name: "EX1200", icon: "ex" as const, count: FLEET_SIZE.EX1200, df: dfGeral, ut: utGeral },
-    { key: "EX2500", name: "EX2500", icon: "ex" as const, count: FLEET_SIZE.EX2500, df: dfGeral, ut: utGeral },
-    { key: "K785", name: "CAMINHÕES 785", icon: "truck" as const, count: FLEET_SIZE["Komatsu 785"], df: dfGeral, ut: utGeral },
-    { key: "K777", name: "CAMINHÕES 777", icon: "truck" as const, count: FLEET_SIZE["Komatsu 730"], df: dfGeral, ut: utGeral },
-  ];
+  void dfGeral;
+  void utGeral;
 
   // ----- Escavadeiras por tipo (EX1200 / EX2500) -----
   // Lista do turno mais recente de producao_equipamento, ordenada por toneladas DESC.
@@ -417,7 +413,6 @@ export function OpsCenter() {
   // Logs úteis em produção
   if (error) console.error("[OpsCenter] erro producao_diaria:", error);
   void isLoading;
-  void FLEET_TOTAL;
 
   return (
     <div className="h-auto bg-black text-foreground relative overflow-hidden">
