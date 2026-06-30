@@ -286,25 +286,16 @@ export function OpsCenter() {
 
   // ----- Ranking CR (producao_equipamento) — TOP 6 caminhões -----
   const rankingCR = useMemo(() => {
-    const mockCR = [
-      { id: "mock-cr2532", equipamento: "CR2532", toneladas: 2450 },
-      { id: "mock-cr2524", equipamento: "CR2524", toneladas: 2210 },
-      { id: "mock-cr2530", equipamento: "CR2530", toneladas: 1980 },
-      { id: "mock-cr2518", equipamento: "CR2518", toneladas: 1750 },
-      { id: "mock-cr2527", equipamento: "CR2527", toneladas: 1620 },
-      { id: "mock-cr2535", equipamento: "CR2535", toneladas: 1480 },
-    ];
-    if (!equipamentos || equipamentos.length === 0) return mockCR;
+    if (!equipamentos || equipamentos.length === 0) return [];
     const sorted = [...equipamentos].sort((a, b) =>
       (b.data_referencia + b.turno).localeCompare(a.data_referencia + a.turno),
     );
     const head = sorted[0];
-    const real = sorted
+    return sorted
       .filter((e) => e.data_referencia === head.data_referencia && e.turno === head.turno)
       .filter((e) => /^CR[-\s]?\d+/i.test(String(e.equipamento || "")))
       .sort((a, b) => Number(b.toneladas) - Number(a.toneladas))
       .slice(0, 6);
-    return real.length > 0 ? real : mockCR;
   }, [equipamentos]);
 
   // ----- Ranking EH (producao_equipamento) -----
