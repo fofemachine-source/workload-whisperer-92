@@ -251,15 +251,6 @@ export function OpsCenter() {
   // T/H — valor da linha mais recente de producao_diaria (turno atual).
   const tonH = Number(latestRow?.producao_hora || 0);
 
-  // ----- Metas fixas operacionais -----
-  const metaTonH = 11500;
-  const metaMensalMina = 1_351_130;
-  const metaMensalRetalud = 1_241_297;
-  const metaMensal = metaMensalMina + metaMensalRetalud;
-  const aderMensal = metaMensal > 0 ? (producaoMensal / metaMensal) * 100 : 0;
-  const shareMetaMina = (metaMensalMina / metaMensal) * 100;
-  const shareMetaRetalud = (metaMensalRetalud / metaMensal) * 100;
-
   // ----- Série horária (Toneladas por Hora) -----
   // Sem timestamp por hora no schema: usamos os últimos 24 registros do mês
   // ordenados por data, mostrando producao_hora de cada um.
