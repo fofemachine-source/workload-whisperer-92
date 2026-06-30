@@ -474,19 +474,10 @@ export function OpsCenter() {
         <div className="col-span-12 md:col-span-6 lg:col-span-3 flex">
           <CardShell title="PRODUÇÃO MENSAL" className="flex-1 flex flex-col">
             <div className="flex-1 flex flex-col justify-center">
-              <div className="flex items-end justify-between">
-                <p className="text-2xl font-mono font-bold text-mining-green text-glow-neon">
-                  {fmt(producaoMensal)} <span className="text-xl">t</span>
-                </p>
-                <p className="text-2xl font-mono font-bold text-foreground">{aderMensal.toFixed(1)}%</p>
-              </div>
-              <div className="mt-2 flex items-center justify-between text-lg font-mono text-muted-foreground">
-                <span>META: {fmt(metaMensal)} t</span>
-                <span>DA META</span>
-              </div>
-              <div className="mt-1.5 relative">
-                <ProgressBar value={aderMensal} />
-              </div>
+              <p className="text-2xl font-mono font-bold text-mining-green text-glow-neon">
+                {producaoMensal > 0 ? <>{fmt(producaoMensal)} <span className="text-xl">t</span></> : "Sem dados reais"}
+              </p>
+              <p className="mt-2 text-sm font-mono text-muted-foreground uppercase">Acumulado do mês</p>
             </div>
           </CardShell>
         </div>
@@ -494,53 +485,19 @@ export function OpsCenter() {
           <CardShell title="T/H" className="flex-1 flex flex-col">
             <div className="flex-1 flex flex-col justify-center">
               <p className="text-2xl font-mono font-bold text-mining-green text-glow-neon">
-                {fmt(tonH)} <span className="text-xl">t/h</span>
+                {tonH > 0 ? <>{fmt(tonH)} <span className="text-xl">t/h</span></> : "Sem dados reais"}
               </p>
-              <div className="mt-3 text-lg font-mono text-muted-foreground">META: {fmt(metaTonH)} t/h</div>
-              <div className="mt-1.5 relative">
-                <ProgressBar value={(tonH / metaTonH) * 100} color={BLUE} />
-              </div>
+              <p className="mt-2 text-sm font-mono text-muted-foreground uppercase">Turno atual</p>
             </div>
           </CardShell>
         </div>
 
-        {/* LINHA 2: META TOTAL MAIO + TONELADAS POR HORA */}
-        <div className="col-span-12 lg:col-span-6 flex">
-          <CardShell title="META MENSAL" className="flex-1 flex flex-col">
-            <div className="grid gap-6 grid-cols-2 min-h-[120px] flex-1">
-              <div className="flex flex-col justify-between">
-                <div>
-                  <p className="text-lg font-mono uppercase tracking-[0.18em] text-muted-foreground">Mina</p>
-                  <p className="mt-3 text-4xl font-mono font-bold text-mining-yellow">{fmt(metaMensalMina)}</p>
-                </div>
-                <div className="mt-3">
-                  <p className="text-xl font-mono uppercase tracking-[0.18em] text-muted-foreground">
-                    {shareMetaMina.toFixed(1)}% da meta
-                  </p>
-                  <div className="mt-2">
-                    <ProgressBar value={shareMetaMina} color={YELLOW} />
-                  </div>
-                </div>
-              </div>
-              <div className="flex flex-col justify-between">
-                <div>
-                  <p className="text-lg font-mono uppercase tracking-[0.18em] text-muted-foreground">Retaludamento</p>
-                  <p className="mt-3 text-4xl font-mono font-bold text-mining-yellow">{fmt(metaMensalRetalud)}</p>
-                </div>
-                <div className="mt-3">
-                  <p className="text-xl font-mono uppercase tracking-[0.18em] text-muted-foreground">
-                    {shareMetaRetalud.toFixed(1)}% da meta
-                  </p>
-                  <div className="mt-2">
-                    <ProgressBar value={shareMetaRetalud} color={YELLOW} />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </CardShell>
-        </div>
-        <div className="col-span-12 lg:col-span-6 flex">
+        {/* LINHA 2: TONELADAS POR HORA (full width) */}
+        <div className="col-span-12 flex">
           <CardShell title="TONELADAS POR HORA" className="flex-1 flex flex-col">
+           {tonHSeries.length === 0 ? (
+            <p className="text-base text-muted-foreground font-mono p-6">Sem dados reais disponíveis para o período.</p>
+           ) : (
             <div className="flex-1 h-56">
               <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart
@@ -574,8 +531,6 @@ export function OpsCenter() {
                         data: string;
                         turno: string;
                       };
-                      const pct = metaTonH > 0 ? (d.tonH / metaTonH) * 100 : 0;
-                      const pctColor = pct >= 100 ? NEON : pct >= 80 ? YELLOW : "#ef4444";
                       return (
                         <div
                           style={{
@@ -594,18 +549,9 @@ export function OpsCenter() {
                           </div>
                           <div>Toneladas: <span style={{ color: "#fff" }}>{fmt(d.toneladas)} t</span></div>
                           <div>Produção/h: <span style={{ color: "#fff" }}>{fmt(d.tonH)} t/h</span></div>
-                          <div>Meta: <span style={{ color: YELLOW }}>{fmt(metaTonH)} t/h</span></div>
-                          <div>% Meta: <span style={{ color: pctColor, fontWeight: 700 }}>{pct.toFixed(1)}%</span></div>
                         </div>
                       );
                     }}
-                  />
-                  <ReferenceLine
-                    y={metaTonH}
-                    stroke={YELLOW}
-                    strokeDasharray="6 4"
-                    strokeWidth={1.5}
-                    label={{ value: `META ${fmt(metaTonH)}`, position: "right", fill: YELLOW, fontSize: 10, fontFamily: "monospace" }}
                   />
                   <Bar
                     dataKey="tonH"
@@ -614,11 +560,9 @@ export function OpsCenter() {
                     isAnimationActive={false}
                     maxBarSize={56}
                   >
-                    {tonHSeries.map((d, i) => {
-                      const pct = metaTonH > 0 ? (d.tonH / metaTonH) * 100 : 0;
-                      const color = pct >= 100 ? NEON : pct >= 80 ? YELLOW : "#ef4444";
-                      return <Cell key={i} fill={color} />;
-                    })}
+                    {tonHSeries.map((_, i) => (
+                      <Cell key={i} fill={NEON} />
+                    ))}
                     <LabelList
                       dataKey="tonH"
                       position="top"
@@ -629,6 +573,7 @@ export function OpsCenter() {
                 </ComposedChart>
               </ResponsiveContainer>
             </div>
+           )}
           </CardShell>
         </div>
 
