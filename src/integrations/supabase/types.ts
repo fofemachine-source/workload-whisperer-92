@@ -397,6 +397,57 @@ export type Database = {
         }
         Relationships: []
       }
+      producao_view: {
+        Row: {
+          cargas: number | null
+          created_at: string
+          data_referencia: string
+          equipamento: string | null
+          frente: string | null
+          frota: string | null
+          hora: number | null
+          id: string
+          material: string | null
+          raw: Json
+          raw_hash: string
+          relatorio_origem: string
+          toneladas: number | null
+          turno: string | null
+        }
+        Insert: {
+          cargas?: number | null
+          created_at?: string
+          data_referencia: string
+          equipamento?: string | null
+          frente?: string | null
+          frota?: string | null
+          hora?: number | null
+          id?: string
+          material?: string | null
+          raw: Json
+          raw_hash: string
+          relatorio_origem?: string
+          toneladas?: number | null
+          turno?: string | null
+        }
+        Update: {
+          cargas?: number | null
+          created_at?: string
+          data_referencia?: string
+          equipamento?: string | null
+          frente?: string | null
+          frota?: string | null
+          hora?: number | null
+          id?: string
+          material?: string | null
+          raw?: Json
+          raw_hash?: string
+          relatorio_origem?: string
+          toneladas?: number | null
+          turno?: string | null
+        }
+        Relationships: []
+      }
       sincronizacao_ssrs: {
         Row: {
           agente_host: string | null
@@ -529,6 +580,189 @@ export type Database = {
           status?: string
           total_registros?: number | null
           ultima_sincronizacao?: string | null
+        }
+        Relationships: []
+      }
+      tempo_ciclo: {
+        Row: {
+          ciclo_min: number | null
+          created_at: string
+          data_referencia: string
+          equipamento: string | null
+          frente: string | null
+          frota: string | null
+          id: string
+          raw: Json
+          raw_hash: string
+          relatorio_origem: string
+          turno: string | null
+          viagens: number | null
+        }
+        Insert: {
+          ciclo_min?: number | null
+          created_at?: string
+          data_referencia: string
+          equipamento?: string | null
+          frente?: string | null
+          frota?: string | null
+          id?: string
+          raw: Json
+          raw_hash: string
+          relatorio_origem?: string
+          turno?: string | null
+          viagens?: number | null
+        }
+        Update: {
+          ciclo_min?: number | null
+          created_at?: string
+          data_referencia?: string
+          equipamento?: string | null
+          frente?: string | null
+          frota?: string | null
+          id?: string
+          raw?: Json
+          raw_hash?: string
+          relatorio_origem?: string
+          turno?: string | null
+          viagens?: number | null
+        }
+        Relationships: []
+      }
+      tempo_detalhado: {
+        Row: {
+          categoria: string | null
+          created_at: string
+          data_referencia: string
+          equipamento: string | null
+          frota: string | null
+          id: string
+          minutos: number | null
+          raw: Json
+          raw_hash: string
+          relatorio_origem: string
+          sub_estado: string | null
+          turno: string | null
+        }
+        Insert: {
+          categoria?: string | null
+          created_at?: string
+          data_referencia: string
+          equipamento?: string | null
+          frota?: string | null
+          id?: string
+          minutos?: number | null
+          raw: Json
+          raw_hash: string
+          relatorio_origem?: string
+          sub_estado?: string | null
+          turno?: string | null
+        }
+        Update: {
+          categoria?: string | null
+          created_at?: string
+          data_referencia?: string
+          equipamento?: string | null
+          frota?: string | null
+          id?: string
+          minutos?: number | null
+          raw?: Json
+          raw_hash?: string
+          relatorio_origem?: string
+          sub_estado?: string | null
+          turno?: string | null
+        }
+        Relationships: []
+      }
+      tempo_estado: {
+        Row: {
+          created_at: string
+          data_referencia: string
+          equipamento: string | null
+          estado: string | null
+          frota: string | null
+          id: string
+          minutos: number | null
+          raw: Json
+          raw_hash: string
+          relatorio_origem: string
+          turno: string | null
+        }
+        Insert: {
+          created_at?: string
+          data_referencia: string
+          equipamento?: string | null
+          estado?: string | null
+          frota?: string | null
+          id?: string
+          minutos?: number | null
+          raw: Json
+          raw_hash: string
+          relatorio_origem?: string
+          turno?: string | null
+        }
+        Update: {
+          created_at?: string
+          data_referencia?: string
+          equipamento?: string | null
+          estado?: string | null
+          frota?: string | null
+          id?: string
+          minutos?: number | null
+          raw?: Json
+          raw_hash?: string
+          relatorio_origem?: string
+          turno?: string | null
+        }
+        Relationships: []
+      }
+      viagens_acompanhamento: {
+        Row: {
+          created_at: string
+          data_referencia: string
+          equipamento: string | null
+          frente_destino: string | null
+          frente_origem: string | null
+          frota: string | null
+          id: string
+          raw: Json
+          raw_hash: string
+          relatorio_origem: string
+          tempo_ciclo_min: number | null
+          toneladas: number | null
+          turno: string | null
+          viagens: number | null
+        }
+        Insert: {
+          created_at?: string
+          data_referencia: string
+          equipamento?: string | null
+          frente_destino?: string | null
+          frente_origem?: string | null
+          frota?: string | null
+          id?: string
+          raw: Json
+          raw_hash: string
+          relatorio_origem?: string
+          tempo_ciclo_min?: number | null
+          toneladas?: number | null
+          turno?: string | null
+          viagens?: number | null
+        }
+        Update: {
+          created_at?: string
+          data_referencia?: string
+          equipamento?: string | null
+          frente_destino?: string | null
+          frente_origem?: string | null
+          frota?: string | null
+          id?: string
+          raw?: Json
+          raw_hash?: string
+          relatorio_origem?: string
+          tempo_ciclo_min?: number | null
+          toneladas?: number | null
+          turno?: string | null
+          viagens?: number | null
         }
         Relationships: []
       }
