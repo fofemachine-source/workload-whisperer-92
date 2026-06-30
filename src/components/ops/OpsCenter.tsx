@@ -17,20 +17,17 @@ import {
 } from "recharts";
 import { useProducaoDiaria, type ProducaoDiariaRow } from "@/hooks/useProducaoDiaria";
 import { useProducaoFrente, useProducaoEquipamento } from "@/hooks/useProducaoKpis";
+import {
+  useProducaoView,
+  useViagens,
+  useTempoCiclo,
+  useTempoDetalhado,
+} from "@/hooks/useHexagonViews";
 import { AnimatedTruck } from "./AnimatedTruck";
 import logoUM from "@/assets/logo-um.png";
 import { AnimatedExcavator } from "./AnimatedExcavator";
 import truckImg from "@/assets/truck_bright.png";
 import AlertaSincronizacaoHexagon from "@/components/diagnostico/AlertaSincronizacaoHexagon";
-
-// Frota operacional fixa (antes vinha de excelParser).
-const FLEET_SIZE = {
-  "Komatsu 785": 25,
-  "Komatsu 730": 15,
-  EX2500: 3,
-  EX1200: 5,
-} as const;
-const FLEET_TOTAL = 48;
 
 const NEON = "#22c55e";
 const NEON_DIM = "#15803d";
