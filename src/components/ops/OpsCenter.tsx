@@ -13,7 +13,6 @@ import {
   ComposedChart,
   Cell,
   LabelList,
-  ReferenceLine,
 } from "recharts";
 import { useProducaoDiaria, type ProducaoDiariaRow } from "@/hooks/useProducaoDiaria";
 import { useProducaoFrente, useProducaoEquipamento } from "@/hooks/useProducaoKpis";
@@ -120,58 +119,7 @@ function thresholdColor(v: number): string {
   return "#ef4444"; // vermelho
 }
 
-function FleetRow({
-  icon,
-  name,
-  count,
-  total,
-  value,
-  meta,
-  color = NEON,
-  iconColor = YELLOW,
-}: {
-  icon: "ex" | "truck";
-  name: string;
-  count: number;
-  total: number;
-  value: number | null;
-  meta: number;
-  color?: string;
-  iconColor?: string;
-}) {
-  const hasData = value !== null && Number.isFinite(value);
-  const dynamicColor = hasData ? thresholdColor(value as number) : color;
-  return (
-    <div className="flex items-center gap-3 py-2">
-      <div className="w-16 shrink-0 flex items-center justify-center">
-        {icon === "ex" ? (
-          <AnimatedExcavator className="w-16 h-9" color={iconColor} />
-        ) : (
-          <AnimatedTruck className="w-16 h-8" color={iconColor} />
-        )}
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-lg font-mono font-bold text-foreground truncate">{name}</p>
-        <p className="text-xs font-mono text-muted-foreground">
-          ({count}/{total})
-        </p>
-      </div>
-      {hasData ? (
-        <Donut value={value as number} color={dynamicColor} />
-      ) : (
-        <div className="h-14 px-2 flex items-center justify-center">
-          <span className="text-[10px] font-mono font-bold tracking-[0.15em] text-mining-yellow/80 uppercase text-center leading-tight">
-            Aguardando<br />dados
-          </span>
-        </div>
-      )}
-      <div className="text-right w-24 shrink-0">
-        <p className="text-[10px] font-mono text-muted-foreground uppercase">Meta</p>
-        <p className="text-lg font-mono font-bold text-foreground whitespace-nowrap">{meta.toFixed(1)}%</p>
-      </div>
-    </div>
-  );
-}
+// (FleetRow removido — dados de meta não fazem mais parte do dashboard)
 
 export function OpsCenter() {
   // ============================================================
@@ -331,15 +279,7 @@ export function OpsCenter() {
   // ----- Escavadeiras por tipo (EX1200 / EX2500) -----
   // Lista do turno mais recente de producao_equipamento, ordenada por toneladas DESC.
   const escavadeirasPorTipo = useMemo(() => {
-    // Frota fixa esperada
-    const FROTA_EX1200 = ["EH-4026", "EH-4035", "EH-4039", "EH-4041", "EH-4047"];
-    const FROTA_EX2500 = ["EH-5003", "EH-5004", "EH-5036"];
-    const mkEmpty = (nome: string) => ({ id: `fix-${nome}`, equipamento: nome, toneladas: 0 });
-    const baseEmpty = {
-      ex1200: FROTA_EX1200.map(mkEmpty),
-      ex2500: FROTA_EX2500.map(mkEmpty),
-    };
-    if (!equipamentos || equipamentos.length === 0) return baseEmpty;
+    if (!equipamentos || equipamentos.length === 0) return { ex1200: [], ex2500: [] };
     const sorted = [...equipamentos].sort((a, b) =>
       (b.data_referencia + b.turno).localeCompare(a.data_referencia + a.turno),
     );
@@ -365,24 +305,12 @@ export function OpsCenter() {
       const m = n.match(/^EH-?(\d{3,4})$/);
       return m ? `EH-${m[1]}` : n;
     };
-    const mergeFrota = (frota: string[], needle: string) => {
-      const dados = turno.filter((e) => match(e, needle));
-      const byName = new Map<string, { id: string; equipamento: string; toneladas: number }>();
-      // começa com a frota fixa zerada
-      for (const nome of frota) {
-        byName.set(nome, { id: `fix-${nome}`, equipamento: nome, toneladas: 0 });
-      }
-      // sobrescreve / adiciona com dados reais
-      for (const e of dados) {
-        const nome = normalize(e.equipamento);
-        byName.set(nome, { id: e.id, equipamento: nome, toneladas: Number(e.toneladas) || 0 });
-      }
-      return Array.from(byName.values()).sort(sortDesc);
-    };
-    return {
-      ex1200: mergeFrota(FROTA_EX1200, "EX1200"),
-      ex2500: mergeFrota(FROTA_EX2500, "EX2500"),
-    };
+    const pickReal = (needle: string) =>
+      turno
+        .filter((e) => match(e, needle))
+        .map((e) => ({ id: e.id, equipamento: normalize(e.equipamento), toneladas: Number(e.toneladas) || 0 }))
+        .sort(sortDesc);
+    return { ex1200: pickReal("EX1200"), ex2500: pickReal("EX2500") };
   }, [equipamentos]);
 
   // Logs úteis em produção
