@@ -1,10 +1,30 @@
 import { useMemo } from "react";
-import { CardShell } from "@/components/ops/CardShell";
 import {
   useViagens,
   useTempoCiclo,
   useTempoDetalhado,
 } from "@/hooks/useHexagonViews";
+
+function CardShell({
+  title,
+  children,
+  className = "",
+}: {
+  title: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div
+      className={`relative bg-black/70 border border-mining-green/25 rounded-md overflow-hidden shadow-[0_0_24px_-12px_hsl(var(--mining-green)/0.6)] ${className}`}
+    >
+      <div className="px-3 py-2 border-b border-mining-green/20 bg-mining-green/5">
+        <p className="text-base font-mono font-bold tracking-[0.18em] text-mining-green uppercase">{title}</p>
+      </div>
+      <div className="p-3">{children}</div>
+    </div>
+  );
+}
 
 const NEON = "#22c55e";
 const fmt = (n: number) => n.toLocaleString("pt-BR", { maximumFractionDigits: 0 });
