@@ -602,6 +602,11 @@ export function OpsCenter() {
         </div>
 
         {/* FAIXA DE CAMINHÕES ANIMADA — banda inferior */}
+        {/* === HEXAGON VIEWS (Viagens / Tempo de Ciclo / Tempo Detalhado) === */}
+        <div className="col-span-12">
+          <HexagonViewsPanel />
+        </div>
+
         <div className="col-span-12 relative h-12 border border-mining-green/15 rounded-md bg-black/60 overflow-hidden">
           <div className="absolute inset-x-0 bottom-2 h-px bg-gradient-to-r from-transparent via-mining-green/40 to-transparent" />
           <div className="absolute bottom-0 left-0 animate-drive-footer">
