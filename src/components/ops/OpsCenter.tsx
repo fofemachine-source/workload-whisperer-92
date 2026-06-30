@@ -25,6 +25,7 @@ import {
 import { AnimatedTruck } from "./AnimatedTruck";
 import logoUM from "@/assets/logo-um.png";
 import { AnimatedExcavator } from "./AnimatedExcavator";
+import { HexagonViewsPanel } from "./HexagonViewsPanel";
 import truckImg from "@/assets/truck_bright.png";
 import AlertaSincronizacaoHexagon from "@/components/diagnostico/AlertaSincronizacaoHexagon";
 
