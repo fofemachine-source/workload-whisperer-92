@@ -199,10 +199,30 @@ export default function DashboardProducaoUM() {
   const kpis = data?.kpis;
   const producaoReal = Number(kpis?.producaoReal ?? 0);
   const metaDiaria = Number(kpis?.metaDiaria ?? 0);
-  const acumuladoMes = Number(kpis?.acumuladoMes ?? 0);
+  const acumuladoMesApi = Number(kpis?.acumuladoMes ?? 0);
   const tphMedio = Number(kpis?.produtividadeMedia ?? 0);
   const totalPrevisto = metaDiaria; // sem série prevista da API
-  const variacao = producaoReal - metaDiaria;
+
+  // Corrige mapeamento: API entrega producaoReal como acumulado agregado.
+  // Recalcula Produção Diária (hoje) e Produção Mês a partir da série diária.
+  const { producaoDia, producaoMes } = useMemo(() => {
+    const serie = data?.producaoDiaria ?? [];
+    const hojeStr = new Date().toISOString().slice(0, 10);
+    const mesAtual = hojeStr.slice(0, 7);
+    let dia = 0;
+    let mes = 0;
+    for (const d of serie) {
+      const iso = String(d.data ?? "").slice(0, 10);
+      const real = Number(d.real ?? 0);
+      if (iso === hojeStr) dia += real;
+      if (iso.slice(0, 7) === mesAtual) mes += real;
+    }
+    return { producaoDia: dia, producaoMes: mes };
+  }, [data]);
+
+  const diarioReal = producaoDia > 0 ? producaoDia : producaoReal;
+  const acumuladoMes = producaoMes > 0 ? producaoMes : acumuladoMesApi;
+  const variacao = diarioReal - metaDiaria;
 
   const dailySeries = useMemo(
     () =>
