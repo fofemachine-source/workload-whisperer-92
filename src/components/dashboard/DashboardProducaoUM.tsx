@@ -507,11 +507,11 @@ export default function DashboardProducaoUM() {
             </div>
           )}
         </Panel>
-        <Panel title="Produtividade (t/h)" className="col-span-12 lg:col-span-4">
+        <Panel title="Produtividade (t/h)" className="col-span-12 lg:col-span-4 h-[184px]">
           {prodSeries.length === 0 ? (
             <Empty />
           ) : (
-            <div className="h-52">
+            <div className="h-full">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={prodSeries} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                   <CartesianGrid stroke="rgba(255,255,255,0.05)" vertical={false} />
@@ -528,11 +528,11 @@ export default function DashboardProducaoUM() {
           )}
         </Panel>
 
-        <Panel title="Viagens por Hora" className="col-span-12 lg:col-span-2">
+        <Panel title="Viagens por Hora" className="col-span-12 lg:col-span-2 h-[184px]">
           {viagensPorHora.every((v) => v.Real === 0) ? (
             <Empty />
           ) : (
-            <div className="h-52">
+            <div className="h-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={viagensPorHora} margin={{ top: 8, right: 4, left: 0, bottom: 0 }}>
                   <CartesianGrid stroke="rgba(255,255,255,0.05)" vertical={false} />
@@ -546,7 +546,7 @@ export default function DashboardProducaoUM() {
           )}
         </Panel>
 
-        <Panel className="col-span-12 lg:col-span-1">
+        <Panel className="col-span-12 lg:col-span-1 h-[184px]">
           <div className="flex flex-col justify-between h-full py-1 gap-2">
             <StatBlock label="Produção (9H/13H)" value={<Counter value={producaoReal} />} unit="t" big />
             <StatBlock label="Próxima Média" value={<Counter value={tphMedio} />} />
@@ -555,11 +555,11 @@ export default function DashboardProducaoUM() {
           </div>
         </Panel>
 
-        <Panel title="Detalhamento de Produção" className="col-span-12 lg:col-span-4">
+        <Panel title="Detalhamento de Produção" className="col-span-12 lg:col-span-4 h-[164px]">
           {detalhamento.length === 0 ? (
             <Empty />
           ) : (
-            <div className="max-h-64 overflow-auto">
+            <div className="h-full overflow-auto">
             <table className="w-full text-[10px] font-mono">
               <thead className="text-mining-blue/70">
                 <tr className="border-b border-mining-blue/20">
@@ -599,11 +599,11 @@ export default function DashboardProducaoUM() {
           )}
         </Panel>
 
-        <Panel title="Acompanhamento de Viagens (9H)" className="col-span-12 lg:col-span-4">
+        <Panel title="Acompanhamento de Viagens (9H)" className="col-span-12 lg:col-span-4 h-[164px]">
           {acompViagens.length === 0 ? (
             <Empty />
           ) : (
-            <div className="max-h-64 overflow-auto">
+            <div className="h-full overflow-auto">
             <table className="w-full text-[10px] font-mono">
               <thead className="text-mining-blue/70">
                 <tr className="border-b border-mining-blue/20">
@@ -646,12 +646,12 @@ export default function DashboardProducaoUM() {
           )}
         </Panel>
 
-        <Panel title="Resumo de Tempos em Ciclo (9H)" className="col-span-12 lg:col-span-4">
+        <Panel title="Resumo de Tempos em Ciclo (9H)" className="col-span-12 lg:col-span-4 h-[164px]">
           {(() => {
             const rows = Array.isArray(cicloData) ? cicloData : [];
             if (rows.length === 0) return <Empty />;
             return (
-              <div className="max-h-64 overflow-auto">
+              <div className="h-full overflow-auto">
                 <table className="w-full text-[10px] font-mono">
                   <thead className="text-mining-blue/70">
                     <tr className="border-b border-mining-blue/20">
