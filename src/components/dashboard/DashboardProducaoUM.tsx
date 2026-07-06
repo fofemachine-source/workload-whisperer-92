@@ -172,18 +172,44 @@ export default function DashboardProducaoUM() {
   }, [data]);
 
   const topEscav = useMemo(
-    () =>
-      (data?.rankingEscavadeiras ?? [])
+    () => {
+      const base = (data?.rankingEscavadeiras ?? [])
         .map((e) => ({
-          equipamento: String(e.equipamento),
-          tph: Number(e.th ?? 0),
-          massa: Number(e.massa ?? 0),
-          viagens: Number(e.viagens ?? 0),
+          equipamento: String(e.equipamento ?? ""),
+          material: String(e.material ?? ""),
+          origem: String(e.origem ?? ""),
+          subarea: String(e.subarea ?? ""),
+          destino: String(e.destino ?? ""),
+          viagens: toNum(e.viagens ?? e.quantidade),
+          massa: toNum(e.massa ?? e.tonelagem),
+          tph: toNum(e.th ?? e.tph),
         }))
         .filter((e) => e.tph > 0 && isEscavadeiraValida(e.equipamento))
         .sort((a, b) => b.tph - a.tph)
-        .slice(0, 6),
-    [data],
+        .slice(0, 6);
+
+      // Enriquece campos operacionais ausentes com os dados de produção detalhada
+      return base.map((escav) => {
+        if (escav.material && escav.origem && escav.subarea && escav.destino && escav.viagens && escav.massa) {
+          return escav;
+        }
+        const match = (producaoData ?? []).find((r) => {
+          const carga = normEquip(pick(r, ["equipamento_carga"]));
+          return carga === normEquip(escav.equipamento);
+        });
+        if (!match) return escav;
+        return {
+          ...escav,
+          material: escav.material || String(pick(match, ["material"]) ?? ""),
+          origem: escav.origem || String(pick(match, ["origem"]) ?? ""),
+          subarea: escav.subarea || String(pick(match, ["subarea"]) ?? ""),
+          destino: escav.destino || String(pick(match, ["destino"]) ?? ""),
+          viagens: escav.viagens || toNum(pick(match, ["viagens", "quantidade"])),
+          massa: escav.massa || toNum(pick(match, ["massa", "tonelagem"])),
+        };
+      });
+    },
+    [data, producaoData],
   );
 
   const viagensPorHora = useMemo(() => {
