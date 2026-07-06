@@ -86,7 +86,7 @@ function Panel({
 }) {
   return (
     <div
-      className={`bg-[hsl(220_45%_9%/0.85)] border border-mining-blue/20 rounded-md shadow-[0_0_24px_-14px_hsl(var(--mining-blue)/0.6)] ${className}`}
+      className={`bg-[hsl(220_45%_9%/0.85)] border border-mining-blue/20 rounded-md shadow-[0_0_24px_-14px_hsl(var(--mining-blue)/0.6)] flex flex-col ${className}`}
     >
       {title && (
         <div className="flex items-center justify-between px-3 pt-2">
@@ -94,7 +94,7 @@ function Panel({
           {right}
         </div>
       )}
-      <div className="p-3 pt-2">{children}</div>
+      <div className="p-3 pt-2 flex-1 min-h-0">{children}</div>
     </div>
   );
 }
@@ -413,7 +413,7 @@ export default function DashboardProducaoUM() {
           {dailySeries.length === 0 ? (
             <Empty />
           ) : (
-            <div className="h-56">
+            <div className="h-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={dailySeries} margin={{ top: 12, right: 8, left: 0, bottom: 0 }}>
                   <CartesianGrid stroke="rgba(255,255,255,0.05)" vertical={false} />
@@ -433,7 +433,7 @@ export default function DashboardProducaoUM() {
           {frenteAgg.length === 0 ? (
             <Empty />
           ) : (
-            <div className="h-56 flex items-center">
+            <div className="h-full flex items-center">
               <div className="w-2/3 h-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
