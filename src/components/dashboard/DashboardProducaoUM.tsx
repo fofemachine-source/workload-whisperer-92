@@ -650,8 +650,8 @@ export default function DashboardProducaoUM() {
               <thead className="text-mining-blue/70">
                 <tr className="border-b border-mining-blue/20">
                   <Th>CR</Th><Th>Origem</Th><Th>Destino</Th><Th>Material</Th>
-                  <Th className="text-right">Viagem</Th>
-                  <Th className="text-right">Massa</Th>
+                  <Th className="text-right">Qtd</Th>
+                  <Th className="text-right">Tonelagem</Th>
                   <Th>Início</Th><Th>Fim</Th>
                   <Th className="text-right">Ciclo</Th>
                 </tr>
