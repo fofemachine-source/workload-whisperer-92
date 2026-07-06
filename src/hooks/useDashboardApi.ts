@@ -11,7 +11,36 @@ export interface DashboardApiPayload {
   };
   producaoDiaria: Array<{ data: string; real: number; previsto?: number }>;
   producaoFrente: Array<{ frente: string; massa: number }>;
-  rankingEscavadeiras: Array<{ equipamento: string; th: number; massa?: number; viagens?: number }>;
+  rankingEscavadeiras: Array<{
+    equipamento: string;
+    th: number;
+    massa?: number;
+    viagens?: number;
+    material?: string;
+    frente?: string;
+    subarea?: string;
+    destino?: string;
+  }>;
+  rankingEscavadeirasDetalhado?: Array<{
+    equipamento: string;
+    destino?: string;
+    quantidade?: number;
+    viagens?: number;
+    tonelagem?: number;
+    massa?: number;
+  }>;
+  viagensCR?: Array<{
+    cr?: string;
+    escavadeira?: string;
+    origem?: string;
+    destino?: string;
+    material?: string;
+    quantidade?: number;
+    tonelagem?: number;
+    inicio?: string;
+    fim?: string;
+    ciclo?: number;
+  }>;
   viagensHora: Array<{ hora: string | number; viagens: number }>;
 }
 
