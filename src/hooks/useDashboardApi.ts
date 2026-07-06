@@ -55,5 +55,5 @@ function makeExtraHook<T = any>(key: string, path: string) {
 
 export const useTempoApi = makeExtraHook<Record<string, any>>("api-tempo", "/tempo?limit=100");
 export const useProducaoApi = makeExtraHook<Record<string, any>>("api-producao", "/producao?limit=50");
-export const useViagensApi = makeExtraHook<Record<string, any>>("api-viagens", "/viagens?limit=50");
+export const useViagensApi = makeExtraHook<Record<string, any>>("api-viagens", "/viagens?limit=200");
 export const useTempoCicloApi = makeExtraHook<Record<string, any>>("api-tempo-ciclo", "/tempo-ciclo?limit=100");
