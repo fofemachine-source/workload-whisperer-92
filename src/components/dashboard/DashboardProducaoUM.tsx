@@ -427,7 +427,7 @@ export default function DashboardProducaoUM() {
           )}
         </Panel>
 
-        <Panel title="Produção por Frente (t)" className="col-span-12 lg:col-span-4">
+        <Panel title="Produção por Frente (t)" className="col-span-12 lg:col-span-3">
           {frenteAgg.length === 0 ? (
             <Empty />
           ) : (
