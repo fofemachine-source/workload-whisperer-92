@@ -397,9 +397,9 @@ export default function DashboardProducaoUM() {
 
       {/* KPI strip */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 mt-2">
-        <GradientKpi label="Produção Diária (t)" numeric={producaoReal} tone="green" />
+        <GradientKpi label="Produção Diária (t)" numeric={diarioReal} tone="green" />
         <GradientKpi label="Produção Mês (t)" numeric={acumuladoMes} tone="amber" />
-        <GradientKpi label="Produção 12M (t)" numeric={producaoReal + acumuladoMes} tone="green" />
+        <GradientKpi label="Produção 12M (t)" numeric={diarioReal + acumuladoMes} tone="green" />
         <GradientKpi label="Meta Diária (t)" numeric={metaDiaria} tone="blue" />
         <GradientKpi label="Produção 12M (t)" numeric={totalPrevisto + acumuladoMes} tone="blue" />
         <GradientKpi label="Produtividade Lab. 6/ Colheita (t/h)" numeric={totalTphEscav} tone="green" suffix=" t/h" decimals={3} />
