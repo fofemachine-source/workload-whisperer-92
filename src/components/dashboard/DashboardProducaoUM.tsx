@@ -201,65 +201,19 @@ export default function DashboardProducaoUM() {
 
   const topEscav = useMemo(
     () => {
-      // TPH da API de ranking, por equipamento
-      const rankMap = new Map<string, number>();
-      for (const e of ((data?.rankingEscavadeiras ?? []) as any[])) {
-        const key = normEquip(e.equipamento);
-        const tph = toNum(e.th ?? e.tph);
-        if (!rankMap.has(key)) rankMap.set(key, tph);
-      }
-
-      // Agrupa movimentações por equipamento + destino a partir de /producao
-      type DestAgg = { destino: string; viagens: number; massa: number };
-      type Grp = {
-        equipamento: string;
-        material: string;
-        tph: number;
-        destinos: Map<string, DestAgg>;
-      };
-      const groups = new Map<string, Grp>();
-
-      for (const r of (producaoData ?? [])) {
-        const carga = pick(r, ["equipamento_carga"]);
-        if (!isEscavadeiraValida(carga)) continue;
-        const eq = String(carga);
-        const key = normEquip(carga);
-        const destino = String(pick(r, ["destino"]) ?? "—") || "—";
-        const viagens = toNum(pick(r, ["viagens", "quantidade"]));
-        const massa = toNum(pick(r, ["massa", "tonelagem"]));
-        const material = String(pick(r, ["material"]) ?? "");
-
-        let g = groups.get(key);
-        if (!g) {
-          g = { equipamento: eq, material, tph: rankMap.get(key) ?? 0, destinos: new Map() };
-          groups.set(key, g);
-        }
-        if (!g.material && material) g.material = material;
-        const d = g.destinos.get(destino) ?? { destino, viagens: 0, massa: 0 };
-        d.viagens += viagens;
-        d.massa += massa;
-        g.destinos.set(destino, d);
-      }
-
-      return Array.from(groups.values())
-        .map((g) => {
-          const destinos = Array.from(g.destinos.values()).sort((a, b) => b.massa - a.massa);
-          const totalViagens = destinos.reduce((s, d) => s + d.viagens, 0);
-          const totalMassa = destinos.reduce((s, d) => s + d.massa, 0);
-          return {
-            equipamento: g.equipamento,
-            material: g.material,
-            tph: g.tph,
-            destinos,
-            totalViagens,
-            totalMassa,
-          };
-        })
-        .filter((g) => g.totalMassa > 0)
-        .sort((a, b) => b.totalMassa - a.totalMassa)
+      const rows = (data?.rankingEscavadeiras ?? []) as any[];
+      return rows
+        .map((e) => ({
+          equipamento: String(e.equipamento ?? ""),
+          tph: toNum(e.th ?? e.tph),
+          viagens: toNum(e.viagens ?? e.quantidade),
+          massa: toNum(e.massa ?? e.tonelagem),
+        }))
+        .filter((e) => e.equipamento && e.tph > 0)
+        .sort((a, b) => b.tph - a.tph)
         .slice(0, 6);
     },
-    [data, producaoData],
+    [data],
   );
 
   const viagensPorHora = useMemo(() => {
@@ -505,7 +459,7 @@ export default function DashboardProducaoUM() {
           )}
         </Panel>
 
-        <Panel title="Top Escavadeiras" className="col-span-12 lg:col-span-5">
+        <Panel title="Top 6 Escavadeiras (t/h)" className="col-span-12 lg:col-span-5">
           {topEscav.length === 0 ? (
             <Empty />
           ) : (
@@ -531,35 +485,16 @@ export default function DashboardProducaoUM() {
                         {fmt(e.tph)} t/h
                       </span>
                     </div>
-                    <div className="text-[10px] font-mono text-muted-foreground mb-1">
-                      <span className="text-mining-blue/70">Material:</span>{" "}
-                      <span className="text-foreground">{e.material || "—"}</span>
+                    <div className="grid grid-cols-2 gap-x-4 text-[10px] font-mono text-muted-foreground mb-1.5">
+                      <div className="truncate">
+                        <span className="text-mining-blue/70">Viagens:</span>{" "}
+                        <span className="text-mining-blue font-bold">{e.viagens ? fmt(e.viagens) : "—"}</span>
+                      </div>
+                      <div className="truncate text-right">
+                        <span className="text-mining-blue/70">Tonelagem:</span>{" "}
+                        <span className="text-mining-green font-bold">{e.massa ? `${fmt(e.massa)} t` : "—"}</span>
+                      </div>
                     </div>
-                    <table className="w-full text-[10px] font-mono mb-1.5">
-                      <thead className="text-mining-blue/70">
-                        <tr className="border-b border-mining-blue/20">
-                          <th className="text-left font-semibold py-0.5">Destino</th>
-                          <th className="text-right font-semibold py-0.5 w-16">Qtd</th>
-                          <th className="text-right font-semibold py-0.5 w-20">Tonelagem</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {e.destinos.map((d) => (
-                          <tr key={d.destino} className="border-b border-white/5">
-                            <td className="py-0.5 truncate text-foreground" title={d.destino}>{d.destino}</td>
-                            <td className="py-0.5 text-right text-mining-blue">{fmt(d.viagens)}</td>
-                            <td className="py-0.5 text-right text-mining-green">{fmt(d.massa)} t</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                      <tfoot>
-                        <tr className="font-bold border-t border-mining-blue/40">
-                          <td className="py-0.5 text-mining-blue/80">TOTAL</td>
-                          <td className="py-0.5 text-right text-mining-blue">{fmt(e.totalViagens)}</td>
-                          <td className="py-0.5 text-right text-mining-green">{fmt(e.totalMassa)} t</td>
-                        </tr>
-                      </tfoot>
-                    </table>
                     <div className="h-2 bg-white/5 rounded overflow-hidden">
                       <div className="h-full bg-mining-blue" style={{ width: `${pct}%` }} />
                     </div>
