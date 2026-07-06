@@ -678,6 +678,64 @@ function Kpi({
   );
 }
 
+function GradientKpi({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: string;
+  tone: "green" | "amber" | "teal" | "blue" | "cyan" | "indigo";
+}) {
+  const toneMap: Record<string, { grad: string; border: string; text: string; label: string }> = {
+    green: {
+      grad: "from-[hsl(150_80%_18%)] via-[hsl(155_70%_14%)] to-[hsl(220_45%_9%)]",
+      border: "border-emerald-400/30",
+      text: "text-emerald-300",
+      label: "text-emerald-200/70",
+    },
+    amber: {
+      grad: "from-[hsl(35_85%_25%)] via-[hsl(30_70%_16%)] to-[hsl(220_45%_9%)]",
+      border: "border-amber-400/30",
+      text: "text-amber-300",
+      label: "text-amber-200/70",
+    },
+    teal: {
+      grad: "from-[hsl(180_70%_20%)] via-[hsl(190_60%_14%)] to-[hsl(220_45%_9%)]",
+      border: "border-teal-400/30",
+      text: "text-teal-300",
+      label: "text-teal-200/70",
+    },
+    blue: {
+      grad: "from-[hsl(215_80%_25%)] via-[hsl(215_70%_16%)] to-[hsl(220_45%_9%)]",
+      border: "border-sky-400/30",
+      text: "text-sky-300",
+      label: "text-sky-200/70",
+    },
+    cyan: {
+      grad: "from-[hsl(190_85%_25%)] via-[hsl(200_70%_16%)] to-[hsl(220_45%_9%)]",
+      border: "border-cyan-400/30",
+      text: "text-cyan-300",
+      label: "text-cyan-200/70",
+    },
+    indigo: {
+      grad: "from-[hsl(240_60%_25%)] via-[hsl(240_50%_16%)] to-[hsl(220_45%_9%)]",
+      border: "border-indigo-400/30",
+      text: "text-indigo-300",
+      label: "text-indigo-200/70",
+    },
+  };
+  const t = toneMap[tone];
+  return (
+    <div
+      className={`relative overflow-hidden rounded-md border ${t.border} bg-gradient-to-br ${t.grad} px-3 py-2.5 shadow-[0_0_20px_-14px_rgba(0,0,0,0.9)]`}
+    >
+      <p className={`text-[9px] uppercase tracking-[0.18em] font-bold truncate ${t.label}`}>{label}</p>
+      <p className={`text-2xl md:text-[26px] font-black leading-tight ${t.text} font-mono tabular-nums`}>{value}</p>
+    </div>
+  );
+}
+
 function MiniKpi({ label, value, unit }: { label: string; value: string; unit?: string }) {
   return (
     <div className="bg-[hsl(220_45%_9%/0.85)] border border-mining-blue/20 rounded-md p-2 flex flex-col justify-center">
