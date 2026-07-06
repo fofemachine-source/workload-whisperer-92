@@ -448,21 +448,21 @@ export default function DashboardProducaoUM() {
           )}
         </Panel>
 
-        <Panel title="Top 6 Escavadeiras" className="col-span-12 lg:col-span-5 lg:row-span-3 min-h-[760px] lg:min-h-0">
+        <Panel title="Top 6 Escavadeiras" className="col-span-12 lg:col-span-5 lg:row-span-3">
           {topEscav.length === 0 ? (
             <Empty />
           ) : (
             <div className="flex flex-col h-full">
-              <div className="flex-1 min-h-0 overflow-auto space-y-2 pr-1">
+              <div className="flex-1 min-h-0 overflow-auto space-y-1.5 pr-1">
                 {topEscav.map((e, i) => {
                   const maxTh = topEscav[0].th || 1;
                   const pct = Math.max(2, (e.th / maxTh) * 100);
                   return (
                     <div
                       key={e.equipamento}
-                      className="bg-mining-surface-2/70 border border-mining-blue/15 rounded-sm p-2 shadow-[inset_0_1px_0_hsl(var(--mining-blue)/0.08)]"
+                      className="bg-mining-surface-2/70 border border-mining-blue/15 rounded-sm px-2 py-1.5 shadow-[inset_0_1px_0_hsl(var(--mining-blue)/0.08)]"
                     >
-                      <div className="flex items-center justify-between gap-2 mb-1.5">
+                      <div className="flex items-center justify-between gap-2 mb-1">
                         <div className="flex items-center gap-2">
                           <span className="w-5 h-5 flex items-center justify-center rounded-sm bg-mining-yellow text-background text-[10px] font-black">
                             {i + 1}
@@ -475,7 +475,7 @@ export default function DashboardProducaoUM() {
                           {fmt(e.th)} t/h
                         </span>
                       </div>
-                      <div className="grid grid-cols-[1fr_auto] gap-x-4 text-[10px] font-mono text-muted-foreground mb-1.5 leading-tight">
+                      <div className="grid grid-cols-[1fr_auto] gap-x-4 text-[10px] font-mono text-muted-foreground mb-1 leading-tight">
                         <div className="space-y-0.5 min-w-0">
                           {e.material && (
                             <div className="truncate"><span className="text-mining-blue/80">Material:</span> <span className="text-mining-yellow font-bold">{e.material}</span></div>
@@ -493,14 +493,14 @@ export default function DashboardProducaoUM() {
                         </div>
                       </div>
                       {e.destinos.length > 0 && (
-                        <div className="mb-1.5 text-[9px] font-mono overflow-hidden rounded-sm bg-mining-surface/55 border border-mining-blue/5">
-                          <div className="grid grid-cols-[minmax(0,1fr)_6rem_6rem] gap-x-3 px-2 py-1 text-mining-blue/65 border-b border-mining-blue/10">
+                        <div className="mb-1 text-[9px] font-mono">
+                          <div className="grid grid-cols-[minmax(0,1fr)_5rem_5rem] gap-x-3 px-1 text-mining-blue/70 leading-tight">
                             <span>Destino</span>
                             <span className="text-right">Quantidade (Viagens)</span>
                             <span className="text-right">Tonelagem (t)</span>
                           </div>
                           {e.destinos.map((destino) => (
-                            <div key={destino.destino} className="grid grid-cols-[minmax(0,1fr)_6rem_6rem] gap-x-3 px-2 py-0.5 border-b border-mining-blue/5 last:border-b-0">
+                            <div key={destino.destino} className="grid grid-cols-[minmax(0,1fr)_5rem_5rem] gap-x-3 px-1 leading-tight">
                               <span className="truncate text-foreground">{destino.destino}</span>
                               <span className="text-right text-foreground">{fmt(destino.viagens)}</span>
                               <span className="text-right text-foreground">{fmt(destino.massa)}</span>
@@ -508,7 +508,7 @@ export default function DashboardProducaoUM() {
                           ))}
                         </div>
                       )}
-                      <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
+                      <div className="h-1 bg-secondary rounded-full overflow-hidden">
                         <div className="h-full bg-mining-blue shadow-[0_0_12px_hsl(var(--mining-blue)/0.85)]" style={{ width: `${pct}%` }} />
                       </div>
                     </div>
