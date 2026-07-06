@@ -60,6 +60,18 @@ const isEscavadeiraValida = (v: unknown) => {
 const linhaValida = (equipamento: unknown, equipamento_carga: unknown) =>
   isCaminhaoValido(equipamento) && isEscavadeiraValida(equipamento_carga);
 
+const pick = (obj: Record<string, any>, keys: string[]) => {
+  for (const k of keys) {
+    if (obj?.[k] !== undefined && obj?.[k] !== null && obj?.[k] !== "") return obj[k];
+  }
+  return undefined;
+};
+const toNum = (v: unknown) => {
+  const n = typeof v === "string" ? parseFloat(v.replace(",", ".")) : Number(v);
+  return Number.isFinite(n) ? n : 0;
+};
+
+
 /* ---------- shared card ---------- */
 function Panel({
   title,
