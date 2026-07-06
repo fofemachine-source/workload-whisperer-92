@@ -251,7 +251,7 @@ export default function DashboardProducaoUM() {
       {/* KPI strip */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 mt-2">
         <Kpi icon={<Target />} label="Produção Prevista (t)" value={fmt(totalPrevisto)} color="text-mining-blue" />
-        <Kpi icon={<BarChart3 />} label="Produção Real (t)" value={fmt(totalReal)} color="text-mining-blue" />
+        <Kpi icon={<BarChart3 />} label="Produção Real (t)" value={fmt(producaoReal)} color="text-mining-blue" />
         <Kpi
           icon={<Gauge />}
           label="Variação (t)"
@@ -501,10 +501,22 @@ export default function DashboardProducaoUM() {
         </Panel>
       </div>
 
+      {/* API status */}
+      {isError && (
+        <div className="mt-2 flex items-center gap-2 rounded-md border border-mining-red/40 bg-mining-red/10 px-3 py-2 text-[11px] font-mono text-mining-red">
+          <AlertTriangle className="h-4 w-4" />
+          Sem comunicação com API local
+          <span className="text-mining-red/60">
+            ({error instanceof Error ? error.message : "erro desconhecido"})
+          </span>
+        </div>
+      )}
+
       {/* Footer */}
       <div className="mt-3 flex flex-wrap items-center justify-between gap-2 px-1 text-[10px] font-mono text-mining-blue/70">
-        <span>
-          Fontes: custom_vw_ciclo_carga · custom_vw_registros_estados · custom_vw_producao · custom_vw_acompanhamento_viagens · custom_vw_tempo · custom_vw_tempo_ciclo · custom_vw_tempo_detalhado
+        <span className="flex items-center gap-2">
+          Fonte: http://192.168.17.15:3001/api/dashboard · auto 60s
+          {isLoading && <Loader2 className="h-3 w-3 animate-spin" />}
         </span>
         <span>
           Atualizado em: {ultima ? ultima.toLocaleString("pt-BR") : "—"}
