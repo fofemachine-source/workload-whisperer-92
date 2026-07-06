@@ -251,16 +251,6 @@ export default function DashboardProducaoUM() {
   const dfMedio = 0;
   const utMedio = 0;
 
-  const pick = (obj: Record<string, any>, keys: string[]) => {
-    for (const k of keys) {
-      if (obj?.[k] !== undefined && obj?.[k] !== null && obj?.[k] !== "") return obj[k];
-    }
-    return undefined;
-  };
-  const toNum = (v: unknown) => {
-    const n = typeof v === "string" ? parseFloat(v.replace(",", ".")) : Number(v);
-    return Number.isFinite(n) ? n : 0;
-  };
 
   const tempoParado = useMemo(() => {
     const rows = tempoData ?? [];
