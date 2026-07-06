@@ -410,64 +410,51 @@ export default function DashboardProducaoUM() {
             <Empty />
           ) : (
             <div className="flex flex-col h-full">
-              <div className="flex-1 min-h-0 overflow-auto space-y-1.5 pr-1">
+              {/* Column headers – biocombustível style */}
+              <div className="grid grid-cols-[1.6rem_1fr_1fr_1.2fr_5rem_5rem_3rem] gap-x-2 px-2 pb-1 border-b border-mining-blue/25 text-[9px] font-bold uppercase tracking-wider text-mining-blue/70">
+                <span />
+                <span>Escavadeira</span>
+                <span>Material</span>
+                <span>Destino</span>
+                <span className="text-right">Viagens</span>
+                <span className="text-right">Tonelagem</span>
+                <span className="text-right">T/H</span>
+              </div>
+              <div className="flex-1 min-h-0 overflow-auto divide-y divide-mining-blue/10">
                 {topEscav.map((e, i) => {
-                  const maxTh = topEscav[0].th || 1;
-                  const pct = Math.max(2, (e.th / maxTh) * 100);
+                  const totMassa = topEscav.reduce((s, x) => s + Number(x.massa || 0), 0) || 1;
+                  const pct = (Number(e.massa || 0) / totMassa) * 100;
+                  const rows = e.destinos.length > 0 ? e.destinos : [{ destino: e.destino ?? "—", viagens: e.viagens, massa: e.massa }];
                   return (
-                    <div
-                      key={e.equipamento}
-                      className="bg-mining-surface-2/70 border border-mining-blue/15 rounded-sm px-2 py-1.5 shadow-[inset_0_1px_0_hsl(var(--mining-blue)/0.08)]"
-                    >
-                      <div className="flex items-center justify-between gap-2 mb-1">
-                        <div className="flex items-center gap-2">
-                          <span className="w-5 h-5 flex items-center justify-center rounded-sm bg-mining-yellow text-background text-[10px] font-black">
-                            {i + 1}
-                          </span>
-                          <span className="text-xs font-bold text-foreground tracking-tight">
-                            {e.equipamento}
-                          </span>
-                        </div>
-                        <span className="text-base font-black text-mining-blue leading-none text-glow-blue">
-                          {fmt(e.th)} t/h
+                    <div key={e.equipamento} className="py-1.5 px-1">
+                      <div className="grid grid-cols-[1.6rem_1fr_1fr_1.2fr_5rem_5rem_3rem] gap-x-2 items-center">
+                        <span className="w-5 h-5 flex items-center justify-center rounded-sm bg-mining-yellow text-background text-[10px] font-black">
+                          {i + 1}
                         </span>
-                      </div>
-                      <div className="grid grid-cols-[1fr_auto] gap-x-4 text-[10px] font-mono text-muted-foreground mb-1 leading-tight">
-                        <div className="space-y-0.5 min-w-0">
-                          {e.material && (
-                            <div className="truncate"><span className="text-mining-blue/80">Material:</span> <span className="text-mining-yellow font-bold">{e.material}</span></div>
-                          )}
-                          {e.subarea && (
-                            <div className="truncate"><span className="text-mining-blue/80">Subárea:</span> <span className="text-foreground">{e.subarea}</span></div>
-                          )}
-                          {e.destino && (
-                            <div className="truncate"><span className="text-mining-blue/80">Destino:</span> <span className="text-foreground">{e.destino}</span></div>
-                          )}
-                        </div>
-                        <div className="text-right space-y-0.5 whitespace-nowrap">
-                          <div><span className="text-mining-blue/80">Viagens:</span> <span className="text-mining-blue font-bold">{fmt(e.viagens)}</span></div>
-                          <div><span className="text-mining-blue/80">Tonelagem:</span> <span className="text-foreground font-bold">{fmt(e.massa)} t</span></div>
-                        </div>
+                        <span className="text-xs font-bold text-foreground truncate">{e.equipamento}</span>
+                        <span className="text-[10px] font-mono text-mining-yellow truncate">{e.material ?? "—"}</span>
+                        <span className="text-[10px] font-mono text-foreground truncate">{e.destino ?? "—"}</span>
+                        <span className="text-right text-[11px] font-mono font-bold text-mining-blue">{fmt(e.viagens)}</span>
+                        <span className="text-right text-[11px] font-mono font-bold text-emerald-300">{fmt(e.massa)}</span>
+                        <span className="text-right text-[11px] font-mono font-black text-cyan-300">{fmt(e.th)}</span>
                       </div>
                       {e.destinos.length > 0 && (
-                        <div className="mb-1 text-[9px] font-mono">
-                          <div className="grid grid-cols-[minmax(0,1fr)_5rem_5rem] gap-x-3 px-1 text-mining-blue/70 leading-tight">
-                            <span>Destino</span>
-                            <span className="text-right">Quantidade (Viagens)</span>
-                            <span className="text-right">Tonelagem (t)</span>
-                          </div>
-                          {e.destinos.map((destino) => (
-                            <div key={destino.destino} className="grid grid-cols-[minmax(0,1fr)_5rem_5rem] gap-x-3 px-1 leading-tight">
-                              <span className="truncate text-foreground">{destino.destino}</span>
-                              <span className="text-right text-foreground">{fmt(destino.viagens)}</span>
-                              <span className="text-right text-foreground">{fmt(destino.massa)}</span>
+                        <div className="mt-1 pl-8 space-y-0.5">
+                          {rows.map((d, ix) => (
+                            <div
+                              key={ix}
+                              className="grid grid-cols-[1fr_1fr_1.2fr_5rem_5rem_3rem] gap-x-2 text-[10px] font-mono text-muted-foreground"
+                            >
+                              <span className="text-mining-blue/60 italic">destino</span>
+                              <span className="truncate">{e.material ?? "—"}</span>
+                              <span className="truncate text-foreground">{d.destino}</span>
+                              <span className="text-right">{fmt(d.viagens)}</span>
+                              <span className="text-right">{fmt(d.massa)}</span>
+                              <span className="text-right text-mining-blue/70">{fmt(pct, 1)}%</span>
                             </div>
                           ))}
                         </div>
                       )}
-                      <div className="h-1 bg-secondary rounded-full overflow-hidden">
-                        <div className="h-full bg-mining-blue shadow-[0_0_12px_hsl(var(--mining-blue)/0.85)]" style={{ width: `${pct}%` }} />
-                      </div>
                     </div>
                   );
                 })}
