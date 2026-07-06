@@ -459,7 +459,7 @@ export default function DashboardProducaoUM() {
           )}
         </Panel>
 
-        <Panel title="Top Escavadeiras" className="col-span-12 lg:col-span-5">
+        <Panel title="Top 6 Escavadeiras (t/h)" className="col-span-12 lg:col-span-5">
           {topEscav.length === 0 ? (
             <Empty />
           ) : (
@@ -485,35 +485,16 @@ export default function DashboardProducaoUM() {
                         {fmt(e.tph)} t/h
                       </span>
                     </div>
-                    <div className="text-[10px] font-mono text-muted-foreground mb-1">
-                      <span className="text-mining-blue/70">Material:</span>{" "}
-                      <span className="text-foreground">{e.material || "—"}</span>
+                    <div className="grid grid-cols-2 gap-x-4 text-[10px] font-mono text-muted-foreground mb-1.5">
+                      <div className="truncate">
+                        <span className="text-mining-blue/70">Viagens:</span>{" "}
+                        <span className="text-mining-blue font-bold">{e.viagens ? fmt(e.viagens) : "—"}</span>
+                      </div>
+                      <div className="truncate text-right">
+                        <span className="text-mining-blue/70">Tonelagem:</span>{" "}
+                        <span className="text-mining-green font-bold">{e.massa ? `${fmt(e.massa)} t` : "—"}</span>
+                      </div>
                     </div>
-                    <table className="w-full text-[10px] font-mono mb-1.5">
-                      <thead className="text-mining-blue/70">
-                        <tr className="border-b border-mining-blue/20">
-                          <th className="text-left font-semibold py-0.5">Destino</th>
-                          <th className="text-right font-semibold py-0.5 w-16">Qtd</th>
-                          <th className="text-right font-semibold py-0.5 w-20">Tonelagem</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {e.destinos.map((d) => (
-                          <tr key={d.destino} className="border-b border-white/5">
-                            <td className="py-0.5 truncate text-foreground" title={d.destino}>{d.destino}</td>
-                            <td className="py-0.5 text-right text-mining-blue">{fmt(d.viagens)}</td>
-                            <td className="py-0.5 text-right text-mining-green">{fmt(d.massa)} t</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                      <tfoot>
-                        <tr className="font-bold border-t border-mining-blue/40">
-                          <td className="py-0.5 text-mining-blue/80">TOTAL</td>
-                          <td className="py-0.5 text-right text-mining-blue">{fmt(e.totalViagens)}</td>
-                          <td className="py-0.5 text-right text-mining-green">{fmt(e.totalMassa)} t</td>
-                        </tr>
-                      </tfoot>
-                    </table>
                     <div className="h-2 bg-white/5 rounded overflow-hidden">
                       <div className="h-full bg-mining-blue" style={{ width: `${pct}%` }} />
                     </div>
