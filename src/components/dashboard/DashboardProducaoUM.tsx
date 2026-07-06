@@ -373,12 +373,12 @@ export default function DashboardProducaoUM() {
 
       {/* KPI strip */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 mt-2">
-        <GradientKpi label="Produção Diária (t)" value={fmt(producaoReal)} tone="green" />
-        <GradientKpi label="Produção Prevista (t)" value={fmt(totalPrevisto)} tone="amber" />
-        <GradientKpi label="Acumulado Mês (t)" value={fmt(acumuladoMes)} tone="teal" />
-        <GradientKpi label="Meta Diária (t)" value={fmt(metaDiaria)} tone="blue" />
-        <GradientKpi label="Variação (t)" value={fmt(variacao)} tone={variacao < 0 ? "amber" : "green"} />
-        <GradientKpi label="Produtividade Escav. (t/h)" value={`${fmt(totalTphEscav)} t/h`} tone="cyan" />
+        <GradientKpi label="Produção Diária (t)" numeric={producaoReal} tone="green" />
+        <GradientKpi label="Produção Prevista (t)" numeric={totalPrevisto} tone="amber" />
+        <GradientKpi label="Acumulado Mês (t)" numeric={acumuladoMes} tone="teal" />
+        <GradientKpi label="Meta Diária (t)" numeric={metaDiaria} tone="blue" />
+        <GradientKpi label="Variação (t)" numeric={variacao} tone={variacao < 0 ? "amber" : "green"} />
+        <GradientKpi label="Produtividade Escav. (t/h)" numeric={totalTphEscav} tone="cyan" suffix=" t/h" />
       </div>
 
       {/* Dashboard grid */}
