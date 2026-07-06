@@ -86,7 +86,7 @@ function Panel({
 }) {
   return (
     <div
-      className={`bg-[hsl(220_45%_9%/0.85)] border border-mining-blue/20 rounded-md shadow-[0_0_24px_-14px_hsl(var(--mining-blue)/0.6)] ${className}`}
+      className={`bg-[hsl(220_45%_9%/0.85)] border border-mining-blue/20 rounded-md shadow-[0_0_24px_-14px_hsl(var(--mining-blue)/0.6)] flex flex-col ${className}`}
     >
       {title && (
         <div className="flex items-center justify-between px-3 pt-2">
@@ -94,7 +94,7 @@ function Panel({
           {right}
         </div>
       )}
-      <div className="p-3 pt-2">{children}</div>
+      <div className="p-3 pt-2 flex-1 min-h-0">{children}</div>
     </div>
   );
 }
