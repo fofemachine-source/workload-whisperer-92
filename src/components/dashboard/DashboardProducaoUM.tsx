@@ -413,7 +413,7 @@ export default function DashboardProducaoUM() {
           {dailySeries.length === 0 ? (
             <Empty />
           ) : (
-            <div className="h-56">
+            <div className="h-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={dailySeries} margin={{ top: 12, right: 8, left: 0, bottom: 0 }}>
                   <CartesianGrid stroke="rgba(255,255,255,0.05)" vertical={false} />
