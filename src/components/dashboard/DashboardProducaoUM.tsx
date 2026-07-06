@@ -326,12 +326,9 @@ export default function DashboardProducaoUM() {
     () =>
       (viagensData ?? [])
         .filter((r) => {
-          const eq = pick(r, ["equipamento"]);
-          const carga = pick(r, ["equipamento_carga"]);
-          if (carga !== undefined) return linhaValida(eq, carga);
-          return isCaminhaoValido(eq);
+          const eq = String(pick(r, ["equipamento"]) ?? "").trim().toUpperCase();
+          return eq.startsWith("CR");
         })
-        .slice(0, 50)
         .map((r) => ({
         equipamento: pick(r, ["equipamento"]) ?? null,
         event_start: pick(r, ["event_start"]) ?? null,
@@ -341,8 +338,8 @@ export default function DashboardProducaoUM() {
         destino: pick(r, ["destino"]) ?? null,
         material: pick(r, ["material"]) ?? null,
         operador: pick(r, ["operador"]) ?? null,
-        massa: toNum(pick(r, ["massa"])),
-        viagem: pick(r, ["viagem"]) ?? null,
+        massa: toNum(pick(r, ["massa", "material_tonnage", "tonelagem"])),
+        viagem: toNum(pick(r, ["viagem", "viagens"])) || 1,
       })),
     [viagensData],
   );
