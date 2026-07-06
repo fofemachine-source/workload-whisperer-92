@@ -201,19 +201,37 @@ export default function DashboardProducaoUM() {
 
   const topEscav = useMemo(
     () => {
-      const rows = (data?.rankingEscavadeiras ?? []) as any[];
-      return rows
-        .map((e) => ({
-          equipamento: String(e.equipamento ?? ""),
-          tph: toNum(e.th ?? e.tph),
-          viagens: toNum(e.viagens ?? e.quantidade),
-          massa: toNum(e.massa ?? e.tonelagem),
-        }))
-        .filter((e) => e.equipamento && e.tph > 0)
-        .sort((a, b) => b.tph - a.tph)
-        .slice(0, 6);
+      // Agrupa /producao por equipamento_carga + material + origem + subarea + destino
+      const groups = new Map<string, {
+        equipamento: string;
+        material: string;
+        origem: string;
+        subarea: string;
+        destino: string;
+        viagens: number;
+        massa: number;
+      }>();
+      for (const r of (producaoData ?? [])) {
+        const carga = pick(r, ["equipamento_carga"]);
+        if (!isEscavadeiraValida(carga)) continue;
+        const equipamento = String(carga);
+        const material = String(pick(r, ["material"]) ?? "");
+        const origem = String(pick(r, ["origem"]) ?? "");
+        const subarea = String(pick(r, ["subarea"]) ?? "");
+        const destino = String(pick(r, ["destino"]) ?? "");
+        const key = [equipamento, material, origem, subarea, destino].join("|");
+        const viagens = toNum(pick(r, ["viagens", "quantidade"]));
+        const massa = toNum(pick(r, ["massa", "tonelagem"]));
+        const g = groups.get(key) ?? { equipamento, material, origem, subarea, destino, viagens: 0, massa: 0 };
+        g.viagens += viagens;
+        g.massa += massa;
+        groups.set(key, g);
+      }
+      return Array.from(groups.values())
+        .filter((g) => g.massa > 0 || g.viagens > 0)
+        .sort((a, b) => b.massa - a.massa);
     },
-    [data],
+    [producaoData],
   );
 
   const viagensPorHora = useMemo(() => {
