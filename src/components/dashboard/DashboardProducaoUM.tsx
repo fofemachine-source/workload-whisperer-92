@@ -14,7 +14,7 @@ import {
   YAxis,
   Legend,
 } from "recharts";
-import { Filter, Target, BarChart3, Gauge, Calendar, TrendingUp, Flag, AlertTriangle, Loader2 } from "lucide-react";
+import { Filter, AlertTriangle, Loader2 } from "lucide-react";
 import { useDashboardApi, useTempoApi, useProducaoApi, useViagensApi, useTempoCicloApi } from "@/hooks/useDashboardApi";
 
 /* ---------- helpers ---------- */
@@ -35,6 +35,30 @@ const dayLabel = (iso: string) => {
 };
 
 const FRENTE_COLORS = ["#38bdf8", "#22d3ee", "#0ea5e9", "#f59e0b", "#22c55e", "#a855f7", "#ef4444", "#eab308"];
+
+/* ---------- filtro operacional fixo ----------
+ * Caminhões válidos: começam com "CR"
+ * Escavadeiras válidas: whitelist abaixo
+ * NUNCA considerar equipamentos começando com "CB" (Gelado)
+ */
+const ESCAVADEIRAS_VALIDAS = new Set([
+  "EH4026", "EH4039", "EH4041", "EH4047", "EH4050",
+  "EH4035", "EH5003", "EH5004", "EH5036",
+]);
+const normEquip = (v: unknown) =>
+  String(v ?? "").replace(/[-\s]/g, "").toUpperCase();
+const isCaminhaoValido = (v: unknown) => {
+  const n = normEquip(v);
+  return n.startsWith("CR") && !n.startsWith("CB");
+};
+const isEscavadeiraValida = (v: unknown) => {
+  const n = normEquip(v);
+  if (n.startsWith("CB")) return false;
+  return ESCAVADEIRAS_VALIDAS.has(n);
+};
+/** Regra completa: caminhão CR + escavadeira na whitelist. */
+const linhaValida = (equipamento: unknown, equipamento_carga: unknown) =>
+  isCaminhaoValido(equipamento) && isEscavadeiraValida(equipamento_carga);
 
 /* ---------- shared card ---------- */
 function Panel({
@@ -160,7 +184,7 @@ export default function DashboardProducaoUM() {
           massa: Number(e.massa ?? 0),
           viagens: Number(e.viagens ?? 0),
         }))
-        .filter((e) => e.tph > 0)
+        .filter((e) => e.tph > 0 && isEscavadeiraValida(e.equipamento))
         .sort((a, b) => b.tph - a.tph)
         .slice(0, 6),
     [data],
@@ -207,6 +231,18 @@ export default function DashboardProducaoUM() {
     const rows = tempoData ?? [];
     const groups = new Map<string, number>();
     for (const r of rows) {
+      const eq = pick(r, ["equipamento"]);
+      const carga = pick(r, ["equipamento_carga"]);
+      // Aceita linha se: (a) tem par caminhão+escavadeira válido, OU
+      // (b) só tem escavadeira válida, OU (c) só tem caminhão CR válido,
+      // OU (d) não traz equipamento algum (motivo agregado).
+      if (eq !== undefined || carga !== undefined) {
+        const okPar = eq !== undefined && carga !== undefined
+          ? linhaValida(eq, carga)
+          : (eq !== undefined ? isCaminhaoValido(eq) : true) &&
+            (carga !== undefined ? isEscavadeiraValida(carga) : true);
+        if (!okPar) continue;
+      }
       const motivo = String(
         pick(r, ["motivo", "descricao", "status", "estado", "tipo", "reason", "categoria"]) ?? "—",
       );
@@ -222,7 +258,10 @@ export default function DashboardProducaoUM() {
 
   const detalhamento = useMemo(
     () =>
-      (producaoData ?? []).slice(0, 50).map((r) => ({
+      (producaoData ?? [])
+        .filter((r) => linhaValida(pick(r, ["equipamento"]), pick(r, ["equipamento_carga"])))
+        .slice(0, 50)
+        .map((r) => ({
         dia: String(pick(r, ["dia", "data"]) ?? "—"),
         hora: String(pick(r, ["hora"]) ?? "—"),
         equipamento: pick(r, ["equipamento"]) ?? null,
@@ -239,7 +278,15 @@ export default function DashboardProducaoUM() {
 
   const acompViagens = useMemo(
     () =>
-      (viagensData ?? []).slice(0, 50).map((r) => ({
+      (viagensData ?? [])
+        .filter((r) => {
+          const eq = pick(r, ["equipamento"]);
+          const carga = pick(r, ["equipamento_carga"]);
+          if (carga !== undefined) return linhaValida(eq, carga);
+          return isCaminhaoValido(eq);
+        })
+        .slice(0, 50)
+        .map((r) => ({
         equipamento: pick(r, ["equipamento"]) ?? null,
         event_start: pick(r, ["event_start"]) ?? null,
         event_end: pick(r, ["event_end"]) ?? null,
@@ -258,6 +305,13 @@ export default function DashboardProducaoUM() {
     const rows = tempoCicloData ?? [];
     const groups = new Map<string, { total: number; count: number }>();
     for (const r of rows) {
+      const eq = pick(r, ["equipamento"]);
+      const carga = pick(r, ["equipamento_carga"]);
+      if (carga !== undefined && !isEscavadeiraValida(carga)) continue;
+      if (eq !== undefined) {
+        // equipamento pode ser caminhão (CR) ou escavadeira (whitelist)
+        if (!isCaminhaoValido(eq) && !isEscavadeiraValida(eq)) continue;
+      }
       const cat = String(pick(r, ["equipamento", "estado", "categoria"]) ?? "—");
       const val = toNum(pick(r, ["tempo_ciclo", "ciclo", "minutos", "duracao", "tempo"]));
       const g = groups.get(cat) ?? { total: 0, count: 0 };
