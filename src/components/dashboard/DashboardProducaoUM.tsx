@@ -449,27 +449,26 @@ export default function DashboardProducaoUM() {
           )}
         </Panel>
 
-        <Panel title="Top 6 Escavadeiras" className="col-span-12 lg:col-span-5 lg:row-span-3">
-          {topEscav.length === 0 ? (
+        <Panel title="Top 5 Biocombustível" className="col-span-12 lg:col-span-5 lg:row-span-2 h-[492px]">
+          {top5Escav.length === 0 ? (
             <Empty />
           ) : (
             <div className="flex flex-col h-full">
-              {/* Column headers – biocombustível style */}
-              <div className="grid grid-cols-[1.6rem_1fr_1fr_1.2fr_5rem_5rem_3rem] gap-x-2 px-2 pb-1 border-b border-mining-blue/25 text-[9px] font-bold uppercase tracking-wider text-mining-blue/70">
+              <div className="grid grid-cols-[1.6rem_1.05fr_1fr_1.15fr_1.1fr_4.4rem_5rem_3rem] gap-x-2 px-2 pb-1 border-b border-mining-blue/25 text-[9px] font-bold text-mining-blue/70">
                 <span />
-                <span>Escavadeira</span>
+                <span>Biocombustível</span>
                 <span>Material</span>
+                <span>Ponto de coleta</span>
                 <span>Destino</span>
-                <span className="text-right">Viagens</span>
-                <span className="text-right">Tonelagem</span>
-                <span className="text-right">T/H</span>
+                <span>Safronas</span>
+                <span className="text-right">Capacidade</span>
+                <span className="text-right">Toneladas</span>
+                <span className="text-right">%</span>
               </div>
               <div className="flex-1 min-h-0 overflow-auto divide-y divide-mining-blue/10">
                 <AnimatePresence initial={false}>
-                {topEscav.map((e, i) => {
-                  const totMassa = topEscav.reduce((s, x) => s + Number(x.massa || 0), 0) || 1;
-                  const pct = (Number(e.massa || 0) / totMassa) * 100;
-                  const rows = e.destinos.length > 0 ? e.destinos : [{ destino: e.destino ?? "—", viagens: e.viagens, massa: e.massa }];
+                {top5Escav.map((e, i) => {
+                  const pct = totalMassaTop5 > 0 ? (Number(e.massa || 0) / totalMassaTop5) * 100 : 0;
                   return (
                     <motion.div
                       key={e.equipamento}
@@ -478,46 +477,31 @@ export default function DashboardProducaoUM() {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.4, ease: "easeOut" }}
-                      className="py-1.5 px-1"
+                      className="px-2 py-2"
                     >
-                      <div className="grid grid-cols-[1.6rem_1fr_1fr_1.2fr_5rem_5rem_3rem] gap-x-2 items-center">
-                        <span className="w-5 h-5 flex items-center justify-center rounded-sm bg-mining-yellow text-background text-[10px] font-black">
+                      <div className="grid grid-cols-[1.6rem_1.05fr_1fr_1.15fr_1.1fr_4.4rem_5rem_3rem] gap-x-2 items-center text-[10px] font-mono">
+                        <span className="w-5 h-5 flex items-center justify-center rounded-sm bg-mining-yellow text-background text-[10px] font-black font-sans">
                           {i + 1}
                         </span>
-                        <span className="text-xs font-bold text-foreground truncate">{e.equipamento}</span>
-                        <span className="text-[10px] font-mono text-mining-yellow truncate">{e.material ?? "—"}</span>
-                        <span className="text-[10px] font-mono text-foreground truncate">{e.destino ?? "—"}</span>
-                        <span className="text-right text-[11px] font-mono font-bold text-mining-blue"><Counter value={e.viagens} /></span>
-                        <span className="text-right text-[11px] font-mono font-bold text-emerald-300"><Counter value={e.massa} /></span>
-                        <span className="text-right text-[11px] font-mono font-black text-cyan-300"><Counter value={e.th} /></span>
+                        <span className="text-[11px] font-black text-foreground truncate">{e.equipamento}</span>
+                        <span className="text-foreground/90 truncate">{e.material ?? "waste"}</span>
+                        <span className="text-foreground/90 truncate">{e.frente ?? e.subarea ?? "—"}</span>
+                        <span className="text-foreground/90 truncate">{e.destino ?? "—"}</span>
+                        <span className="text-foreground/90 truncate">{e.subarea ?? e.frente ?? "—"}</span>
+                        <span className="text-right text-foreground"><Counter value={e.th} decimals={1} suffix=" /h" /></span>
+                        <span className="text-right text-foreground font-bold"><Counter value={e.massa} /></span>
+                        <span className="text-right text-muted-foreground"><Counter value={pct} decimals={1} /></span>
                       </div>
-                      {e.destinos.length > 0 && (
-                        <div className="mt-1 pl-8 space-y-0.5">
-                          {rows.map((d, ix) => (
-                            <div
-                              key={ix}
-                              className="grid grid-cols-[1fr_1fr_1.2fr_5rem_5rem_3rem] gap-x-2 text-[10px] font-mono text-muted-foreground"
-                            >
-                              <span className="text-mining-blue/60 italic">destino</span>
-                              <span className="truncate">{e.material ?? "—"}</span>
-                              <span className="truncate text-foreground">{d.destino}</span>
-                              <span className="text-right">{fmt(d.viagens)}</span>
-                              <span className="text-right">{fmt(d.massa)}</span>
-                              <span className="text-right text-mining-blue/70">{fmt(pct, 1)}%</span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
                     </motion.div>
                   );
                 })}
                 </AnimatePresence>
               </div>
               <div className="border-t border-mining-blue/30 mt-2 pt-2 flex items-center justify-between px-1 text-[11px] font-mono">
-                <span className="font-bold uppercase tracking-wider text-foreground">Total Top 6</span>
+                <span className="font-bold uppercase tracking-wider text-foreground">Total Top 5</span>
                 <div className="flex items-center gap-6">
-                  <span className="text-muted-foreground">Viagens: <span className="text-mining-blue font-bold">{fmt(topEscav.reduce((s, e) => s + e.viagens, 0))}</span></span>
-                  <span className="text-muted-foreground">Tonelagem: <span className="text-mining-green font-bold">{fmt(topEscav.reduce((s, e) => s + e.massa, 0))} t</span></span>
+                  <span className="text-muted-foreground">Viagens: <span className="text-mining-blue font-bold">{fmt(totalViagensTop5)}</span></span>
+                  <span className="text-muted-foreground">Toneladas: <span className="text-mining-green font-bold">{fmt(totalMassaTop5)} t</span></span>
                 </div>
               </div>
             </div>
