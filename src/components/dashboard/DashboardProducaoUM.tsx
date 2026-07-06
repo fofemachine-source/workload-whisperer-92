@@ -461,12 +461,21 @@ export default function DashboardProducaoUM() {
                 <span className="text-right">T/H</span>
               </div>
               <div className="flex-1 min-h-0 overflow-auto divide-y divide-mining-blue/10">
+                <AnimatePresence initial={false}>
                 {topEscav.map((e, i) => {
                   const totMassa = topEscav.reduce((s, x) => s + Number(x.massa || 0), 0) || 1;
                   const pct = (Number(e.massa || 0) / totMassa) * 100;
                   const rows = e.destinos.length > 0 ? e.destinos : [{ destino: e.destino ?? "—", viagens: e.viagens, massa: e.massa }];
                   return (
-                    <div key={e.equipamento} className="py-1.5 px-1">
+                    <motion.div
+                      key={e.equipamento}
+                      layout
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.4, ease: "easeOut" }}
+                      className="py-1.5 px-1"
+                    >
                       <div className="grid grid-cols-[1.6rem_1fr_1fr_1.2fr_5rem_5rem_3rem] gap-x-2 items-center">
                         <span className="w-5 h-5 flex items-center justify-center rounded-sm bg-mining-yellow text-background text-[10px] font-black">
                           {i + 1}
@@ -474,9 +483,9 @@ export default function DashboardProducaoUM() {
                         <span className="text-xs font-bold text-foreground truncate">{e.equipamento}</span>
                         <span className="text-[10px] font-mono text-mining-yellow truncate">{e.material ?? "—"}</span>
                         <span className="text-[10px] font-mono text-foreground truncate">{e.destino ?? "—"}</span>
-                        <span className="text-right text-[11px] font-mono font-bold text-mining-blue">{fmt(e.viagens)}</span>
-                        <span className="text-right text-[11px] font-mono font-bold text-emerald-300">{fmt(e.massa)}</span>
-                        <span className="text-right text-[11px] font-mono font-black text-cyan-300">{fmt(e.th)}</span>
+                        <span className="text-right text-[11px] font-mono font-bold text-mining-blue"><Counter value={e.viagens} /></span>
+                        <span className="text-right text-[11px] font-mono font-bold text-emerald-300"><Counter value={e.massa} /></span>
+                        <span className="text-right text-[11px] font-mono font-black text-cyan-300"><Counter value={e.th} /></span>
                       </div>
                       {e.destinos.length > 0 && (
                         <div className="mt-1 pl-8 space-y-0.5">
@@ -495,9 +504,10 @@ export default function DashboardProducaoUM() {
                           ))}
                         </div>
                       )}
-                    </div>
+                    </motion.div>
                   );
                 })}
+                </AnimatePresence>
               </div>
               <div className="border-t border-mining-blue/30 mt-2 pt-2 flex items-center justify-between px-1 text-[11px] font-mono">
                 <span className="font-bold uppercase tracking-wider text-foreground">Total Top 6</span>
