@@ -199,10 +199,30 @@ export default function DashboardProducaoUM() {
   const kpis = data?.kpis;
   const producaoReal = Number(kpis?.producaoReal ?? 0);
   const metaDiaria = Number(kpis?.metaDiaria ?? 0);
-  const acumuladoMes = Number(kpis?.acumuladoMes ?? 0);
+  const acumuladoMesApi = Number(kpis?.acumuladoMes ?? 0);
   const tphMedio = Number(kpis?.produtividadeMedia ?? 0);
   const totalPrevisto = metaDiaria; // sem série prevista da API
-  const variacao = producaoReal - metaDiaria;
+
+  // Corrige mapeamento: API entrega producaoReal como acumulado agregado.
+  // Recalcula Produção Diária (hoje) e Produção Mês a partir da série diária.
+  const { producaoDia, producaoMes } = useMemo(() => {
+    const serie = data?.producaoDiaria ?? [];
+    const hojeStr = new Date().toISOString().slice(0, 10);
+    const mesAtual = hojeStr.slice(0, 7);
+    let dia = 0;
+    let mes = 0;
+    for (const d of serie) {
+      const iso = String(d.data ?? "").slice(0, 10);
+      const real = Number(d.real ?? 0);
+      if (iso === hojeStr) dia += real;
+      if (iso.slice(0, 7) === mesAtual) mes += real;
+    }
+    return { producaoDia: dia, producaoMes: mes };
+  }, [data]);
+
+  const diarioReal = producaoDia > 0 ? producaoDia : producaoReal;
+  const acumuladoMes = producaoMes > 0 ? producaoMes : acumuladoMesApi;
+  const variacao = diarioReal - metaDiaria;
 
   const dailySeries = useMemo(
     () =>
@@ -377,9 +397,9 @@ export default function DashboardProducaoUM() {
 
       {/* KPI strip */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 mt-2">
-        <GradientKpi label="Produção Diária (t)" numeric={producaoReal} tone="green" />
+        <GradientKpi label="Produção Diária (t)" numeric={diarioReal} tone="green" />
         <GradientKpi label="Produção Mês (t)" numeric={acumuladoMes} tone="amber" />
-        <GradientKpi label="Produção 12M (t)" numeric={producaoReal + acumuladoMes} tone="green" />
+        <GradientKpi label="Produção 12M (t)" numeric={diarioReal + acumuladoMes} tone="green" />
         <GradientKpi label="Meta Diária (t)" numeric={metaDiaria} tone="blue" />
         <GradientKpi label="Produção 12M (t)" numeric={totalPrevisto + acumuladoMes} tone="blue" />
         <GradientKpi label="Produtividade Lab. 6/ Colheita (t/h)" numeric={totalTphEscav} tone="green" suffix=" t/h" decimals={3} />
