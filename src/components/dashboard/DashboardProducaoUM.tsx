@@ -197,11 +197,9 @@ export default function DashboardProducaoUM() {
 
   const topEscav = useMemo(() => {
     if (!Array.isArray(data?.rankingEscavadeiras) || data.rankingEscavadeiras.length === 0) return [];
-    const detalhado = Array.isArray(data?.rankingEscavadeiratsDetalhado as any)
-      ? (data as any).rankingEscavadeiratsDetalhado
-      : Array.isArray(data?.rankingEscavadeirasDetalhado)
-        ? data.rankingEscavadeirasDetalhado
-        : [];
+    const detalhado = Array.isArray(data?.rankingEscavadeirasDetalhado)
+      ? data!.rankingEscavadeirasDetalhado!
+      : [];
 
     return data.rankingEscavadeiras.map((e: any) => {
       const equipamento = String(e.equipamento ?? "").trim();
