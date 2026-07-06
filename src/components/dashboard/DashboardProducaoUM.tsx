@@ -385,17 +385,16 @@ export default function DashboardProducaoUM() {
 
       {/* KPI strip */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 mt-2">
-        <Kpi icon={<Target />} label="Produção Prevista (t)" value={fmt(totalPrevisto)} color="text-mining-blue" />
-        <Kpi icon={<BarChart3 />} label="Produção Real (t)" value={fmt(producaoReal)} color="text-mining-blue" />
+        <Kpi label="Produção Prevista (t)" value={fmt(totalPrevisto)} color="text-mining-blue" />
+        <Kpi label="Produção Real (t)" value={fmt(producaoReal)} color="text-mining-blue" />
         <Kpi
-          icon={<Gauge />}
           label="Variação (t)"
           value={fmt(variacao)}
           color={variacao < 0 ? "text-mining-yellow" : "text-mining-green"}
         />
-        <Kpi icon={<Calendar />} label="Meta Diária (t)" value={fmt(metaDiaria)} color="text-mining-blue" />
-        <Kpi icon={<TrendingUp />} label="Acumulado Mês (t)" value={fmt(acumuladoMes)} color="text-mining-blue" />
-        <Kpi icon={<Flag />} label="Falta Para Meta (t)" value={fmt(faltaMeta)} color="text-mining-blue" />
+        <Kpi label="Meta Diária (t)" value={fmt(metaDiaria)} color="text-mining-blue" />
+        <Kpi label="Acumulado Mês (t)" value={fmt(acumuladoMes)} color="text-mining-blue" />
+        <Kpi label="Falta Para Meta (t)" value={fmt(faltaMeta)} color="text-mining-blue" />
       </div>
 
       {/* Row 2 */}
@@ -681,21 +680,16 @@ const tooltipStyle: React.CSSProperties = {
 };
 
 function Kpi({
-  icon,
   label,
   value,
   color,
 }: {
-  icon: React.ReactNode;
   label: string;
   value: string;
   color: string;
 }) {
   return (
-    <div className="bg-[hsl(220_45%_9%/0.85)] border border-mining-blue/20 rounded-md px-3 py-2 flex items-center gap-3">
-      <div className={`w-8 h-8 rounded flex items-center justify-center bg-mining-blue/10 ${color}`}>
-        <span className="[&>svg]:w-4 [&>svg]:h-4">{icon}</span>
-      </div>
+    <div className="bg-[hsl(220_45%_9%/0.85)] border border-mining-blue/20 rounded-md px-3 py-2 flex items-center">
       <div className="min-w-0">
         <p className="text-[9px] uppercase tracking-widest text-mining-blue/70 font-bold truncate">{label}</p>
         <p className={`text-lg md:text-xl font-black leading-tight ${color}`}>{value}</p>
