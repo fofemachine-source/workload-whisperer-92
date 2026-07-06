@@ -194,6 +194,7 @@ export default function DashboardProducaoUM() {
   const { data, isLoading, isError, error, dataUpdatedAt } = useDashboardApi();
   const { data: producaoData } = useProducaoApi();
   const { data: viagensData } = useViagensApi();
+  const { data: cicloData } = useTempoCicloApi();
 
   const kpis = data?.kpis;
   const producaoReal = Number(kpis?.producaoReal ?? 0);
