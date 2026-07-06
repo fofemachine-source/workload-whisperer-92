@@ -534,16 +534,16 @@ export default function DashboardProducaoUM() {
                   );
                 })}
               </div>
-              <div className="bg-white/[0.03] border border-mining-blue/30 rounded p-2 flex items-center justify-between">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-mining-blue/80">
-                  Total Top 6
+              <div className="bg-white/[0.03] border-t border-mining-blue/30 rounded px-3 py-2 flex items-center justify-between">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-foreground">
+                  TOTAL TOP 6
                 </span>
-                <div className="flex items-center gap-4 text-[11px] font-mono">
+                <div className="flex items-center gap-6 text-[12px] font-mono">
                   <span className="text-muted-foreground">
-                    Total de Viagens: <span className="text-foreground font-bold">{fmt(topEscav.reduce((s, e) => s + e.viagens, 0))}</span>
+                    Viagens: <span className="text-mining-green font-bold">{fmt(topEscav.reduce((s, e) => s + e.viagens, 0))}</span>
                   </span>
                   <span className="text-muted-foreground">
-                    Total de Tonelagem: <span className="text-mining-green font-bold">{fmt(topEscav.reduce((s, e) => s + e.massa, 0))} t</span>
+                    Tonelagem: <span className="text-mining-green font-bold">{fmt(topEscav.reduce((s, e) => s + e.massa, 0))} t</span>
                   </span>
                 </div>
               </div>
