@@ -346,15 +346,27 @@ export default function DashboardProducaoUM() {
         <Panel className="col-span-12 lg:col-span-8 !p-0">
           <div className="flex items-center justify-end gap-4 px-3 py-3 h-full">
             <div className="flex flex-col text-right text-[11px] font-mono text-mining-blue/80 leading-tight">
-              <span>Atualização automática: <span className="text-mining-blue font-bold">60s</span></span>
-              <span>Última atualização: <span className="text-foreground font-bold">{ultima ? ultima.toLocaleString("pt-BR") : "—"}</span></span>
+              <span>
+                {countdown > 0 ? (
+                  <>Atualização em <span className="text-mining-blue font-bold tabular-nums">{countdown}s</span></>
+                ) : (
+                  <span className="text-mining-green font-bold animate-pulse">Atualizando...</span>
+                )}
+              </span>
+              <span>
+                Última atualização:{" "}
+                <span className="text-foreground font-bold"><LiveClock /></span>
+              </span>
             </div>
-            <button
+            <motion.button
               onClick={limparFiltros}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.98 }}
+              transition={{ duration: 0.2 }}
               className="flex items-center gap-1 border border-mining-blue/40 hover:bg-mining-blue/10 px-3 py-1.5 rounded text-[11px] font-bold text-mining-blue uppercase tracking-wider"
             >
               <Filter className="w-3 h-3" /> Limpar Filtros
-            </button>
+            </motion.button>
           </div>
         </Panel>
       </div>
