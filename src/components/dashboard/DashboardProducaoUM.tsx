@@ -174,10 +174,6 @@ export default function DashboardProducaoUM() {
   const producaoReal = Number(kpis?.producaoReal ?? 0);
   const metaDiaria = Number(kpis?.metaDiaria ?? 0);
   const acumuladoMes = Number(kpis?.acumuladoMes ?? 0);
-  const totalTphEscav = (data?.rankingEscavadeiras ?? []).reduce(
-    (total, item: any) => total + Number(item?.th ?? item?.tph ?? 0),
-    0,
-  );
   const totalViagens = Number(kpis?.viagens ?? 0);
   const tphMedio = Number(kpis?.produtividadeMedia ?? 0);
   const totalPrevisto = metaDiaria; // sem série prevista da API
@@ -205,20 +201,62 @@ export default function DashboardProducaoUM() {
   const topEscav = useMemo(
     () => {
       if (!Array.isArray(data?.rankingEscavadeiras) || data.rankingEscavadeiras.length === 0) return [];
+
       return data.rankingEscavadeiras
-        .map((e: any) => ({
-          equipamento: String(e.equipamento ?? ""),
-          th: Number(e.th ?? 0),
-          viagens: Number(e.viagens ?? 0),
-          massa: Number(e.massa ?? 0),
-          material: e.material,
-          subarea: e.subarea,
-          destino: e.destino,
-        }))
-        .filter((e) => e.th > 0 || e.massa > 0);
+        .map((e: any) => {
+          const equipamento = String(e.equipamento ?? "").trim();
+          const equipamentoNorm = normEquip(equipamento);
+          const linhasProducao = (producaoData ?? []).filter((r) => {
+            const carga = pick(r, ["equipamento_carga", "escavadeira", "equipamentoCarga"]);
+            return normEquip(carga) === equipamentoNorm;
+          });
+
+          const destinoAgg = new Map<string, { destino: string; viagens: number; massa: number }>();
+          for (const r of linhasProducao) {
+            const destino = String(pick(r, ["destino", "destination"]) ?? "—");
+            const viagens = toNum(pick(r, ["quantidade", "viagens", "viagem", "trips"])) || 1;
+            const massa = toNum(pick(r, ["massa", "material_tonnage", "tonelagem", "tonnage"]));
+            const atual = destinoAgg.get(destino) ?? { destino, viagens: 0, massa: 0 };
+            atual.viagens += viagens;
+            atual.massa += massa;
+            destinoAgg.set(destino, atual);
+          }
+
+          const destinos = Array.from(destinoAgg.values())
+            .filter((d) => d.destino !== "—" || d.viagens > 0 || d.massa > 0)
+            .sort((a, b) => b.massa - a.massa);
+
+          const firstProd = linhasProducao[0] ?? {};
+          const destinoRanking = e.destino ? String(e.destino) : "";
+          const destinoLinhas = destinos.map((d) => d.destino).filter((d) => d && d !== "—");
+          const destinoResumo = destinoLinhas.length > 0 ? destinoLinhas.slice(0, 2).join(" / ") : destinoRanking;
+          const viagensRanking = Number(e.viagens ?? 0);
+          const massaRanking = Number(e.massa ?? 0);
+
+          return {
+            equipamento,
+            th: Number(e.th ?? e.tph ?? 0),
+            viagens: destinos.length ? destinos.reduce((s, d) => s + d.viagens, 0) : viagensRanking,
+            massa: destinos.length ? destinos.reduce((s, d) => s + d.massa, 0) : massaRanking,
+            material: e.material ?? pick(firstProd, ["material", "material_name"]),
+            subarea: e.subarea ?? pick(firstProd, ["subarea", "subárea", "origem", "frente_lavra", "frenteDeLavra"]),
+            destino: destinoResumo,
+            destinos: destinos.length
+              ? destinos
+              : destinoRanking
+                ? [{ destino: destinoRanking, viagens: viagensRanking, massa: massaRanking }]
+                : [],
+          };
+        })
+        .filter((e) => isEscavadeiraValida(e.equipamento))
+        .filter((e) => e.th > 0 || e.massa > 0)
+        .sort((a, b) => b.th - a.th)
+        .slice(0, 6);
     },
-    [data],
+    [data, producaoData],
   );
+
+  const totalTphEscav = topEscav.reduce((total, item) => total + Number(item.th || 0), 0);
 
   const viagensPorHora = useMemo(() => {
     const base = Array.from({ length: 24 }, (_, h) => ({
