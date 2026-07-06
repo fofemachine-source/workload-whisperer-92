@@ -250,10 +250,10 @@ export default function DashboardProducaoUM() {
         destino: e.destino,
         destinos,
       };
-    }).slice(0, 6);
+    });
   }, [data]);
 
-  const top5Escav = topEscav.slice(0, 5);
+  const top5Escav = topEscav;
   const totalTphEscav = top5Escav.reduce((total, item) => total + Number(item.th || 0), 0);
   const totalMassaTop5 = top5Escav.reduce((total, item) => total + Number(item.massa || 0), 0);
   const totalViagensTop5 = top5Escav.reduce((total, item) => total + Number(item.viagens || 0), 0);
@@ -449,7 +449,7 @@ export default function DashboardProducaoUM() {
           )}
         </Panel>
 
-        <Panel title="Top 5 Biocombustível" className="col-span-12 lg:col-span-5 lg:row-span-2 h-[492px]">
+        <Panel title="Top Escavadeiras" className="col-span-12 lg:col-span-5 lg:row-span-2 h-[492px]">
           {top5Escav.length === 0 ? (
             <Empty />
           ) : (
@@ -498,7 +498,7 @@ export default function DashboardProducaoUM() {
                 </AnimatePresence>
               </div>
               <div className="border-t border-mining-blue/30 mt-2 pt-2 flex items-center justify-between px-1 text-[11px] font-mono">
-                <span className="font-bold uppercase tracking-wider text-foreground">Total Top 5</span>
+                <span className="font-bold uppercase tracking-wider text-foreground">Total Escavadeiras</span>
                 <div className="flex items-center gap-6">
                   <span className="text-muted-foreground">Viagens: <span className="text-mining-blue font-bold">{fmt(totalViagensTop5)}</span></span>
                   <span className="text-muted-foreground">Toneladas: <span className="text-mining-green font-bold">{fmt(totalMassaTop5)} t</span></span>
@@ -555,7 +555,7 @@ export default function DashboardProducaoUM() {
           </div>
         </Panel>
 
-        <Panel title="Detalhamento de Produção" className="col-span-12 lg:col-span-4 h-[164px]">
+        <Panel title="Detalhamento de Produção" className="col-span-12 lg:col-span-3 h-[164px]">
           {detalhamento.length === 0 ? (
             <Empty />
           ) : (
@@ -599,12 +599,12 @@ export default function DashboardProducaoUM() {
           )}
         </Panel>
 
-        <Panel title="Acompanhamento de Viagens (9H)" className="col-span-12 lg:col-span-4 h-[164px]">
+        <Panel title="Acompanhamento de Viagens (9H)" className="col-span-12 lg:col-span-5 h-[164px]">
           {acompViagens.length === 0 ? (
             <Empty />
           ) : (
-            <div className="h-full overflow-auto">
-            <table className="w-full text-[10px] font-mono">
+            <div className="h-full overflow-y-auto overflow-x-hidden">
+            <table className="w-full table-fixed text-[10px] font-mono">
               <thead className="text-mining-blue/70">
                 <tr className="border-b border-mining-blue/20">
                   <Th>CR</Th><Th>Origem</Th><Th>Destino</Th><Th>Material</Th>
