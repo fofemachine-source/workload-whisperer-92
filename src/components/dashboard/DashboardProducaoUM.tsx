@@ -253,7 +253,10 @@ export default function DashboardProducaoUM() {
     }).slice(0, 6);
   }, [data]);
 
-  const totalTphEscav = topEscav.reduce((total, item) => total + Number(item.th || 0), 0);
+  const top5Escav = topEscav.slice(0, 5);
+  const totalTphEscav = top5Escav.reduce((total, item) => total + Number(item.th || 0), 0);
+  const totalMassaTop5 = top5Escav.reduce((total, item) => total + Number(item.massa || 0), 0);
+  const totalViagensTop5 = top5Escav.reduce((total, item) => total + Number(item.viagens || 0), 0);
 
   const viagensPorHora = useMemo(() => {
     const base = Array.from({ length: 24 }, (_, h) => ({
@@ -330,16 +333,16 @@ export default function DashboardProducaoUM() {
       {/* Header */}
       <div className="grid grid-cols-12 gap-2 items-stretch">
         <Panel className="col-span-12 lg:col-span-4 !p-0">
-          <div className="flex items-center gap-3 px-3 py-2">
-            <div className="flex items-center justify-center w-14 h-14 rounded bg-mining-yellow text-background font-black text-lg leading-tight text-center">
-              U&amp;M
+          <div className="flex items-center gap-3 px-3 py-2 h-[58px]">
+            <div className="flex items-center justify-center w-12 h-12 rounded bg-mining-yellow text-background font-black text-base leading-tight text-center">
+              USIM
             </div>
             <div>
-              <h1 className="text-xl md:text-2xl font-black tracking-tight text-foreground">
+              <h1 className="text-lg md:text-xl font-black tracking-tight text-foreground">
                 DASHBOARD DE PRODUÇÃO
               </h1>
-              <p className="text-[11px] font-mono tracking-widest text-mining-blue/80">
-                U&amp;M MINERAÇÃO · Hexagon / JMineOps
+              <p className="text-[10px] font-mono tracking-widest text-mining-blue/80">
+                Usina Samaritá / Ethanodes / Energia
               </p>
             </div>
           </div>
@@ -375,16 +378,16 @@ export default function DashboardProducaoUM() {
       {/* KPI strip */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 mt-2">
         <GradientKpi label="Produção Diária (t)" numeric={producaoReal} tone="green" />
-        <GradientKpi label="Produção Prevista (t)" numeric={totalPrevisto} tone="amber" />
-        <GradientKpi label="Acumulado Mês (t)" numeric={acumuladoMes} tone="teal" />
+        <GradientKpi label="Produção Mês (t)" numeric={acumuladoMes} tone="amber" />
+        <GradientKpi label="Produção 12M (t)" numeric={producaoReal + acumuladoMes} tone="green" />
         <GradientKpi label="Meta Diária (t)" numeric={metaDiaria} tone="blue" />
-        <GradientKpi label="Variação (t)" numeric={variacao} tone={variacao < 0 ? "amber" : "green"} />
-        <GradientKpi label="Produtividade Escav. (t/h)" numeric={totalTphEscav} tone="cyan" suffix=" t/h" />
+        <GradientKpi label="Produção 12M (t)" numeric={totalPrevisto + acumuladoMes} tone="blue" />
+        <GradientKpi label="Produtividade Lab. 6/ Colheita (t/h)" numeric={totalTphEscav} tone="green" suffix=" t/h" decimals={3} />
       </div>
 
       {/* Dashboard grid */}
       <div className="grid grid-cols-12 gap-2 mt-2 items-stretch">
-        <Panel title="Produção Diária (t)" className="col-span-12 lg:col-span-4 min-h-[360px]">
+        <Panel title="Produção Diária (t)" className="col-span-12 lg:col-span-4 h-[300px]">
           {dailySeries.length === 0 ? (
             <Empty />
           ) : (
@@ -404,7 +407,7 @@ export default function DashboardProducaoUM() {
           )}
         </Panel>
 
-        <Panel title="Produção por Frente (t)" className="col-span-12 lg:col-span-3 min-h-[360px]">
+        <Panel title="Produção por Frente (t)" className="col-span-12 lg:col-span-3 h-[300px]">
           {frenteAgg.length === 0 ? (
             <Empty />
           ) : (
@@ -446,27 +449,26 @@ export default function DashboardProducaoUM() {
           )}
         </Panel>
 
-        <Panel title="Top 6 Escavadeiras" className="col-span-12 lg:col-span-5 lg:row-span-3">
-          {topEscav.length === 0 ? (
+        <Panel title="Top 5 Biocombustível" className="col-span-12 lg:col-span-5 lg:row-span-2 h-[492px]">
+          {top5Escav.length === 0 ? (
             <Empty />
           ) : (
             <div className="flex flex-col h-full">
-              {/* Column headers – biocombustível style */}
-              <div className="grid grid-cols-[1.6rem_1fr_1fr_1.2fr_5rem_5rem_3rem] gap-x-2 px-2 pb-1 border-b border-mining-blue/25 text-[9px] font-bold uppercase tracking-wider text-mining-blue/70">
+              <div className="grid grid-cols-[1.6rem_1.05fr_1fr_1.15fr_1.1fr_4.4rem_5rem_3rem] gap-x-2 px-2 pb-1 border-b border-mining-blue/25 text-[9px] font-bold text-mining-blue/70">
                 <span />
-                <span>Escavadeira</span>
+                <span>Biocombustível</span>
                 <span>Material</span>
+                <span>Ponto de coleta</span>
                 <span>Destino</span>
-                <span className="text-right">Viagens</span>
-                <span className="text-right">Tonelagem</span>
-                <span className="text-right">T/H</span>
+                <span>Safronas</span>
+                <span className="text-right">Capacidade</span>
+                <span className="text-right">Toneladas</span>
+                <span className="text-right">%</span>
               </div>
               <div className="flex-1 min-h-0 overflow-auto divide-y divide-mining-blue/10">
                 <AnimatePresence initial={false}>
-                {topEscav.map((e, i) => {
-                  const totMassa = topEscav.reduce((s, x) => s + Number(x.massa || 0), 0) || 1;
-                  const pct = (Number(e.massa || 0) / totMassa) * 100;
-                  const rows = e.destinos.length > 0 ? e.destinos : [{ destino: e.destino ?? "—", viagens: e.viagens, massa: e.massa }];
+                {top5Escav.map((e, i) => {
+                  const pct = totalMassaTop5 > 0 ? (Number(e.massa || 0) / totalMassaTop5) * 100 : 0;
                   return (
                     <motion.div
                       key={e.equipamento}
@@ -475,56 +477,41 @@ export default function DashboardProducaoUM() {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.4, ease: "easeOut" }}
-                      className="py-1.5 px-1"
+                      className="px-2 py-2"
                     >
-                      <div className="grid grid-cols-[1.6rem_1fr_1fr_1.2fr_5rem_5rem_3rem] gap-x-2 items-center">
-                        <span className="w-5 h-5 flex items-center justify-center rounded-sm bg-mining-yellow text-background text-[10px] font-black">
+                      <div className="grid grid-cols-[1.6rem_1.05fr_1fr_1.15fr_1.1fr_4.4rem_5rem_3rem] gap-x-2 items-center text-[10px] font-mono">
+                        <span className="w-5 h-5 flex items-center justify-center rounded-sm bg-mining-yellow text-background text-[10px] font-black font-sans">
                           {i + 1}
                         </span>
-                        <span className="text-xs font-bold text-foreground truncate">{e.equipamento}</span>
-                        <span className="text-[10px] font-mono text-mining-yellow truncate">{e.material ?? "—"}</span>
-                        <span className="text-[10px] font-mono text-foreground truncate">{e.destino ?? "—"}</span>
-                        <span className="text-right text-[11px] font-mono font-bold text-mining-blue"><Counter value={e.viagens} /></span>
-                        <span className="text-right text-[11px] font-mono font-bold text-emerald-300"><Counter value={e.massa} /></span>
-                        <span className="text-right text-[11px] font-mono font-black text-cyan-300"><Counter value={e.th} /></span>
+                        <span className="text-[11px] font-black text-foreground truncate">{e.equipamento}</span>
+                        <span className="text-foreground/90 truncate">{e.material ?? "waste"}</span>
+                        <span className="text-foreground/90 truncate">{e.frente ?? e.subarea ?? "—"}</span>
+                        <span className="text-foreground/90 truncate">{e.destino ?? "—"}</span>
+                        <span className="text-foreground/90 truncate">{e.subarea ?? e.frente ?? "—"}</span>
+                        <span className="text-right text-foreground"><Counter value={e.th} decimals={1} suffix=" /h" /></span>
+                        <span className="text-right text-foreground font-bold"><Counter value={e.massa} /></span>
+                        <span className="text-right text-muted-foreground"><Counter value={pct} decimals={1} /></span>
                       </div>
-                      {e.destinos.length > 0 && (
-                        <div className="mt-1 pl-8 space-y-0.5">
-                          {rows.map((d, ix) => (
-                            <div
-                              key={ix}
-                              className="grid grid-cols-[1fr_1fr_1.2fr_5rem_5rem_3rem] gap-x-2 text-[10px] font-mono text-muted-foreground"
-                            >
-                              <span className="text-mining-blue/60 italic">destino</span>
-                              <span className="truncate">{e.material ?? "—"}</span>
-                              <span className="truncate text-foreground">{d.destino}</span>
-                              <span className="text-right">{fmt(d.viagens)}</span>
-                              <span className="text-right">{fmt(d.massa)}</span>
-                              <span className="text-right text-mining-blue/70">{fmt(pct, 1)}%</span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
                     </motion.div>
                   );
                 })}
                 </AnimatePresence>
               </div>
               <div className="border-t border-mining-blue/30 mt-2 pt-2 flex items-center justify-between px-1 text-[11px] font-mono">
-                <span className="font-bold uppercase tracking-wider text-foreground">Total Top 6</span>
+                <span className="font-bold uppercase tracking-wider text-foreground">Total Top 5</span>
                 <div className="flex items-center gap-6">
-                  <span className="text-muted-foreground">Viagens: <span className="text-mining-blue font-bold">{fmt(topEscav.reduce((s, e) => s + e.viagens, 0))}</span></span>
-                  <span className="text-muted-foreground">Tonelagem: <span className="text-mining-green font-bold">{fmt(topEscav.reduce((s, e) => s + e.massa, 0))} t</span></span>
+                  <span className="text-muted-foreground">Viagens: <span className="text-mining-blue font-bold">{fmt(totalViagensTop5)}</span></span>
+                  <span className="text-muted-foreground">Toneladas: <span className="text-mining-green font-bold">{fmt(totalMassaTop5)} t</span></span>
                 </div>
               </div>
             </div>
           )}
         </Panel>
-        <Panel title="Produtividade (t/h)" className="col-span-12 lg:col-span-4">
+        <Panel title="Produtividade (t/h)" className="col-span-12 lg:col-span-4 h-[184px]">
           {prodSeries.length === 0 ? (
             <Empty />
           ) : (
-            <div className="h-52">
+            <div className="h-full">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={prodSeries} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                   <CartesianGrid stroke="rgba(255,255,255,0.05)" vertical={false} />
@@ -541,11 +528,11 @@ export default function DashboardProducaoUM() {
           )}
         </Panel>
 
-        <Panel title="Viagens por Hora" className="col-span-12 lg:col-span-2">
+        <Panel title="Viagens por Hora" className="col-span-12 lg:col-span-2 h-[184px]">
           {viagensPorHora.every((v) => v.Real === 0) ? (
             <Empty />
           ) : (
-            <div className="h-52">
+            <div className="h-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={viagensPorHora} margin={{ top: 8, right: 4, left: 0, bottom: 0 }}>
                   <CartesianGrid stroke="rgba(255,255,255,0.05)" vertical={false} />
@@ -559,7 +546,7 @@ export default function DashboardProducaoUM() {
           )}
         </Panel>
 
-        <Panel className="col-span-12 lg:col-span-1">
+        <Panel className="col-span-12 lg:col-span-1 h-[184px]">
           <div className="flex flex-col justify-between h-full py-1 gap-2">
             <StatBlock label="Produção (9H/13H)" value={<Counter value={producaoReal} />} unit="t" big />
             <StatBlock label="Próxima Média" value={<Counter value={tphMedio} />} />
@@ -568,11 +555,11 @@ export default function DashboardProducaoUM() {
           </div>
         </Panel>
 
-        <Panel title="Detalhamento de Produção" className="col-span-12 lg:col-span-4">
+        <Panel title="Detalhamento de Produção" className="col-span-12 lg:col-span-4 h-[164px]">
           {detalhamento.length === 0 ? (
             <Empty />
           ) : (
-            <div className="max-h-64 overflow-auto">
+            <div className="h-full overflow-auto">
             <table className="w-full text-[10px] font-mono">
               <thead className="text-mining-blue/70">
                 <tr className="border-b border-mining-blue/20">
@@ -612,11 +599,11 @@ export default function DashboardProducaoUM() {
           )}
         </Panel>
 
-        <Panel title="Acompanhamento de Viagens (9H)" className="col-span-12 lg:col-span-4">
+        <Panel title="Acompanhamento de Viagens (9H)" className="col-span-12 lg:col-span-4 h-[164px]">
           {acompViagens.length === 0 ? (
             <Empty />
           ) : (
-            <div className="max-h-64 overflow-auto">
+            <div className="h-full overflow-auto">
             <table className="w-full text-[10px] font-mono">
               <thead className="text-mining-blue/70">
                 <tr className="border-b border-mining-blue/20">
@@ -659,12 +646,12 @@ export default function DashboardProducaoUM() {
           )}
         </Panel>
 
-        <Panel title="Resumo de Tempos em Ciclo (9H)" className="col-span-12 lg:col-span-4">
+        <Panel title="Resumo de Tempos em Ciclo (9H)" className="col-span-12 lg:col-span-4 h-[164px]">
           {(() => {
             const rows = Array.isArray(cicloData) ? cicloData : [];
             if (rows.length === 0) return <Empty />;
             return (
-              <div className="max-h-64 overflow-auto">
+              <div className="h-full overflow-auto">
                 <table className="w-full text-[10px] font-mono">
                   <thead className="text-mining-blue/70">
                     <tr className="border-b border-mining-blue/20">
