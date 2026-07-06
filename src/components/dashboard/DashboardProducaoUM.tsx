@@ -173,7 +173,8 @@ export default function DashboardProducaoUM() {
 
   const topEscav = useMemo(
     () => {
-      const base = (data?.rankingEscavadeiras ?? [])
+      const rows = (data?.rankingEscavadeiras ?? []) as any[];
+      const base = rows
         .map((e) => ({
           equipamento: String(e.equipamento ?? ""),
           material: String(e.material ?? ""),
