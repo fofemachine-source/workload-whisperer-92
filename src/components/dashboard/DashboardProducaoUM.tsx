@@ -18,7 +18,7 @@ import {
   Legend,
 } from "recharts";
 import { Filter, AlertTriangle, Loader2 } from "lucide-react";
-import { useDashboardApi, useProducaoApi, useViagensApi } from "@/hooks/useDashboardApi";
+import { useDashboardApi, useProducaoApi, useViagensApi, useTempoCicloApi } from "@/hooks/useDashboardApi";
 
 /* ---------- helpers ---------- */
 const fmt = (n: number, d = 0) =>
