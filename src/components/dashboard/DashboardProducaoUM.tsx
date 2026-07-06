@@ -638,6 +638,17 @@ export default function DashboardProducaoUM() {
                   </tr>
                 ))}
               </tbody>
+              <tfoot className="sticky bottom-0 bg-mining-navy/95 border-t border-mining-blue/40">
+                <tr className="font-bold">
+                  <Td colSpan={8} className="text-right text-mining-blue/80">TOTAL</Td>
+                  <Td className="text-right text-mining-green">
+                    {fmt(detalhamento.reduce((s, d) => s + Number(d.massa || 0), 0), 2)}
+                  </Td>
+                  <Td className="text-right text-mining-blue">
+                    {fmt(detalhamento.reduce((s, d) => s + Number(d.viagens || 0), 0))}
+                  </Td>
+                </tr>
+              </tfoot>
             </table>
             </div>
           )}
@@ -673,6 +684,17 @@ export default function DashboardProducaoUM() {
                   </tr>
                 ))}
               </tbody>
+              <tfoot className="sticky bottom-0 bg-mining-navy/95 border-t border-mining-blue/40">
+                <tr className="font-bold">
+                  <Td colSpan={8} className="text-right text-mining-blue/80">TOTAL</Td>
+                  <Td className="text-right text-mining-green">
+                    {fmt(acompViagens.reduce((s, v) => s + Number(v.massa || 0), 0), 2)}
+                  </Td>
+                  <Td className="text-right text-mining-blue">
+                    {fmt(acompViagens.reduce((s, v) => s + (Number(v.viagem) || 0), 0))}
+                  </Td>
+                </tr>
+              </tfoot>
             </table>
             </div>
           )}
