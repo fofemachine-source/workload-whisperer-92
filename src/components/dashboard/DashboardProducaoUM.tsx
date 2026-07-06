@@ -333,21 +333,12 @@ export default function DashboardProducaoUM() {
 
       {/* KPI strip */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 mt-2">
-        <Kpi label="Produção Prevista (t)" value={fmt(totalPrevisto)} color="text-mining-blue" />
-        <Kpi label="Produção Real (t)" value={fmt(producaoReal)} color="text-mining-blue" />
-        <Kpi
-          label="Variação (t)"
-          value={fmt(variacao)}
-          color={variacao < 0 ? "text-mining-yellow" : "text-mining-green"}
-        />
-        <Kpi label="Meta Diária (t)" value={fmt(metaDiaria)} color="text-mining-blue" />
-        <Kpi label="Acumulado Mês (t)" value={fmt(acumuladoMes)} color="text-mining-blue" />
-        <Kpi
-          label="Produção Total das Escavadeiras (t/h)"
-          value={`${fmt(totalTphEscav)} t/h`}
-          color="text-mining-green"
-          borderClass="border-mining-green/60"
-        />
+        <GradientKpi label="Produção Diária (t)" value={fmt(producaoReal)} tone="green" />
+        <GradientKpi label="Produção Prevista (t)" value={fmt(totalPrevisto)} tone="amber" />
+        <GradientKpi label="Acumulado Mês (t)" value={fmt(acumuladoMes)} tone="teal" />
+        <GradientKpi label="Meta Diária (t)" value={fmt(metaDiaria)} tone="blue" />
+        <GradientKpi label="Variação (t)" value={fmt(variacao)} tone={variacao < 0 ? "amber" : "green"} />
+        <GradientKpi label="Produtividade Escav. (t/h)" value={`${fmt(totalTphEscav)} t/h`} tone="cyan" />
       </div>
 
       {/* Dashboard grid */}
