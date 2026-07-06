@@ -322,6 +322,7 @@ export default function DashboardProducaoUM() {
   };
 
   const ultima = dataUpdatedAt ? new Date(dataUpdatedAt) : null;
+  const countdown = useCountdown(5, dataUpdatedAt || 0);
 
   return (
     <div className="min-h-screen bg-[hsl(220_50%_5%)] text-foreground p-2 md:p-3 font-sans">
