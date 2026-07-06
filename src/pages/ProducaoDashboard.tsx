@@ -1,24 +1,8 @@
-import { Link } from "react-router-dom";
-import { useMemo } from "react";
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Legend,
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
-import { Activity, Clock, Database, Gauge, Loader2, Radio } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { useProducaoDiaria } from "@/hooks/useProducaoDiaria";
-import { useProducaoFrente, useProducaoEquipamento } from "@/hooks/useProducaoKpis";
-import AlertaSincronizacaoHexagon from "@/components/diagnostico/AlertaSincronizacaoHexagon";
+import DashboardProducaoUM from "@/components/dashboard/DashboardProducaoUM";
+
+export default function ProducaoDashboard() {
+  return <DashboardProducaoUM />;
+}
 
 const fmt = (n: number, d = 0) =>
   (n || 0).toLocaleString("pt-BR", { minimumFractionDigits: d, maximumFractionDigits: d });
