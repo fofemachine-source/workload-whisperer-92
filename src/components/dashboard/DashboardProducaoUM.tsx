@@ -324,15 +324,9 @@ export default function DashboardProducaoUM() {
     return { arr, total };
   }, [tempoCicloData]);
 
-  const opts = { turnos: [] as string[], frentes: [] as string[], equipamentos: [] as string[], materiais: [] as string[] };
-
   const limparFiltros = () => {
     setDtIni(inicioAno);
     setDtFim(hoje);
-    setFTurno("");
-    setFFrente("");
-    setFEquip("");
-    setFMaterial("");
   };
 
   const ultima = dataUpdatedAt ? new Date(dataUpdatedAt) : null;
