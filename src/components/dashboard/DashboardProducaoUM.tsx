@@ -444,8 +444,8 @@ export default function DashboardProducaoUM() {
         />
       </div>
 
-      {/* Row 2 */}
-      <div className="grid grid-cols-12 gap-2 mt-2">
+      {/* Dashboard grid */}
+      <div className="grid grid-cols-12 gap-2 mt-2 items-stretch">
         <Panel title="Produção Diária (t)" className="col-span-12 lg:col-span-4 min-h-[360px]">
           {dailySeries.length === 0 ? (
             <Empty />
@@ -508,7 +508,7 @@ export default function DashboardProducaoUM() {
           )}
         </Panel>
 
-        <Panel title="Top 6 Escavadeiras" className="col-span-12 lg:col-span-5 row-span-3 min-h-[760px]">
+        <Panel title="Top 6 Escavadeiras" className="col-span-12 lg:col-span-5 lg:row-span-3 min-h-[760px] lg:min-h-0">
           {topEscav.length === 0 ? (
             <Empty />
           ) : (
@@ -585,10 +585,6 @@ export default function DashboardProducaoUM() {
             </div>
           )}
         </Panel>
-      </div>
-
-      {/* Row 3 */}
-      <div className="grid grid-cols-12 gap-2 mt-2">
         <Panel title="Produtividade (t/h)" className="col-span-12 lg:col-span-4">
           {prodSeries.length === 0 ? (
             <Empty />
@@ -610,7 +606,7 @@ export default function DashboardProducaoUM() {
           )}
         </Panel>
 
-        <Panel title="Viagens por Hora" className="col-span-12 lg:col-span-2">
+        <Panel title="Viagens por Hora" className="col-span-12 lg:col-span-3">
           {viagensPorHora.every((v) => v.Real === 0) ? (
             <Empty />
           ) : (
@@ -635,31 +631,6 @@ export default function DashboardProducaoUM() {
           <MiniKpi label="UT% Médio" value={utMedio ? `${fmt(utMedio, 1)}%` : "—"} />
         </div>
 
-        <Panel title="Tempo Parado por Motivo (min)" className="col-span-12 lg:col-span-3">
-          {tempoParado.length === 0 ? (
-            <Empty />
-          ) : (
-            <div className="space-y-1">
-              {tempoParado.map((t) => {
-                const max = tempoParado[0].min || 1;
-                const pct = (t.min / max) * 100;
-                return (
-                  <div key={t.motivo} className="flex items-center gap-2 text-[10px] font-mono">
-                    <span className="w-24 text-foreground truncate" title={t.motivo}>{t.motivo}</span>
-                    <div className="flex-1 h-2.5 bg-white/5 rounded overflow-hidden">
-                      <div className="h-full bg-mining-blue" style={{ width: `${pct}%` }} />
-                    </div>
-                    <span className="w-14 text-right text-mining-blue">{fmt(t.min)}</span>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </Panel>
-      </div>
-
-      {/* Row 4 */}
-      <div className="grid grid-cols-12 gap-2 mt-2">
         <Panel title="Detalhamento de Produção" className="col-span-12 lg:col-span-4">
           {detalhamento.length === 0 ? (
             <Empty />
@@ -751,24 +722,6 @@ export default function DashboardProducaoUM() {
           )}
         </Panel>
 
-        <Panel title="Resumo de Tempos do Ciclo (min)" className="col-span-12 lg:col-span-4 lg:col-start-9">
-          {resumoCiclo.arr.length === 0 ? (
-            <Empty />
-          ) : (
-            <div className="space-y-1 text-[10px] font-mono">
-              {resumoCiclo.arr.map((r) => (
-                <div key={r.estado} className="flex justify-between border-b border-white/5 py-0.5">
-                  <span className="text-foreground">{r.estado}</span>
-                  <span className="text-mining-blue font-bold">{fmt(r.media, 2)}</span>
-                </div>
-              ))}
-              <div className="flex justify-between pt-1 mt-1 border-t border-mining-blue/40 text-mining-yellow font-bold">
-                <span>TEMPO TOTAL DO CICLO</span>
-                <span>{fmt(resumoCiclo.total, 2)}</span>
-              </div>
-            </div>
-          )}
-        </Panel>
       </div>
 
       {/* API status */}
