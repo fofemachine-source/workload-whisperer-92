@@ -201,37 +201,81 @@ export default function DashboardProducaoUM() {
 
   const topEscav = useMemo(
     () => {
-      // Agrupa /producao por equipamento_carga + material + origem + subarea + destino
-      const groups = new Map<string, {
+      // TPH da API de ranking, por equipamento
+      const rankMap = new Map<string, number>();
+      for (const e of ((data?.rankingEscavadeiras ?? []) as any[])) {
+        const key = normEquip(e.equipamento);
+        const tph = toNum(e.th ?? e.tph);
+        if (!rankMap.has(key)) rankMap.set(key, tph);
+      }
+
+      // Agrupa /producao por equipamento_carga → destinos
+      type DestAgg = { destino: string; viagens: number; massa: number };
+      type Grp = {
         equipamento: string;
         material: string;
-        origem: string;
         subarea: string;
         destino: string;
+        tph: number;
         viagens: number;
         massa: number;
-      }>();
+        destinos: Map<string, DestAgg>;
+      };
+      const groups = new Map<string, Grp>();
       for (const r of (producaoData ?? [])) {
         const carga = pick(r, ["equipamento_carga"]);
         if (!isEscavadeiraValida(carga)) continue;
-        const equipamento = String(carga);
+        const eq = String(carga);
+        const key = normEquip(carga);
         const material = String(pick(r, ["material"]) ?? "");
-        const origem = String(pick(r, ["origem"]) ?? "");
         const subarea = String(pick(r, ["subarea"]) ?? "");
-        const destino = String(pick(r, ["destino"]) ?? "");
-        const key = [equipamento, material, origem, subarea, destino].join("|");
+        const destino = String(pick(r, ["destino"]) ?? "") || "—";
         const viagens = toNum(pick(r, ["viagens", "quantidade"]));
         const massa = toNum(pick(r, ["massa", "tonelagem"]));
-        const g = groups.get(key) ?? { equipamento, material, origem, subarea, destino, viagens: 0, massa: 0 };
+
+        let g = groups.get(key);
+        if (!g) {
+          g = {
+            equipamento: eq,
+            material,
+            subarea,
+            destino,
+            tph: rankMap.get(key) ?? 0,
+            viagens: 0,
+            massa: 0,
+            destinos: new Map(),
+          };
+          groups.set(key, g);
+        }
+        if (!g.material && material) g.material = material;
+        if (!g.subarea && subarea) g.subarea = subarea;
         g.viagens += viagens;
         g.massa += massa;
-        groups.set(key, g);
+        const d = g.destinos.get(destino) ?? { destino, viagens: 0, massa: 0 };
+        d.viagens += viagens;
+        d.massa += massa;
+        g.destinos.set(destino, d);
       }
+
       return Array.from(groups.values())
-        .filter((g) => g.massa > 0 || g.viagens > 0)
-        .sort((a, b) => b.massa - a.massa);
+        .map((g) => {
+          const destinos = Array.from(g.destinos.values()).sort((a, b) => b.massa - a.massa);
+          return {
+            equipamento: g.equipamento,
+            material: g.material,
+            subarea: g.subarea,
+            destino: destinos.map((d) => d.destino).join(" / "),
+            tph: g.tph,
+            viagens: g.viagens,
+            massa: g.massa,
+            destinos,
+          };
+        })
+        .filter((g) => g.tph > 0 || g.massa > 0)
+        .sort((a, b) => b.tph - a.tph)
+        .slice(0, 6);
     },
-    [producaoData],
+    [data, producaoData],
   );
 
   const viagensPorHora = useMemo(() => {
@@ -477,48 +521,78 @@ export default function DashboardProducaoUM() {
           )}
         </Panel>
 
-        <Panel title="Top Escavadeiras" className="col-span-12 lg:col-span-5">
+        <Panel title="Top 6 Escavadeiras" className="col-span-12 lg:col-span-5">
           {topEscav.length === 0 ? (
             <Empty />
           ) : (
-            <div className="flex-1 min-h-0 overflow-auto">
-              <table className="w-full text-[10px] font-mono">
-                <thead className="text-mining-blue/70 sticky top-0 bg-[hsl(220_45%_9%)]">
-                  <tr className="border-b border-mining-blue/30">
-                    <Th>Escavadeira</Th>
-                    <Th>Material</Th>
-                    <Th>Frente</Th>
-                    <Th>Subárea</Th>
-                    <Th>Destino</Th>
-                    <Th className="text-right">Qtd</Th>
-                    <Th className="text-right">Tonelagem</Th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {topEscav.map((e, i) => (
-                    <tr key={i} className="border-b border-white/5">
-                      <Td className="text-foreground font-bold">{e.equipamento}</Td>
-                      <Td>{e.material || "—"}</Td>
-                      <Td>{e.origem || "—"}</Td>
-                      <Td>{e.subarea || "—"}</Td>
-                      <Td>{e.destino || "—"}</Td>
-                      <Td className="text-right text-mining-blue">{fmt(e.viagens)}</Td>
-                      <Td className="text-right text-mining-green">{fmt(e.massa)}</Td>
-                    </tr>
-                  ))}
-                </tbody>
-                <tfoot className="sticky bottom-0 bg-mining-navy/95 border-t border-mining-blue/40">
-                  <tr className="font-bold">
-                    <Td colSpan={5} className="text-right text-mining-blue/80">TOTAL</Td>
-                    <Td className="text-right text-mining-blue">
-                      {fmt(topEscav.reduce((s, e) => s + e.viagens, 0))}
-                    </Td>
-                    <Td className="text-right text-mining-green">
-                      {fmt(topEscav.reduce((s, e) => s + e.massa, 0))}
-                    </Td>
-                  </tr>
-                </tfoot>
-              </table>
+            <div className="flex flex-col h-full">
+              <div className="flex-1 min-h-0 overflow-auto space-y-2">
+                {topEscav.map((e, i) => {
+                  const maxTph = topEscav[0].tph || 1;
+                  const pct = Math.max(2, (e.tph / maxTph) * 100);
+                  return (
+                    <div
+                      key={e.equipamento}
+                      className="bg-white/[0.03] border border-white/5 rounded p-2"
+                    >
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <div className="flex items-center gap-2">
+                          <span className="w-5 h-5 flex items-center justify-center rounded bg-mining-yellow text-black text-[10px] font-black">
+                            {i + 1}
+                          </span>
+                          <span className="text-xs font-bold text-foreground tracking-tight">
+                            {e.equipamento}
+                          </span>
+                        </div>
+                        <span className="text-xs font-black text-mining-blue">
+                          {fmt(e.tph)} t/h
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-[1fr_auto] gap-x-4 text-[10px] font-mono text-muted-foreground mb-1.5">
+                        <div className="space-y-0.5 min-w-0">
+                          <div className="truncate"><span className="text-mining-blue/70">Material:</span> <span className="text-foreground">{e.material || "—"}</span></div>
+                          <div className="truncate"><span className="text-mining-blue/70">Subárea:</span> <span className="text-foreground">{e.subarea || "—"}</span></div>
+                          <div className="truncate"><span className="text-mining-blue/70">Destino:</span> <span className="text-foreground">{e.destino || "—"}</span></div>
+                        </div>
+                        <div className="text-right space-y-0.5 whitespace-nowrap">
+                          <div><span className="text-mining-blue/70">Viagens:</span> <span className="text-mining-blue font-bold">{fmt(e.viagens)}</span></div>
+                          <div><span className="text-mining-blue/70">Tonelagem:</span> <span className="text-mining-green font-bold">{fmt(e.massa)} t</span></div>
+                        </div>
+                      </div>
+                      {e.destinos.length > 0 && (
+                        <table className="w-full text-[10px] font-mono mb-1.5">
+                          <thead className="text-mining-blue/70">
+                            <tr className="border-b border-mining-blue/20">
+                              <th className="text-left font-semibold py-0.5">Destino</th>
+                              <th className="text-right font-semibold py-0.5 w-24">Quantidade (Viagens)</th>
+                              <th className="text-right font-semibold py-0.5 w-24">Tonelagem (t)</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {e.destinos.map((d) => (
+                              <tr key={d.destino} className="border-b border-white/5">
+                                <td className="py-0.5 truncate text-foreground" title={d.destino}>{d.destino}</td>
+                                <td className="py-0.5 text-right text-mining-blue">{fmt(d.viagens)}</td>
+                                <td className="py-0.5 text-right text-mining-green">{fmt(d.massa)}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      )}
+                      <div className="h-1.5 bg-white/5 rounded overflow-hidden">
+                        <div className="h-full bg-mining-blue" style={{ width: `${pct}%` }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="border-t border-mining-blue/30 mt-2 pt-2 flex items-center justify-between px-1 text-[11px] font-mono">
+                <span className="font-bold uppercase tracking-wider text-foreground">Total Top 6</span>
+                <div className="flex items-center gap-6">
+                  <span className="text-muted-foreground">Viagens: <span className="text-mining-blue font-bold">{fmt(topEscav.reduce((s, e) => s + e.viagens, 0))}</span></span>
+                  <span className="text-muted-foreground">Tonelagem: <span className="text-mining-green font-bold">{fmt(topEscav.reduce((s, e) => s + e.massa, 0))} t</span></span>
+                </div>
+              </div>
             </div>
           )}
         </Panel>
