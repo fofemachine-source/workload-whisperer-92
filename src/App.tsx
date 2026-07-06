@@ -93,8 +93,9 @@ const AppContent = () => (
       <ExcelLiveProvider>
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Index />} />
+            <Route path="/" element={<ProducaoDashboard />} />
             <Route path="/producao" element={<ProducaoDashboard />} />
+            <Route path="/legado" element={<Index />} />
             <Route path="/monitoramento" element={<IntegracaoStatusPage />} />
             <Route path="/admin/ssrs" element={<SsrsConfigPage />} />
             <Route path="/admin/integracao" element={<IntegracaoStatusPage />} />
