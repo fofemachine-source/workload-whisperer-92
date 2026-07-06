@@ -540,10 +540,10 @@ export default function DashboardProducaoUM() {
                 </span>
                 <div className="flex items-center gap-4 text-[11px] font-mono">
                   <span className="text-muted-foreground">
-                    Viagens: <span className="text-foreground font-bold">{fmt(topEscav.reduce((s, e) => s + e.viagens, 0))}</span>
+                    Total de Viagens: <span className="text-foreground font-bold">{fmt(topEscav.reduce((s, e) => s + e.viagens, 0))}</span>
                   </span>
                   <span className="text-muted-foreground">
-                    Tonelagem: <span className="text-mining-green font-bold">{fmt(topEscav.reduce((s, e) => s + e.massa, 0))} t</span>
+                    Total de Tonelagem: <span className="text-mining-green font-bold">{fmt(topEscav.reduce((s, e) => s + e.massa, 0))} t</span>
                   </span>
                 </div>
               </div>
