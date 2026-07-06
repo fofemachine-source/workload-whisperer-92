@@ -372,10 +372,8 @@ export default function DashboardProducaoUM() {
           </div>
         </Panel>
         <Panel className="col-span-12 lg:col-span-8 !p-0">
-          <div className="flex flex-wrap items-end gap-3 px-3 py-2">
-            <FilterField label="Data Inicial" value={dtIni} onChange={setDtIni} type="date" />
-            <FilterField label="Data Final" value={dtFim} onChange={setDtFim} type="date" />
-            <div className="flex flex-col text-right text-[10px] font-mono text-mining-blue/80 ml-auto leading-tight">
+          <div className="flex items-center justify-end gap-4 px-3 py-3 h-full">
+            <div className="flex flex-col text-right text-[11px] font-mono text-mining-blue/80 leading-tight">
               <span>Atualização automática: <span className="text-mining-blue font-bold">60s</span></span>
               <span>Última atualização: <span className="text-foreground font-bold">{ultima ? ultima.toLocaleString("pt-BR") : "—"}</span></span>
             </div>
