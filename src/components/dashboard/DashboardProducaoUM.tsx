@@ -15,7 +15,7 @@ import {
   Legend,
 } from "recharts";
 import { Filter, Target, BarChart3, Gauge, Calendar, TrendingUp, Flag, AlertTriangle, Loader2 } from "lucide-react";
-import { useDashboardApi } from "@/hooks/useDashboardApi";
+import { useDashboardApi, useTempoApi, useProducaoApi, useViagensApi, useTempoCicloApi } from "@/hooks/useDashboardApi";
 
 /* ---------- helpers ---------- */
 const fmt = (n: number, d = 0) =>
@@ -117,6 +117,10 @@ export default function DashboardProducaoUM() {
   const [fMaterial, setFMaterial] = useState("");
 
   const { data, isLoading, isError, error, dataUpdatedAt } = useDashboardApi();
+  const { data: tempoData } = useTempoApi();
+  const { data: producaoData } = useProducaoApi();
+  const { data: viagensData } = useViagensApi();
+  const { data: tempoCicloData } = useTempoCicloApi();
 
   const kpis = data?.kpis;
   const producaoReal = Number(kpis?.producaoReal ?? 0);
@@ -187,16 +191,88 @@ export default function DashboardProducaoUM() {
   const mediaViagens = 0;
   const dfMedio = 0;
   const utMedio = 0;
-  const tempoParado: Array<{ motivo: string; min: number }> = [];
-  const detalhamento: Array<{
-    data: string; frente: string | null; equipamento: string | null; material: string | null;
-    ton: number; ciclo: number | null; tph: number;
-  }> = [];
-  const acompViagens: Array<{
-    data: string; caminhao: string | null; frota: string | null;
-    carreg: number; basc: number; viagens: number; massa: number;
-  }> = [];
-  const resumoCiclo = { arr: [] as Array<{ estado: string; media: number }>, total: 0 };
+
+  const pick = (obj: Record<string, any>, keys: string[]) => {
+    for (const k of keys) {
+      if (obj?.[k] !== undefined && obj?.[k] !== null && obj?.[k] !== "") return obj[k];
+    }
+    return undefined;
+  };
+  const toNum = (v: unknown) => {
+    const n = typeof v === "string" ? parseFloat(v.replace(",", ".")) : Number(v);
+    return Number.isFinite(n) ? n : 0;
+  };
+
+  const tempoParado = useMemo(() => {
+    const rows = tempoData ?? [];
+    const groups = new Map<string, number>();
+    for (const r of rows) {
+      const motivo = String(
+        pick(r, ["motivo", "descricao", "status", "estado", "tipo", "reason", "categoria"]) ?? "—",
+      );
+      const val = toNum(pick(r, ["duracao", "minutos", "tempo_min", "tempo", "duration", "total"]));
+      groups.set(motivo, (groups.get(motivo) ?? 0) + val);
+    }
+    return Array.from(groups.entries())
+      .map(([motivo, min]) => ({ motivo, min }))
+      .filter((r) => r.min > 0)
+      .sort((a, b) => b.min - a.min)
+      .slice(0, 10);
+  }, [tempoData]);
+
+  const detalhamento = useMemo(
+    () =>
+      (producaoData ?? []).slice(0, 50).map((r) => ({
+        dia: String(pick(r, ["dia", "data"]) ?? "—"),
+        hora: String(pick(r, ["hora"]) ?? "—"),
+        equipamento: pick(r, ["equipamento"]) ?? null,
+        equipamento_carga: pick(r, ["equipamento_carga"]) ?? null,
+        massa: toNum(pick(r, ["massa"])),
+        viagens: toNum(pick(r, ["viagens"])),
+        origem: pick(r, ["origem"]) ?? null,
+        destino: pick(r, ["destino"]) ?? null,
+        material: pick(r, ["material"]) ?? null,
+        operador: pick(r, ["operador"]) ?? null,
+      })),
+    [producaoData],
+  );
+
+  const acompViagens = useMemo(
+    () =>
+      (viagensData ?? []).slice(0, 50).map((r) => ({
+        equipamento: pick(r, ["equipamento"]) ?? null,
+        event_start: pick(r, ["event_start"]) ?? null,
+        event_end: pick(r, ["event_end"]) ?? null,
+        tempo_ciclo: toNum(pick(r, ["tempo_ciclo"])),
+        origem: pick(r, ["origem"]) ?? null,
+        destino: pick(r, ["destino"]) ?? null,
+        material: pick(r, ["material"]) ?? null,
+        operador: pick(r, ["operador"]) ?? null,
+        massa: toNum(pick(r, ["massa"])),
+        viagem: pick(r, ["viagem"]) ?? null,
+      })),
+    [viagensData],
+  );
+
+  const resumoCiclo = useMemo(() => {
+    const rows = tempoCicloData ?? [];
+    const groups = new Map<string, { total: number; count: number }>();
+    for (const r of rows) {
+      const cat = String(pick(r, ["equipamento", "estado", "categoria"]) ?? "—");
+      const val = toNum(pick(r, ["tempo_ciclo", "ciclo", "minutos", "duracao", "tempo"]));
+      const g = groups.get(cat) ?? { total: 0, count: 0 };
+      g.total += val;
+      g.count += 1;
+      groups.set(cat, g);
+    }
+    const arr = Array.from(groups.entries())
+      .map(([estado, g]) => ({ estado, media: g.count ? g.total / g.count : 0 }))
+      .filter((r) => r.media > 0)
+      .sort((a, b) => b.media - a.media)
+      .slice(0, 12);
+    const total = arr.reduce((s, r) => s + r.media, 0);
+    return { arr, total };
+  }, [tempoCicloData]);
 
   const opts = { turnos: [] as string[], frentes: [] as string[], equipamentos: [] as string[], materiais: [] as string[] };
 
@@ -433,27 +509,32 @@ export default function DashboardProducaoUM() {
           {detalhamento.length === 0 ? (
             <Empty />
           ) : (
+            <div className="max-h-64 overflow-auto">
             <table className="w-full text-[10px] font-mono">
               <thead className="text-mining-blue/70">
                 <tr className="border-b border-mining-blue/20">
-                  <Th>Data</Th><Th>Frente</Th><Th>Equipamento</Th><Th>Material</Th>
-                  <Th className="text-right">Massa (t)</Th><Th className="text-right">Ciclo</Th><Th className="text-right">T/H</Th>
+                  <Th>Dia</Th><Th>Hora</Th><Th>Equip.</Th><Th>Carga</Th><Th>Origem</Th><Th>Destino</Th><Th>Material</Th><Th>Operador</Th>
+                  <Th className="text-right">Massa</Th><Th className="text-right">Viag.</Th>
                 </tr>
               </thead>
               <tbody>
                 {detalhamento.map((d, i) => (
                   <tr key={i} className="border-b border-white/5">
-                    <Td>{brDate(d.data)}</Td>
-                    <Td>{d.frente ?? "—"}</Td>
-                    <Td>{d.equipamento ?? "—"}</Td>
-                    <Td>{d.material ?? "—"}</Td>
-                    <Td className="text-right text-mining-green">{fmt(d.ton, 2)}</Td>
-                    <Td className="text-right">{d.ciclo ? fmt(d.ciclo, 1) : "—"}</Td>
-                    <Td className="text-right text-mining-blue">{fmt(d.tph, 2)}</Td>
+                    <Td>{d.dia}</Td>
+                    <Td>{d.hora}</Td>
+                    <Td>{String(d.equipamento ?? "—")}</Td>
+                    <Td>{String(d.equipamento_carga ?? "—")}</Td>
+                    <Td>{String(d.origem ?? "—")}</Td>
+                    <Td>{String(d.destino ?? "—")}</Td>
+                    <Td>{String(d.material ?? "—")}</Td>
+                    <Td>{String(d.operador ?? "—")}</Td>
+                    <Td className="text-right text-mining-green">{fmt(d.massa, 2)}</Td>
+                    <Td className="text-right text-mining-blue">{fmt(d.viagens)}</Td>
                   </tr>
                 ))}
               </tbody>
             </table>
+            </div>
           )}
         </Panel>
 
@@ -461,28 +542,34 @@ export default function DashboardProducaoUM() {
           {acompViagens.length === 0 ? (
             <Empty />
           ) : (
+            <div className="max-h-64 overflow-auto">
             <table className="w-full text-[10px] font-mono">
               <thead className="text-mining-blue/70">
                 <tr className="border-b border-mining-blue/20">
-                  <Th>Data</Th><Th>Caminhão</Th><Th>Frota</Th>
-                  <Th className="text-right">Carreg.</Th><Th className="text-right">Basc.</Th>
-                  <Th className="text-right">Viagens</Th><Th className="text-right">Massa (t)</Th>
+                  <Th>Equip.</Th><Th>Início</Th><Th>Fim</Th>
+                  <Th className="text-right">Ciclo</Th><Th>Origem</Th><Th>Destino</Th>
+                  <Th>Material</Th><Th>Operador</Th>
+                  <Th className="text-right">Massa</Th><Th className="text-right">Viag.</Th>
                 </tr>
               </thead>
               <tbody>
                 {acompViagens.map((v, i) => (
                   <tr key={i} className="border-b border-white/5">
-                    <Td>{brDate(v.data)}</Td>
-                    <Td>{v.caminhao ?? "—"}</Td>
-                    <Td>{v.frota ?? "—"}</Td>
-                    <Td className="text-right">{fmt(v.carreg)}</Td>
-                    <Td className="text-right">{fmt(v.basc)}</Td>
-                    <Td className="text-right text-mining-blue">{fmt(v.viagens)}</Td>
+                    <Td>{String(v.equipamento ?? "—")}</Td>
+                    <Td>{String(v.event_start ?? "—")}</Td>
+                    <Td>{String(v.event_end ?? "—")}</Td>
+                    <Td className="text-right">{fmt(v.tempo_ciclo, 2)}</Td>
+                    <Td>{String(v.origem ?? "—")}</Td>
+                    <Td>{String(v.destino ?? "—")}</Td>
+                    <Td>{String(v.material ?? "—")}</Td>
+                    <Td>{String(v.operador ?? "—")}</Td>
                     <Td className="text-right text-mining-green">{fmt(v.massa, 2)}</Td>
+                    <Td className="text-right text-mining-blue">{String(v.viagem ?? "—")}</Td>
                   </tr>
                 ))}
               </tbody>
             </table>
+            </div>
           )}
         </Panel>
 
