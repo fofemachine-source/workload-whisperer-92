@@ -131,16 +131,16 @@ export default function DashboardProducaoUM() {
   const dailySeries = useMemo(
     () =>
       (data?.producaoDiaria ?? []).map((d) => ({
-        dia: d.dia,
-        Real: Number(d.Real ?? 0),
-        Prevista: Number(d.Prevista ?? 0),
+        dia: d.data,
+        Real: Number(d.real ?? 0),
+        Prevista: Number(d.previsto ?? 0),
       })),
     [data],
   );
 
   const frenteAgg = useMemo(() => {
     const arr = (data?.producaoFrente ?? [])
-      .map((f) => ({ name: String(f.name), value: Number(f.value ?? 0) }))
+      .map((f) => ({ name: String(f.frente), value: Number(f.massa ?? 0) }))
       .filter((r) => r.value > 0)
       .sort((a, b) => b.value - a.value);
     const total = arr.reduce((s, r) => s + r.value, 0) || 1;
@@ -150,7 +150,12 @@ export default function DashboardProducaoUM() {
   const topEscav = useMemo(
     () =>
       (data?.rankingEscavadeiras ?? [])
-        .map((e) => ({ equipamento: String(e.equipamento), tph: Number(e.tph ?? 0) }))
+        .map((e) => ({
+          equipamento: String(e.equipamento),
+          tph: Number(e.th ?? 0),
+          massa: Number(e.massa ?? 0),
+          viagens: Number(e.viagens ?? 0),
+        }))
         .filter((e) => e.tph > 0)
         .sort((a, b) => b.tph - a.tph)
         .slice(0, 6),
@@ -164,7 +169,7 @@ export default function DashboardProducaoUM() {
     }));
     (data?.viagensHora ?? []).forEach((v) => {
       const h = Number(String(v.hora).slice(0, 2));
-      if (h >= 0 && h < 24) base[h].Real = Number(v.Real ?? 0);
+      if (h >= 0 && h < 24) base[h].Real = Number(v.viagens ?? 0);
     });
     return base;
   }, [data]);

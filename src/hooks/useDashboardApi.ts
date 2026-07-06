@@ -9,10 +9,10 @@ export interface DashboardApiPayload {
     viagens: number;
     produtividadeMedia: number;
   };
-  producaoDiaria: Array<{ dia: string; Real: number; Prevista?: number }>;
-  producaoFrente: Array<{ name: string; value: number }>;
-  rankingEscavadeiras: Array<{ equipamento: string; tph: number }>;
-  viagensHora: Array<{ hora: string; Real: number }>;
+  producaoDiaria: Array<{ data: string; real: number; previsto?: number }>;
+  producaoFrente: Array<{ frente: string; massa: number }>;
+  rankingEscavadeiras: Array<{ equipamento: string; th: number; massa?: number; viagens?: number }>;
+  viagensHora: Array<{ hora: string | number; viagens: number }>;
 }
 
 export const DASHBOARD_API_URL = "http://192.168.17.15:3001/api/dashboard";
