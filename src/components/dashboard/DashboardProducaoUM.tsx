@@ -14,16 +14,8 @@ import {
   YAxis,
   Legend,
 } from "recharts";
-import { Filter, Target, BarChart3, Gauge, Calendar, TrendingUp, Flag } from "lucide-react";
-import { useProducaoDiaria } from "@/hooks/useProducaoDiaria";
-import { useProducaoFrente, useProducaoEquipamento } from "@/hooks/useProducaoKpis";
-import {
-  useViagens,
-  useTempoCiclo,
-  useTempoDetalhado,
-  useTempoEstado,
-  useProducaoView,
-} from "@/hooks/useHexagonViews";
+import { Filter, Target, BarChart3, Gauge, Calendar, TrendingUp, Flag, AlertTriangle, Loader2 } from "lucide-react";
+import { useDashboardApi } from "@/hooks/useDashboardApi";
 
 /* ---------- helpers ---------- */
 const fmt = (n: number, d = 0) =>
@@ -124,301 +116,84 @@ export default function DashboardProducaoUM() {
   const [fEquip, setFEquip] = useState("");
   const [fMaterial, setFMaterial] = useState("");
 
-  const { data: producao = [] } = useProducaoDiaria(365);
-  const { data: frentesRows = [] } = useProducaoFrente(365);
-  const { data: equipRows = [] } = useProducaoEquipamento(365);
-  const { data: viagens = [] } = useViagens(30);
-  const { data: ciclos = [] } = useTempoCiclo(30);
-  const { data: tempoDet = [] } = useTempoDetalhado(30);
-  const { data: tempoEst = [] } = useTempoEstado(30);
-  const { data: producaoV = [] } = useProducaoView(30);
+  const { data, isLoading, isError, error, dataUpdatedAt } = useDashboardApi();
 
-  /* filter opts */
-  const opts = useMemo(() => {
-    const turnos = new Set<string>();
-    const frentes = new Set<string>();
-    const equipamentos = new Set<string>();
-    const materiais = new Set<string>();
-    producao.forEach((r) => r.turno && turnos.add(r.turno));
-    frentesRows.forEach((r) => r.frente && frentes.add(String(r.frente)));
-    equipRows.forEach((r) => {
-      if (r.equipamento) equipamentos.add(r.equipamento);
-      if (r.tipo) materiais.add(r.tipo);
-    });
-    producaoV.forEach((r) => {
-      if (r.equipamento) equipamentos.add(r.equipamento);
-      if (r.frente) frentes.add(r.frente);
-    });
-    return {
-      turnos: [...turnos].sort(),
-      frentes: [...frentes].sort(),
-      equipamentos: [...equipamentos].sort(),
-      materiais: [...materiais].sort(),
-    };
-  }, [producao, frentesRows, equipRows, producaoV]);
+  const kpis = data?.kpis;
+  const producaoReal = Number(kpis?.producaoReal ?? 0);
+  const metaDiaria = Number(kpis?.metaDiaria ?? 0);
+  const acumuladoMes = Number(kpis?.acumuladoMes ?? 0);
+  const faltaMeta = Number(kpis?.faltaParaMeta ?? 0);
+  const totalViagens = Number(kpis?.viagens ?? 0);
+  const tphMedio = Number(kpis?.produtividadeMedia ?? 0);
+  const totalPrevisto = metaDiaria; // sem série prevista da API
+  const variacao = producaoReal - metaDiaria;
 
-  const inRange = (d?: string | null) => !!d && d >= dtIni && d <= dtFim;
-  const matchTurno = (t?: string | null) => !fTurno || t === fTurno;
-  const matchFrente = (f?: string | null) => !fFrente || f === fFrente;
-  const matchEquip = (e?: string | null) => !fEquip || e === fEquip;
-  const matchMat = (m?: string | null) => !fMaterial || m === fMaterial;
-
-  const prodF = useMemo(
-    () => producao.filter((r) => inRange(r.data_referencia) && matchTurno(r.turno)),
-    [producao, dtIni, dtFim, fTurno],
-  );
-  const frentesF = useMemo(
+  const dailySeries = useMemo(
     () =>
-      frentesRows.filter(
-        (r) => inRange(r.data_referencia) && matchTurno(r.turno) && matchFrente(r.frente),
-      ),
-    [frentesRows, dtIni, dtFim, fTurno, fFrente],
-  );
-  const equipF = useMemo(
-    () =>
-      equipRows.filter(
-        (r) =>
-          inRange(r.data_referencia) &&
-          matchTurno(r.turno) &&
-          matchEquip(r.equipamento) &&
-          matchMat(r.tipo),
-      ),
-    [equipRows, dtIni, dtFim, fTurno, fEquip, fMaterial],
-  );
-  const viagensF = useMemo(
-    () =>
-      viagens.filter(
-        (v) =>
-          inRange(v.data_referencia) &&
-          matchTurno(v.turno) &&
-          matchEquip(v.equipamento) &&
-          (matchFrente(v.frente_origem) || matchFrente(v.frente_destino)),
-      ),
-    [viagens, dtIni, dtFim, fTurno, fEquip, fFrente],
-  );
-  const ciclosF = useMemo(
-    () =>
-      ciclos.filter(
-        (c) =>
-          inRange(c.data_referencia) &&
-          matchTurno(c.turno) &&
-          matchEquip(c.equipamento) &&
-          matchFrente(c.frente),
-      ),
-    [ciclos, dtIni, dtFim, fTurno, fEquip, fFrente],
-  );
-  const tempoDetF = useMemo(
-    () =>
-      tempoDet.filter(
-        (t) => inRange(t.data_referencia) && matchTurno(t.turno) && matchEquip(t.equipamento),
-      ),
-    [tempoDet, dtIni, dtFim, fTurno, fEquip],
-  );
-  const tempoEstF = useMemo(
-    () =>
-      tempoEst.filter(
-        (t) => inRange(t.data_referencia) && matchTurno(t.turno) && matchEquip(t.equipamento),
-      ),
-    [tempoEst, dtIni, dtFim, fTurno, fEquip],
-  );
-  const producaoVF = useMemo(
-    () =>
-      producaoV.filter(
-        (p) =>
-          inRange(p.data_referencia) &&
-          matchTurno(p.turno) &&
-          matchEquip(p.equipamento) &&
-          matchFrente(p.frente),
-      ),
-    [producaoV, dtIni, dtFim, fTurno, fEquip, fFrente],
+      (data?.producaoDiaria ?? []).map((d) => ({
+        dia: d.dia,
+        Real: Number(d.Real ?? 0),
+        Prevista: Number(d.Prevista ?? 0),
+      })),
+    [data],
   );
 
-  /* KPIs topo */
-  const totalReal = prodF.reduce((s, r) => s + Number(r.toneladas_total || 0), 0);
-  const metaDiaria =
-    prodF.map((r) => Number(r.meta_diaria || 0)).find((v) => v > 0) ?? 0;
-  const diasNoRange = Math.max(
-    1,
-    Math.round((new Date(dtFim).getTime() - new Date(dtIni).getTime()) / 86400000) + 1,
-  );
-  const totalPrevisto = metaDiaria > 0 ? metaDiaria * diasNoRange : 0;
-  const variacao = totalReal - totalPrevisto;
-  const acumuladoMes = prodF
-    .filter((r) => (r.data_referencia || "").startsWith(hoje.slice(0, 7)))
-    .reduce((s, r) => s + Number(r.toneladas_total || 0), 0);
-  const metaMensal =
-    prodF.map((r) => Number(r.meta_mensal || 0)).find((v) => v > 0) ?? 0;
-  const faltaMeta = Math.max(0, metaMensal - acumuladoMes);
-
-  /* Produção diária series */
-  const dailySeries = useMemo(() => {
-    const map = new Map<string, { real: number; prev: number }>();
-    prodF.forEach((r) => {
-      const k = r.data_referencia;
-      const cur = map.get(k) ?? { real: 0, prev: 0 };
-      cur.real += Number(r.toneladas_total || 0);
-      cur.prev += Number(r.meta_diaria || 0);
-      map.set(k, cur);
-    });
-    return [...map.entries()]
-      .sort(([a], [b]) => a.localeCompare(b))
-      .slice(-14)
-      .map(([k, v]) => ({ dia: dayLabel(k), Prevista: Math.round(v.prev), Real: Math.round(v.real) }));
-  }, [prodF]);
-
-  /* Produção por frente donut */
   const frenteAgg = useMemo(() => {
-    const map = new Map<string, number>();
-    frentesF.forEach((f) => {
-      const k = String(f.frente || "—").toUpperCase();
-      map.set(k, (map.get(k) ?? 0) + Number(f.toneladas || 0));
-    });
-    const arr = [...map.entries()]
-      .map(([name, value]) => ({ name, value: Math.round(value) }))
+    const arr = (data?.producaoFrente ?? [])
+      .map((f) => ({ name: String(f.name), value: Number(f.value ?? 0) }))
       .filter((r) => r.value > 0)
       .sort((a, b) => b.value - a.value);
     const total = arr.reduce((s, r) => s + r.value, 0) || 1;
     return arr.map((r) => ({ ...r, pct: (r.value / total) * 100 }));
-  }, [frentesF]);
+  }, [data]);
 
-  /* TOP 6 escavadeiras t/h */
-  const topEscav = useMemo(() => {
-    const map = new Map<string, { ton: number; horas: number }>();
-    equipF.forEach((e) => {
-      const k = e.equipamento;
-      const cur = map.get(k) ?? { ton: 0, horas: 0 };
-      cur.ton += Number(e.toneladas || 0);
-      cur.horas += 8; // um turno por linha
-      map.set(k, cur);
-    });
-    return [...map.entries()]
-      .map(([equipamento, v]) => ({ equipamento, tph: v.horas ? v.ton / v.horas : 0 }))
-      .filter((r) => r.tph > 0)
-      .sort((a, b) => b.tph - a.tph)
-      .slice(0, 6);
-  }, [equipF]);
-
-  /* Produtividade média t/h - linha */
-  const prodSeries = useMemo(() => {
-    const map = new Map<string, { ton: number; horas: number; meta: number; prev: number }>();
-    prodF.forEach((r) => {
-      const k = r.data_referencia;
-      const cur = map.get(k) ?? { ton: 0, horas: 0, meta: 0, prev: 0 };
-      cur.ton += Number(r.toneladas_total || 0);
-      cur.horas += 24;
-      cur.meta += Number(r.meta_diaria || 0) / 24;
-      cur.prev += Number(r.projecao_turno || 0) / 8;
-      map.set(k, cur);
-    });
-    return [...map.entries()]
-      .sort(([a], [b]) => a.localeCompare(b))
-      .slice(-14)
-      .map(([k, v]) => ({
-        dia: dayLabel(k),
-        Meta: Math.round(v.meta),
-        Previsto: Math.round(v.prev),
-        Real: v.horas ? Math.round(v.ton / v.horas) : 0,
-      }));
-  }, [prodF]);
-
-  /* Viagens por hora */
-  const viagensPorHora = useMemo(() => {
-    const arr = Array.from({ length: 24 }, (_, h) => ({ hora: String(h).padStart(2, "0"), Prev: 0, Real: 0 }));
-    producaoVF.forEach((p) => {
-      const h = Number(p.hora ?? -1);
-      if (h >= 0 && h < 24) arr[h].Real += Number(p.cargas || 0);
-    });
-    viagensF.forEach(() => {});
-    return arr;
-  }, [producaoVF, viagensF]);
-
-  /* Pequenos KPIs */
-  const totalViagens = viagensF.reduce((s, v) => s + Number(v.viagens || 0), 0);
-  const mediaViagens = viagensF.length ? totalViagens / viagensF.length : 0;
-  const tphMedio =
-    prodSeries.length > 0
-      ? prodSeries.reduce((s, r) => s + r.Real, 0) / prodSeries.length
-      : 0;
-  const dfMedio = useMemo(() => {
-    const arr = equipF.map((e) => Number(e.df || 0)).filter((v) => v > 0);
-    return arr.length ? arr.reduce((s, v) => s + v, 0) / arr.length : 0;
-  }, [equipF]);
-  const utMedio = useMemo(() => {
-    const arr = equipF.map((e) => Number(e.ut || 0)).filter((v) => v > 0);
-    return arr.length ? arr.reduce((s, v) => s + v, 0) / arr.length : 0;
-  }, [equipF]);
-
-  /* Tempo parado por motivo */
-  const tempoParado = useMemo(() => {
-    const map = new Map<string, number>();
-    tempoDetF.forEach((t) => {
-      const k = t.sub_estado || t.categoria || "—";
-      map.set(k, (map.get(k) ?? 0) + Number(t.minutos || 0));
-    });
-    return [...map.entries()]
-      .map(([motivo, min]) => ({ motivo, min: Math.round(min) }))
-      .sort((a, b) => b.min - a.min)
-      .slice(0, 12);
-  }, [tempoDetF]);
-
-  /* Detalhamento produção (últimas linhas) */
-  const detalhamento = useMemo(() => {
-    return producaoVF
-      .slice()
-      .sort((a, b) => (b.data_referencia + (b.hora ?? 0)).localeCompare(a.data_referencia + (a.hora ?? 0)))
-      .slice(0, 6)
-      .map((p) => {
-        const cargas = Number(p.cargas || 0);
-        const ton = Number(p.toneladas || 0);
-        const ciclo =
-          ciclosF.find(
-            (c) =>
-              c.equipamento === p.equipamento && c.data_referencia === p.data_referencia,
-          )?.ciclo_min ?? null;
-        return {
-          data: p.data_referencia,
-          frente: p.frente,
-          equipamento: p.equipamento,
-          material: p.frota,
-          ton,
-          ciclo,
-          tph: cargas > 0 ? ton / (cargas * 0.5) : 0,
-        };
-      });
-  }, [producaoVF, ciclosF]);
-
-  const acompViagens = useMemo(
+  const topEscav = useMemo(
     () =>
-      viagensF.slice(0, 6).map((v) => ({
-        data: v.data_referencia,
-        caminhao: v.equipamento,
-        frota: v.frota,
-        carreg: Math.round(Number(v.viagens || 0)),
-        basc: Math.round(Number(v.viagens || 0)),
-        viagens: Math.round(Number(v.viagens || 0)),
-        massa: Number(v.toneladas || 0),
-      })),
-    [viagensF],
+      (data?.rankingEscavadeiras ?? [])
+        .map((e) => ({ equipamento: String(e.equipamento), tph: Number(e.tph ?? 0) }))
+        .filter((e) => e.tph > 0)
+        .sort((a, b) => b.tph - a.tph)
+        .slice(0, 6),
+    [data],
   );
 
-  /* Resumo tempos de ciclo */
-  const resumoCiclo = useMemo(() => {
-    const map = new Map<string, { soma: number; n: number }>();
-    tempoEstF.forEach((t) => {
-      const k = t.estado || "—";
-      const cur = map.get(k) ?? { soma: 0, n: 0 };
-      cur.soma += Number(t.minutos || 0);
-      cur.n += 1;
-      map.set(k, cur);
+  const viagensPorHora = useMemo(() => {
+    const base = Array.from({ length: 24 }, (_, h) => ({
+      hora: String(h).padStart(2, "0"),
+      Real: 0,
+    }));
+    (data?.viagensHora ?? []).forEach((v) => {
+      const h = Number(String(v.hora).slice(0, 2));
+      if (h >= 0 && h < 24) base[h].Real = Number(v.Real ?? 0);
     });
-    const arr = [...map.entries()]
-      .map(([estado, v]) => ({ estado, media: v.n ? v.soma / v.n : 0 }))
-      .filter((r) => r.media > 0)
-      .sort((a, b) => b.media - a.media)
-      .slice(0, 8);
-    const total = arr.reduce((s, r) => s + r.media, 0);
-    return { arr, total };
-  }, [tempoEstF]);
+    return base;
+  }, [data]);
+
+  const prodSeries = useMemo(
+    () =>
+      dailySeries.map((d) => ({
+        dia: d.dia,
+        Real: d.Real,
+        Prevista: d.Prevista,
+      })),
+    [dailySeries],
+  );
+
+  const mediaViagens = 0;
+  const dfMedio = 0;
+  const utMedio = 0;
+  const tempoParado: Array<{ motivo: string; min: number }> = [];
+  const detalhamento: Array<{
+    data: string; frente: string | null; equipamento: string | null; material: string | null;
+    ton: number; ciclo: number | null; tph: number;
+  }> = [];
+  const acompViagens: Array<{
+    data: string; caminhao: string | null; frota: string | null;
+    carreg: number; basc: number; viagens: number; massa: number;
+  }> = [];
+  const resumoCiclo = { arr: [] as Array<{ estado: string; media: number }>, total: 0 };
+
+  const opts = { turnos: [] as string[], frentes: [] as string[], equipamentos: [] as string[], materiais: [] as string[] };
 
   const limparFiltros = () => {
     setDtIni(inicioAno);
@@ -429,9 +204,7 @@ export default function DashboardProducaoUM() {
     setFMaterial("");
   };
 
-  const ultima = producao[0]?.atualizado_em
-    ? new Date(producao[0].atualizado_em)
-    : null;
+  const ultima = dataUpdatedAt ? new Date(dataUpdatedAt) : null;
 
   return (
     <div className="min-h-screen bg-[hsl(220_50%_5%)] text-foreground p-2 md:p-3 font-sans">
@@ -478,7 +251,7 @@ export default function DashboardProducaoUM() {
       {/* KPI strip */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 mt-2">
         <Kpi icon={<Target />} label="Produção Prevista (t)" value={fmt(totalPrevisto)} color="text-mining-blue" />
-        <Kpi icon={<BarChart3 />} label="Produção Real (t)" value={fmt(totalReal)} color="text-mining-blue" />
+        <Kpi icon={<BarChart3 />} label="Produção Real (t)" value={fmt(producaoReal)} color="text-mining-blue" />
         <Kpi
           icon={<Gauge />}
           label="Variação (t)"
@@ -728,10 +501,22 @@ export default function DashboardProducaoUM() {
         </Panel>
       </div>
 
+      {/* API status */}
+      {isError && (
+        <div className="mt-2 flex items-center gap-2 rounded-md border border-mining-red/40 bg-mining-red/10 px-3 py-2 text-[11px] font-mono text-mining-red">
+          <AlertTriangle className="h-4 w-4" />
+          Sem comunicação com API local
+          <span className="text-mining-red/60">
+            ({error instanceof Error ? error.message : "erro desconhecido"})
+          </span>
+        </div>
+      )}
+
       {/* Footer */}
       <div className="mt-3 flex flex-wrap items-center justify-between gap-2 px-1 text-[10px] font-mono text-mining-blue/70">
-        <span>
-          Fontes: custom_vw_ciclo_carga · custom_vw_registros_estados · custom_vw_producao · custom_vw_acompanhamento_viagens · custom_vw_tempo · custom_vw_tempo_ciclo · custom_vw_tempo_detalhado
+        <span className="flex items-center gap-2">
+          Fonte: http://192.168.17.15:3001/api/dashboard · auto 60s
+          {isLoading && <Loader2 className="h-3 w-3 animate-spin" />}
         </span>
         <span>
           Atualizado em: {ultima ? ultima.toLocaleString("pt-BR") : "—"}
