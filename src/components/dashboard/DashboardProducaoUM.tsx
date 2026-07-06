@@ -336,7 +336,7 @@ export default function DashboardProducaoUM() {
       <div className="grid grid-cols-12 gap-2 items-stretch">
         <Panel className="col-span-12 lg:col-span-4 !p-0">
           <div className="flex items-center gap-3 px-3 py-2">
-            <div className="flex items-center justify-center w-14 h-14 rounded bg-mining-yellow text-black font-black text-lg leading-tight text-center">
+            <div className="flex items-center justify-center w-14 h-14 rounded bg-mining-yellow text-background font-black text-lg leading-tight text-center">
               U&amp;M
             </div>
             <div>
