@@ -727,7 +727,7 @@ export default function DashboardProducaoUM() {
                   <Td className="text-right text-mining-green">
                     {fmt(acompViagens.reduce((s, v) => s + Number(v.massa || 0), 0), 2)}
                   </Td>
-                  <Td colSpan={3}></Td>
+                  <Td colSpan={3}>{""}</Td>
                 </tr>
               </tfoot>
             </table>
