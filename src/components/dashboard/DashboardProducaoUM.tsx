@@ -1,4 +1,7 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect, memo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useAnimatedCounter } from "@/hooks/useAnimatedCounter";
+import { useCountdown } from "@/hooks/useCountdown";
 import {
   Bar,
   BarChart,
@@ -23,6 +26,30 @@ const fmt = (n: number, d = 0) =>
     minimumFractionDigits: d,
     maximumFractionDigits: d,
   });
+
+/** Animated count-up number using requestAnimationFrame (memoized). */
+const Counter = memo(function Counter({
+  value,
+  decimals = 0,
+  suffix = "",
+}: {
+  value: number;
+  decimals?: number;
+  suffix?: string;
+}) {
+  const v = useAnimatedCounter(Number.isFinite(value) ? value : 0);
+  return <>{fmt(v, decimals)}{suffix}</>;
+});
+
+/** Live clock, updates every second. */
+const LiveClock = memo(function LiveClock() {
+  const [now, setNow] = useState<Date>(() => new Date());
+  useEffect(() => {
+    const i = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(i);
+  }, []);
+  return <>{now.toLocaleString("pt-BR")}</>;
+});
 const brDate = (iso: string) => {
   if (!iso) return "—";
   const [y, m, d] = iso.split("-");
