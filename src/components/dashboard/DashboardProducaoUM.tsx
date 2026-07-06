@@ -469,22 +469,64 @@ export default function DashboardProducaoUM() {
           )}
         </Panel>
 
-        <Panel title="Top 6 Escavadeiras (t/h)" className="col-span-12 lg:col-span-3">
+        <Panel title="Top 6 Escavadeiras (t/h)" className="col-span-12 lg:col-span-5">
           {topEscav.length === 0 ? (
             <Empty />
           ) : (
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               {topEscav.map((e, i) => {
                 const max = topEscav[0].tph || 1;
                 const pct = (e.tph / max) * 100;
                 return (
-                  <div key={e.equipamento} className="flex items-center gap-2 text-[10px] font-mono">
-                    <span className="w-4 text-mining-yellow font-bold text-center">{i + 1}</span>
-                    <span className="w-14 text-foreground truncate">{e.equipamento}</span>
-                    <div className="flex-1 h-3 bg-white/5 rounded overflow-hidden">
-                      <div className="h-full bg-mining-blue" style={{ width: `${pct}%` }} />
+                  <div
+                    key={e.equipamento}
+                    className="bg-white/[0.03] border border-white/5 rounded p-2"
+                  >
+                    <div className="flex items-center justify-between gap-2 mb-1.5">
+                      <div className="flex items-center gap-2">
+                        <span className="w-5 h-5 flex items-center justify-center rounded bg-mining-yellow text-black text-[10px] font-black">
+                          {i + 1}
+                        </span>
+                        <span className="text-xs font-bold text-foreground tracking-tight">
+                          {e.equipamento}
+                        </span>
+                      </div>
+                      <span className="text-xs font-black text-mining-blue">
+                        {fmt(e.tph)} t/h
+                      </span>
                     </div>
-                    <span className="w-12 text-right text-mining-blue font-bold">{fmt(e.tph)}</span>
+                    <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 text-[10px] font-mono text-muted-foreground mb-1.5">
+                      <div className="truncate">
+                        <span className="text-mining-blue/70">Mat:</span>{" "}
+                        {e.material || "—"}
+                      </div>
+                      <div className="truncate">
+                        <span className="text-mining-blue/70">Frente:</span>{" "}
+                        {e.origem || "—"}
+                      </div>
+                      <div className="truncate">
+                        <span className="text-mining-blue/70">Subárea:</span>{" "}
+                        {e.subarea || "—"}
+                      </div>
+                      <div className="truncate">
+                        <span className="text-mining-blue/70">Destino:</span>{" "}
+                        {e.destino || "—"}
+                      </div>
+                      <div className="truncate">
+                        <span className="text-mining-blue/70">Viagens:</span>{" "}
+                        {fmt(e.viagens)}
+                      </div>
+                      <div className="truncate">
+                        <span className="text-mining-blue/70">Tonelagem:</span>{" "}
+                        {fmt(e.massa)} t
+                      </div>
+                    </div>
+                    <div className="h-2 bg-white/5 rounded overflow-hidden">
+                      <div
+                        className="h-full bg-mining-blue"
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
                   </div>
                 );
               })}
