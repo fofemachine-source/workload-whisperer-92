@@ -15,7 +15,7 @@ import {
   Legend,
 } from "recharts";
 import { Filter, AlertTriangle, Loader2 } from "lucide-react";
-import { useDashboardApi, useTempoApi, useProducaoApi, useViagensApi, useTempoCicloApi } from "@/hooks/useDashboardApi";
+import { useDashboardApi, useProducaoApi, useViagensApi } from "@/hooks/useDashboardApi";
 
 /* ---------- helpers ---------- */
 const fmt = (n: number, d = 0) =>
@@ -165,16 +165,13 @@ export default function DashboardProducaoUM() {
   const [dtFim, setDtFim] = useState(hoje);
 
   const { data, isLoading, isError, error, dataUpdatedAt } = useDashboardApi();
-  const { data: tempoData } = useTempoApi();
   const { data: producaoData } = useProducaoApi();
   const { data: viagensData } = useViagensApi();
-  const { data: tempoCicloData } = useTempoCicloApi();
 
   const kpis = data?.kpis;
   const producaoReal = Number(kpis?.producaoReal ?? 0);
   const metaDiaria = Number(kpis?.metaDiaria ?? 0);
   const acumuladoMes = Number(kpis?.acumuladoMes ?? 0);
-  const totalViagens = Number(kpis?.viagens ?? 0);
   const tphMedio = Number(kpis?.produtividadeMedia ?? 0);
   const totalPrevisto = metaDiaria; // sem série prevista da API
   const variacao = producaoReal - metaDiaria;
@@ -284,36 +281,6 @@ export default function DashboardProducaoUM() {
   const dfMedio = 0;
   const utMedio = 0;
 
-
-  const tempoParado = useMemo(() => {
-    const rows = tempoData ?? [];
-    const groups = new Map<string, number>();
-    for (const r of rows) {
-      const eq = pick(r, ["equipamento"]);
-      const carga = pick(r, ["equipamento_carga"]);
-      // Aceita linha se: (a) tem par caminhão+escavadeira válido, OU
-      // (b) só tem escavadeira válida, OU (c) só tem caminhão CR válido,
-      // OU (d) não traz equipamento algum (motivo agregado).
-      if (eq !== undefined || carga !== undefined) {
-        const okPar = eq !== undefined && carga !== undefined
-          ? linhaValida(eq, carga)
-          : (eq !== undefined ? isCaminhaoValido(eq) : true) &&
-            (carga !== undefined ? isEscavadeiraValida(carga) : true);
-        if (!okPar) continue;
-      }
-      const motivo = String(
-        pick(r, ["motivo", "descricao", "status", "estado", "tipo", "reason", "categoria"]) ?? "—",
-      );
-      const val = toNum(pick(r, ["duracao", "minutos", "tempo_min", "tempo", "duration", "total"]));
-      groups.set(motivo, (groups.get(motivo) ?? 0) + val);
-    }
-    return Array.from(groups.entries())
-      .map(([motivo, min]) => ({ motivo, min }))
-      .filter((r) => r.min > 0)
-      .sort((a, b) => b.min - a.min)
-      .slice(0, 10);
-  }, [tempoData]);
-
   const detalhamento = useMemo(
     () =>
       (producaoData ?? [])
@@ -355,33 +322,6 @@ export default function DashboardProducaoUM() {
       })),
     [viagensData],
   );
-
-  const resumoCiclo = useMemo(() => {
-    const rows = tempoCicloData ?? [];
-    const groups = new Map<string, { total: number; count: number }>();
-    for (const r of rows) {
-      const eq = pick(r, ["equipamento"]);
-      const carga = pick(r, ["equipamento_carga"]);
-      if (carga !== undefined && !isEscavadeiraValida(carga)) continue;
-      if (eq !== undefined) {
-        // equipamento pode ser caminhão (CR) ou escavadeira (whitelist)
-        if (!isCaminhaoValido(eq) && !isEscavadeiraValida(eq)) continue;
-      }
-      const cat = String(pick(r, ["equipamento", "estado", "categoria"]) ?? "—");
-      const val = toNum(pick(r, ["tempo_ciclo", "ciclo", "minutos", "duracao", "tempo"]));
-      const g = groups.get(cat) ?? { total: 0, count: 0 };
-      g.total += val;
-      g.count += 1;
-      groups.set(cat, g);
-    }
-    const arr = Array.from(groups.entries())
-      .map(([estado, g]) => ({ estado, media: g.count ? g.total / g.count : 0 }))
-      .filter((r) => r.media > 0)
-      .sort((a, b) => b.media - a.media)
-      .slice(0, 12);
-    const total = arr.reduce((s, r) => s + r.media, 0);
-    return { arr, total };
-  }, [tempoCicloData]);
 
   const limparFiltros = () => {
     setDtIni(inicioAno);
