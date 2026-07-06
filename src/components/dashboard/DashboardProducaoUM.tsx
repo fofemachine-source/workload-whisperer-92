@@ -433,7 +433,7 @@ export default function DashboardProducaoUM() {
           {frenteAgg.length === 0 ? (
             <Empty />
           ) : (
-            <div className="h-56 flex items-center">
+            <div className="h-full flex items-center">
               <div className="w-2/3 h-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
