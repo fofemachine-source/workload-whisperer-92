@@ -477,48 +477,48 @@ export default function DashboardProducaoUM() {
           )}
         </Panel>
 
-        <Panel title="Top 6 Escavadeiras (t/h)" className="col-span-12 lg:col-span-5">
+        <Panel title="Top Escavadeiras" className="col-span-12 lg:col-span-5">
           {topEscav.length === 0 ? (
             <Empty />
           ) : (
-            <div className="flex-1 min-h-0 overflow-auto space-y-2">
-              {topEscav.map((e, i) => {
-                const maxTph = topEscav[0].tph || 1;
-                const pct = Math.max(2, (e.tph / maxTph) * 100);
-                return (
-                  <div
-                    key={e.equipamento}
-                    className="bg-white/[0.03] border border-white/5 rounded p-2"
-                  >
-                    <div className="flex items-center justify-between gap-2 mb-1">
-                      <div className="flex items-center gap-2">
-                        <span className="w-5 h-5 flex items-center justify-center rounded bg-mining-yellow text-black text-[10px] font-black">
-                          {i + 1}
-                        </span>
-                        <span className="text-xs font-bold text-foreground tracking-tight">
-                          {e.equipamento}
-                        </span>
-                      </div>
-                      <span className="text-xs font-black text-mining-blue">
-                        {fmt(e.tph)} t/h
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-x-4 text-[10px] font-mono text-muted-foreground mb-1.5">
-                      <div className="truncate">
-                        <span className="text-mining-blue/70">Viagens:</span>{" "}
-                        <span className="text-mining-blue font-bold">{e.viagens ? fmt(e.viagens) : "—"}</span>
-                      </div>
-                      <div className="truncate text-right">
-                        <span className="text-mining-blue/70">Tonelagem:</span>{" "}
-                        <span className="text-mining-green font-bold">{e.massa ? `${fmt(e.massa)} t` : "—"}</span>
-                      </div>
-                    </div>
-                    <div className="h-2 bg-white/5 rounded overflow-hidden">
-                      <div className="h-full bg-mining-blue" style={{ width: `${pct}%` }} />
-                    </div>
-                  </div>
-                );
-              })}
+            <div className="flex-1 min-h-0 overflow-auto">
+              <table className="w-full text-[10px] font-mono">
+                <thead className="text-mining-blue/70 sticky top-0 bg-[hsl(220_45%_9%)]">
+                  <tr className="border-b border-mining-blue/30">
+                    <Th>Escavadeira</Th>
+                    <Th>Material</Th>
+                    <Th>Frente</Th>
+                    <Th>Subárea</Th>
+                    <Th>Destino</Th>
+                    <Th className="text-right">Qtd</Th>
+                    <Th className="text-right">Tonelagem</Th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {topEscav.map((e, i) => (
+                    <tr key={i} className="border-b border-white/5">
+                      <Td className="text-foreground font-bold">{e.equipamento}</Td>
+                      <Td>{e.material || "—"}</Td>
+                      <Td>{e.origem || "—"}</Td>
+                      <Td>{e.subarea || "—"}</Td>
+                      <Td>{e.destino || "—"}</Td>
+                      <Td className="text-right text-mining-blue">{fmt(e.viagens)}</Td>
+                      <Td className="text-right text-mining-green">{fmt(e.massa)}</Td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot className="sticky bottom-0 bg-mining-navy/95 border-t border-mining-blue/40">
+                  <tr className="font-bold">
+                    <Td colSpan={5} className="text-right text-mining-blue/80">TOTAL</Td>
+                    <Td className="text-right text-mining-blue">
+                      {fmt(topEscav.reduce((s, e) => s + e.viagens, 0))}
+                    </Td>
+                    <Td className="text-right text-mining-green">
+                      {fmt(topEscav.reduce((s, e) => s + e.massa, 0))}
+                    </Td>
+                  </tr>
+                </tfoot>
+              </table>
             </div>
           )}
         </Panel>
