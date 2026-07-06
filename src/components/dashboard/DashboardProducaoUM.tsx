@@ -606,7 +606,7 @@ export default function DashboardProducaoUM() {
           )}
         </Panel>
 
-        <Panel title="Viagens por Hora" className="col-span-12 lg:col-span-3">
+        <Panel title="Viagens por Hora" className="col-span-12 lg:col-span-2">
           {viagensPorHora.every((v) => v.Real === 0) ? (
             <Empty />
           ) : (
@@ -675,7 +675,7 @@ export default function DashboardProducaoUM() {
           )}
         </Panel>
 
-        <Panel title="Acompanhamento de Viagens" className="col-span-12 lg:col-span-4">
+        <Panel title="Acompanhamento de Viagens" className="col-span-12 lg:col-span-3">
           {acompViagens.length === 0 ? (
             <Empty />
           ) : (
