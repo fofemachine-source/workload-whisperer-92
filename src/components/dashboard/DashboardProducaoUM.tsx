@@ -1,4 +1,7 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect, memo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useAnimatedCounter } from "@/hooks/useAnimatedCounter";
+import { useCountdown } from "@/hooks/useCountdown";
 import {
   Bar,
   BarChart,
@@ -23,6 +26,30 @@ const fmt = (n: number, d = 0) =>
     minimumFractionDigits: d,
     maximumFractionDigits: d,
   });
+
+/** Animated count-up number using requestAnimationFrame (memoized). */
+const Counter = memo(function Counter({
+  value,
+  decimals = 0,
+  suffix = "",
+}: {
+  value: number;
+  decimals?: number;
+  suffix?: string;
+}) {
+  const v = useAnimatedCounter(Number.isFinite(value) ? value : 0);
+  return <>{fmt(v, decimals)}{suffix}</>;
+});
+
+/** Live clock, updates every second. */
+const LiveClock = memo(function LiveClock() {
+  const [now, setNow] = useState<Date>(() => new Date());
+  useEffect(() => {
+    const i = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(i);
+  }, []);
+  return <>{now.toLocaleString("pt-BR")}</>;
+});
 const brDate = (iso: string) => {
   if (!iso) return "—";
   const [y, m, d] = iso.split("-");
@@ -295,6 +322,7 @@ export default function DashboardProducaoUM() {
   };
 
   const ultima = dataUpdatedAt ? new Date(dataUpdatedAt) : null;
+  const countdown = useCountdown(5, dataUpdatedAt || 0);
 
   return (
     <div className="min-h-screen bg-[hsl(220_50%_5%)] text-foreground p-2 md:p-3 font-sans">
@@ -318,27 +346,39 @@ export default function DashboardProducaoUM() {
         <Panel className="col-span-12 lg:col-span-8 !p-0">
           <div className="flex items-center justify-end gap-4 px-3 py-3 h-full">
             <div className="flex flex-col text-right text-[11px] font-mono text-mining-blue/80 leading-tight">
-              <span>Atualização automática: <span className="text-mining-blue font-bold">60s</span></span>
-              <span>Última atualização: <span className="text-foreground font-bold">{ultima ? ultima.toLocaleString("pt-BR") : "—"}</span></span>
+              <span>
+                {countdown > 0 ? (
+                  <>Atualização em <span className="text-mining-blue font-bold tabular-nums">{countdown}s</span></>
+                ) : (
+                  <span className="text-mining-green font-bold animate-pulse">Atualizando...</span>
+                )}
+              </span>
+              <span>
+                Última atualização:{" "}
+                <span className="text-foreground font-bold"><LiveClock /></span>
+              </span>
             </div>
-            <button
+            <motion.button
               onClick={limparFiltros}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.98 }}
+              transition={{ duration: 0.2 }}
               className="flex items-center gap-1 border border-mining-blue/40 hover:bg-mining-blue/10 px-3 py-1.5 rounded text-[11px] font-bold text-mining-blue uppercase tracking-wider"
             >
               <Filter className="w-3 h-3" /> Limpar Filtros
-            </button>
+            </motion.button>
           </div>
         </Panel>
       </div>
 
       {/* KPI strip */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 mt-2">
-        <GradientKpi label="Produção Diária (t)" value={fmt(producaoReal)} tone="green" />
-        <GradientKpi label="Produção Prevista (t)" value={fmt(totalPrevisto)} tone="amber" />
-        <GradientKpi label="Acumulado Mês (t)" value={fmt(acumuladoMes)} tone="teal" />
-        <GradientKpi label="Meta Diária (t)" value={fmt(metaDiaria)} tone="blue" />
-        <GradientKpi label="Variação (t)" value={fmt(variacao)} tone={variacao < 0 ? "amber" : "green"} />
-        <GradientKpi label="Produtividade Escav. (t/h)" value={`${fmt(totalTphEscav)} t/h`} tone="cyan" />
+        <GradientKpi label="Produção Diária (t)" numeric={producaoReal} tone="green" />
+        <GradientKpi label="Produção Prevista (t)" numeric={totalPrevisto} tone="amber" />
+        <GradientKpi label="Acumulado Mês (t)" numeric={acumuladoMes} tone="teal" />
+        <GradientKpi label="Meta Diária (t)" numeric={metaDiaria} tone="blue" />
+        <GradientKpi label="Variação (t)" numeric={variacao} tone={variacao < 0 ? "amber" : "green"} />
+        <GradientKpi label="Produtividade Escav. (t/h)" numeric={totalTphEscav} tone="cyan" suffix=" t/h" />
       </div>
 
       {/* Dashboard grid */}
@@ -421,12 +461,21 @@ export default function DashboardProducaoUM() {
                 <span className="text-right">T/H</span>
               </div>
               <div className="flex-1 min-h-0 overflow-auto divide-y divide-mining-blue/10">
+                <AnimatePresence initial={false}>
                 {topEscav.map((e, i) => {
                   const totMassa = topEscav.reduce((s, x) => s + Number(x.massa || 0), 0) || 1;
                   const pct = (Number(e.massa || 0) / totMassa) * 100;
                   const rows = e.destinos.length > 0 ? e.destinos : [{ destino: e.destino ?? "—", viagens: e.viagens, massa: e.massa }];
                   return (
-                    <div key={e.equipamento} className="py-1.5 px-1">
+                    <motion.div
+                      key={e.equipamento}
+                      layout
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.4, ease: "easeOut" }}
+                      className="py-1.5 px-1"
+                    >
                       <div className="grid grid-cols-[1.6rem_1fr_1fr_1.2fr_5rem_5rem_3rem] gap-x-2 items-center">
                         <span className="w-5 h-5 flex items-center justify-center rounded-sm bg-mining-yellow text-background text-[10px] font-black">
                           {i + 1}
@@ -434,9 +483,9 @@ export default function DashboardProducaoUM() {
                         <span className="text-xs font-bold text-foreground truncate">{e.equipamento}</span>
                         <span className="text-[10px] font-mono text-mining-yellow truncate">{e.material ?? "—"}</span>
                         <span className="text-[10px] font-mono text-foreground truncate">{e.destino ?? "—"}</span>
-                        <span className="text-right text-[11px] font-mono font-bold text-mining-blue">{fmt(e.viagens)}</span>
-                        <span className="text-right text-[11px] font-mono font-bold text-emerald-300">{fmt(e.massa)}</span>
-                        <span className="text-right text-[11px] font-mono font-black text-cyan-300">{fmt(e.th)}</span>
+                        <span className="text-right text-[11px] font-mono font-bold text-mining-blue"><Counter value={e.viagens} /></span>
+                        <span className="text-right text-[11px] font-mono font-bold text-emerald-300"><Counter value={e.massa} /></span>
+                        <span className="text-right text-[11px] font-mono font-black text-cyan-300"><Counter value={e.th} /></span>
                       </div>
                       {e.destinos.length > 0 && (
                         <div className="mt-1 pl-8 space-y-0.5">
@@ -455,9 +504,10 @@ export default function DashboardProducaoUM() {
                           ))}
                         </div>
                       )}
-                    </div>
+                    </motion.div>
                   );
                 })}
+                </AnimatePresence>
               </div>
               <div className="border-t border-mining-blue/30 mt-2 pt-2 flex items-center justify-between px-1 text-[11px] font-mono">
                 <span className="font-bold uppercase tracking-wider text-foreground">Total Top 6</span>
@@ -667,12 +717,16 @@ function Kpi({
 
 function GradientKpi({
   label,
-  value,
+  numeric,
   tone,
+  suffix = "",
+  decimals = 0,
 }: {
   label: string;
-  value: string;
+  numeric: number;
   tone: "green" | "amber" | "teal" | "blue" | "cyan" | "indigo";
+  suffix?: string;
+  decimals?: number;
 }) {
   const toneMap: Record<string, { grad: string; border: string; text: string; label: string }> = {
     green: {
@@ -714,12 +768,18 @@ function GradientKpi({
   };
   const t = toneMap[tone];
   return (
-    <div
-      className={`relative overflow-hidden rounded-md border ${t.border} bg-gradient-to-br ${t.grad} px-3 py-2.5 shadow-[0_0_20px_-14px_rgba(0,0,0,0.9)]`}
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: "easeOut" }}
+      whileHover={{ boxShadow: "0 0 14px rgba(0,180,255,0.15)" }}
+      className={`relative overflow-hidden rounded-md border ${t.border} bg-gradient-to-br ${t.grad} px-3 py-2.5 shadow-[0_0_0_rgba(0,0,0,0)] transition-shadow duration-300`}
     >
       <p className={`text-[9px] uppercase tracking-[0.18em] font-bold truncate ${t.label}`}>{label}</p>
-      <p className={`text-2xl md:text-[26px] font-black leading-tight ${t.text} font-mono tabular-nums`}>{value}</p>
-    </div>
+      <p className={`text-2xl md:text-[26px] font-black leading-tight ${t.text} font-mono tabular-nums`}>
+        <Counter value={numeric} decimals={decimals} suffix={suffix} />
+      </p>
+    </motion.div>
   );
 }
 
