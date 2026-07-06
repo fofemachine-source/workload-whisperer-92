@@ -612,7 +612,7 @@ export default function DashboardProducaoUM() {
           )}
         </Panel>
 
-        <Panel title="Acompanhamento de Viagens" className="col-span-12 lg:col-span-3">
+        <Panel title="Acompanhamento de Viagens (9H)" className="col-span-12 lg:col-span-4">
           {acompViagens.length === 0 ? (
             <Empty />
           ) : (
@@ -657,6 +657,39 @@ export default function DashboardProducaoUM() {
             </table>
             </div>
           )}
+        </Panel>
+
+        <Panel title="Resumo de Tempos em Ciclo (9H)" className="col-span-12 lg:col-span-4">
+          {(() => {
+            const rows = Array.isArray(cicloData) ? cicloData : [];
+            if (rows.length === 0) return <Empty />;
+            return (
+              <div className="max-h-64 overflow-auto">
+                <table className="w-full text-[10px] font-mono">
+                  <thead className="text-mining-blue/70">
+                    <tr className="border-b border-mining-blue/20">
+                      <Th>Transporte</Th>
+                      <Th className="text-right">Viagens (Qtd)</Th>
+                      <Th className="text-right">Tempo Mín</Th>
+                      <Th className="text-right">Tempo Máx</Th>
+                      <Th className="text-right">Desvio Padrão</Th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rows.slice(0, 100).map((r: any, i: number) => (
+                      <tr key={i} className="border-b border-white/5">
+                        <Td>{String(pick(r, ["transporte", "categoria", "estado", "sub_estado", "descricao"]) ?? "—")}</Td>
+                        <Td className="text-right text-mining-blue">{fmt(toNum(pick(r, ["viagens", "quantidade", "qtd"])))}</Td>
+                        <Td className="text-right">{String(pick(r, ["tempo_min", "min", "tempoMin"]) ?? "—")}</Td>
+                        <Td className="text-right">{String(pick(r, ["tempo_max", "max", "tempoMax"]) ?? "—")}</Td>
+                        <Td className="text-right text-mining-yellow">{String(pick(r, ["desvio_padrao", "desvio", "std"]) ?? "—")}</Td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            );
+          })()}
         </Panel>
 
       </div>
