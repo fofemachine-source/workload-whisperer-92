@@ -796,6 +796,28 @@ function MiniKpi({ label, value, unit }: { label: string; value: string; unit?: 
   );
 }
 
+function StatBlock({
+  label,
+  value,
+  unit,
+  big = false,
+}: {
+  label: string;
+  value: React.ReactNode;
+  unit?: string;
+  big?: boolean;
+}) {
+  return (
+    <div className="leading-tight">
+      <p className="text-[8px] uppercase tracking-widest text-mining-blue/70 font-bold">{label}</p>
+      <p className={`${big ? "text-xl" : "text-sm"} font-black text-foreground font-mono tabular-nums`}>
+        {value}
+      </p>
+      {unit && <p className="text-[9px] font-mono text-muted-foreground">{unit}</p>}
+    </div>
+  );
+}
+
 function Th({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return <th className={`text-left font-bold py-1 pr-2 ${className}`}>{children}</th>;
 }
