@@ -71,6 +71,22 @@ const toNum = (v: unknown) => {
   return Number.isFinite(n) ? n : 0;
 };
 
+const fmtHora = (v: unknown): string => {
+  if (v === null || v === undefined || v === "") return "—";
+  const s = String(v);
+  // Já é HH:mm ou HH:mm:ss
+  const m = s.match(/(\d{2}):(\d{2})/);
+  if (m) return `${m[1]}:${m[2]}`;
+  // Tenta parsear como Date
+  const d = new Date(s);
+  if (!Number.isNaN(d.getTime())) {
+    const hh = String(d.getHours()).padStart(2, "0");
+    const mm = String(d.getMinutes()).padStart(2, "0");
+    return `${hh}:${mm}`;
+  }
+  return s;
+};
+
 
 /* ---------- shared card ---------- */
 function Panel({
@@ -326,12 +342,9 @@ export default function DashboardProducaoUM() {
     () =>
       (viagensData ?? [])
         .filter((r) => {
-          const eq = pick(r, ["equipamento"]);
-          const carga = pick(r, ["equipamento_carga"]);
-          if (carga !== undefined) return linhaValida(eq, carga);
-          return isCaminhaoValido(eq);
+          const eq = String(pick(r, ["equipamento"]) ?? "").trim().toUpperCase();
+          return eq.startsWith("CR");
         })
-        .slice(0, 50)
         .map((r) => ({
         equipamento: pick(r, ["equipamento"]) ?? null,
         event_start: pick(r, ["event_start"]) ?? null,
@@ -341,8 +354,8 @@ export default function DashboardProducaoUM() {
         destino: pick(r, ["destino"]) ?? null,
         material: pick(r, ["material"]) ?? null,
         operador: pick(r, ["operador"]) ?? null,
-        massa: toNum(pick(r, ["massa"])),
-        viagem: pick(r, ["viagem"]) ?? null,
+        massa: toNum(pick(r, ["massa", "material_tonnage", "tonelagem"])),
+        viagem: toNum(pick(r, ["viagem", "viagens"])) || 1,
       })),
     [viagensData],
   );
@@ -683,37 +696,38 @@ export default function DashboardProducaoUM() {
             <table className="w-full text-[10px] font-mono">
               <thead className="text-mining-blue/70">
                 <tr className="border-b border-mining-blue/20">
-                  <Th>Equip.</Th><Th>Início</Th><Th>Fim</Th>
-                  <Th className="text-right">Ciclo</Th><Th>Origem</Th><Th>Destino</Th>
-                  <Th>Material</Th><Th>Operador</Th>
-                  <Th className="text-right">Massa</Th><Th className="text-right">Viag.</Th>
+                  <Th>CR</Th><Th>Origem</Th><Th>Destino</Th><Th>Material</Th>
+                  <Th className="text-right">Viagem</Th>
+                  <Th className="text-right">Massa</Th>
+                  <Th>Início</Th><Th>Fim</Th>
+                  <Th className="text-right">Ciclo</Th>
                 </tr>
               </thead>
               <tbody>
                 {acompViagens.map((v, i) => (
                   <tr key={i} className="border-b border-white/5">
                     <Td>{String(v.equipamento ?? "—")}</Td>
-                    <Td>{String(v.event_start ?? "—")}</Td>
-                    <Td>{String(v.event_end ?? "—")}</Td>
-                    <Td className="text-right">{fmt(v.tempo_ciclo, 2)}</Td>
                     <Td>{String(v.origem ?? "—")}</Td>
                     <Td>{String(v.destino ?? "—")}</Td>
                     <Td>{String(v.material ?? "—")}</Td>
-                    <Td>{String(v.operador ?? "—")}</Td>
+                    <Td className="text-right text-mining-blue">{fmt(v.viagem)}</Td>
                     <Td className="text-right text-mining-green">{fmt(v.massa, 2)}</Td>
-                    <Td className="text-right text-mining-blue">{String(v.viagem ?? "—")}</Td>
+                    <Td>{fmtHora(v.event_start)}</Td>
+                    <Td>{fmtHora(v.event_end)}</Td>
+                    <Td className="text-right">{fmt(v.tempo_ciclo, 2)}</Td>
                   </tr>
                 ))}
               </tbody>
               <tfoot className="sticky bottom-0 bg-mining-navy/95 border-t border-mining-blue/40">
                 <tr className="font-bold">
-                  <Td colSpan={8} className="text-right text-mining-blue/80">TOTAL</Td>
-                  <Td className="text-right text-mining-green">
-                    {fmt(acompViagens.reduce((s, v) => s + Number(v.massa || 0), 0), 2)}
-                  </Td>
+                  <Td colSpan={4} className="text-right text-mining-blue/80">TOTAL</Td>
                   <Td className="text-right text-mining-blue">
                     {fmt(acompViagens.reduce((s, v) => s + (Number(v.viagem) || 0), 0))}
                   </Td>
+                  <Td className="text-right text-mining-green">
+                    {fmt(acompViagens.reduce((s, v) => s + Number(v.massa || 0), 0), 2)}
+                  </Td>
+                  <Td colSpan={3}>{""}</Td>
                 </tr>
               </tfoot>
             </table>
