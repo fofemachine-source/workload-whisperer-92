@@ -599,15 +599,15 @@ export default function DashboardProducaoUM() {
               <tbody>
                 {acompViagens.map((v, i) => (
                   <tr key={i} className="border-b border-white/5">
-                    <Td>{String(v.equipamento ?? "—")}</Td>
+                    <Td>{String(v.cr ?? "—")}</Td>
                     <Td>{String(v.origem ?? "—")}</Td>
                     <Td>{String(v.destino ?? "—")}</Td>
                     <Td>{String(v.material ?? "—")}</Td>
-                    <Td className="text-right text-mining-blue">{fmt(v.viagem)}</Td>
-                    <Td className="text-right text-mining-green">{fmt(v.massa, 2)}</Td>
-                    <Td>{fmtHora(v.event_start)}</Td>
-                    <Td>{fmtHora(v.event_end)}</Td>
-                    <Td className="text-right">{fmt(v.tempo_ciclo, 2)}</Td>
+                    <Td className="text-right text-mining-blue">{fmt(v.quantidade)}</Td>
+                    <Td className="text-right text-mining-green">{fmt(v.tonelagem, 2)}</Td>
+                    <Td>{fmtHora(v.inicio)}</Td>
+                    <Td>{fmtHora(v.fim)}</Td>
+                    <Td className="text-right">{fmt(v.ciclo, 2)}</Td>
                   </tr>
                 ))}
               </tbody>
@@ -615,10 +615,10 @@ export default function DashboardProducaoUM() {
                 <tr className="font-bold">
                   <Td colSpan={4} className="text-right text-mining-blue/80">TOTAL</Td>
                   <Td className="text-right text-mining-blue">
-                    {fmt(acompViagens.reduce((s, v) => s + (Number(v.viagem) || 0), 0))}
+                    {fmt(acompViagens.reduce((s, v) => s + (Number(v.quantidade) || 0), 0))}
                   </Td>
                   <Td className="text-right text-mining-green">
-                    {fmt(acompViagens.reduce((s, v) => s + Number(v.massa || 0), 0), 2)}
+                    {fmt(acompViagens.reduce((s, v) => s + Number(v.tonelagem || 0), 0), 2)}
                   </Td>
                   <Td colSpan={3}>{""}</Td>
                 </tr>
