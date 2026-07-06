@@ -559,12 +559,14 @@ export default function DashboardProducaoUM() {
           )}
         </Panel>
 
-        <div className="col-span-12 lg:col-span-1 grid grid-rows-4 gap-2">
-          <MiniKpi label="Produtividade Média" value={fmt(tphMedio)} unit="t/h" />
-          <MiniKpi label="Viagens Médias" value={fmt(mediaViagens)} unit="viag/h" />
-          <MiniKpi label="DF% Médio" value={dfMedio ? `${fmt(dfMedio, 1)}%` : "—"} />
-          <MiniKpi label="UT% Médio" value={utMedio ? `${fmt(utMedio, 1)}%` : "—"} />
-        </div>
+        <Panel className="col-span-12 lg:col-span-1">
+          <div className="flex flex-col justify-between h-full py-1 gap-2">
+            <StatBlock label="Produção (9H/13H)" value={<Counter value={producaoReal} />} unit="t" big />
+            <StatBlock label="Próxima Média" value={<Counter value={tphMedio} />} />
+            <StatBlock label="Viagens" value={<Counter value={kpis?.viagens ?? 0} />} />
+            <StatBlock label="VOI 10.000" value={<Counter value={mediaViagens} />} />
+          </div>
+        </Panel>
 
         <Panel title="Detalhamento de Produção" className="col-span-12 lg:col-span-4">
           {detalhamento.length === 0 ? (
