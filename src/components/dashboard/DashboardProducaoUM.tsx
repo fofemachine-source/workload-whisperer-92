@@ -60,6 +60,18 @@ const isEscavadeiraValida = (v: unknown) => {
 const linhaValida = (equipamento: unknown, equipamento_carga: unknown) =>
   isCaminhaoValido(equipamento) && isEscavadeiraValida(equipamento_carga);
 
+const pick = (obj: Record<string, any>, keys: string[]) => {
+  for (const k of keys) {
+    if (obj?.[k] !== undefined && obj?.[k] !== null && obj?.[k] !== "") return obj[k];
+  }
+  return undefined;
+};
+const toNum = (v: unknown) => {
+  const n = typeof v === "string" ? parseFloat(v.replace(",", ".")) : Number(v);
+  return Number.isFinite(n) ? n : 0;
+};
+
+
 /* ---------- shared card ---------- */
 function Panel({
   title,
@@ -172,18 +184,45 @@ export default function DashboardProducaoUM() {
   }, [data]);
 
   const topEscav = useMemo(
-    () =>
-      (data?.rankingEscavadeiras ?? [])
+    () => {
+      const rows = (data?.rankingEscavadeiras ?? []) as any[];
+      const base = rows
         .map((e) => ({
-          equipamento: String(e.equipamento),
-          tph: Number(e.th ?? 0),
-          massa: Number(e.massa ?? 0),
-          viagens: Number(e.viagens ?? 0),
+          equipamento: String(e.equipamento ?? ""),
+          material: String(e.material ?? ""),
+          origem: String(e.origem ?? ""),
+          subarea: String(e.subarea ?? ""),
+          destino: String(e.destino ?? ""),
+          viagens: toNum(e.viagens ?? e.quantidade),
+          massa: toNum(e.massa ?? e.tonelagem),
+          tph: toNum(e.th ?? e.tph),
         }))
         .filter((e) => e.tph > 0 && isEscavadeiraValida(e.equipamento))
         .sort((a, b) => b.tph - a.tph)
-        .slice(0, 6),
-    [data],
+        .slice(0, 6);
+
+      // Enriquece campos operacionais ausentes com os dados de produção detalhada
+      return base.map((escav) => {
+        if (escav.material && escav.origem && escav.subarea && escav.destino && escav.viagens && escav.massa) {
+          return escav;
+        }
+        const match = (producaoData ?? []).find((r) => {
+          const carga = normEquip(pick(r, ["equipamento_carga"]));
+          return carga === normEquip(escav.equipamento);
+        });
+        if (!match) return escav;
+        return {
+          ...escav,
+          material: escav.material || String(pick(match, ["material"]) ?? ""),
+          origem: escav.origem || String(pick(match, ["origem"]) ?? ""),
+          subarea: escav.subarea || String(pick(match, ["subarea"]) ?? ""),
+          destino: escav.destino || String(pick(match, ["destino"]) ?? ""),
+          viagens: escav.viagens || toNum(pick(match, ["viagens", "quantidade"])),
+          massa: escav.massa || toNum(pick(match, ["massa", "tonelagem"])),
+        };
+      });
+    },
+    [data, producaoData],
   );
 
   const viagensPorHora = useMemo(() => {
@@ -212,16 +251,6 @@ export default function DashboardProducaoUM() {
   const dfMedio = 0;
   const utMedio = 0;
 
-  const pick = (obj: Record<string, any>, keys: string[]) => {
-    for (const k of keys) {
-      if (obj?.[k] !== undefined && obj?.[k] !== null && obj?.[k] !== "") return obj[k];
-    }
-    return undefined;
-  };
-  const toNum = (v: unknown) => {
-    const n = typeof v === "string" ? parseFloat(v.replace(",", ".")) : Number(v);
-    return Number.isFinite(n) ? n : 0;
-  };
 
   const tempoParado = useMemo(() => {
     const rows = tempoData ?? [];
@@ -380,7 +409,7 @@ export default function DashboardProducaoUM() {
 
       {/* Row 2 */}
       <div className="grid grid-cols-12 gap-2 mt-2">
-        <Panel title="Produção Diária (t)" className="col-span-12 lg:col-span-5">
+        <Panel title="Produção Diária (t)" className="col-span-12 lg:col-span-4">
           {dailySeries.length === 0 ? (
             <Empty />
           ) : (
@@ -400,7 +429,7 @@ export default function DashboardProducaoUM() {
           )}
         </Panel>
 
-        <Panel title="Produção por Frente (t)" className="col-span-12 lg:col-span-4">
+        <Panel title="Produção por Frente (t)" className="col-span-12 lg:col-span-3">
           {frenteAgg.length === 0 ? (
             <Empty />
           ) : (
@@ -442,22 +471,64 @@ export default function DashboardProducaoUM() {
           )}
         </Panel>
 
-        <Panel title="Top 6 Escavadeiras (t/h)" className="col-span-12 lg:col-span-3">
+        <Panel title="Top 6 Escavadeiras (t/h)" className="col-span-12 lg:col-span-5">
           {topEscav.length === 0 ? (
             <Empty />
           ) : (
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               {topEscav.map((e, i) => {
                 const max = topEscav[0].tph || 1;
                 const pct = (e.tph / max) * 100;
                 return (
-                  <div key={e.equipamento} className="flex items-center gap-2 text-[10px] font-mono">
-                    <span className="w-4 text-mining-yellow font-bold text-center">{i + 1}</span>
-                    <span className="w-14 text-foreground truncate">{e.equipamento}</span>
-                    <div className="flex-1 h-3 bg-white/5 rounded overflow-hidden">
-                      <div className="h-full bg-mining-blue" style={{ width: `${pct}%` }} />
+                  <div
+                    key={e.equipamento}
+                    className="bg-white/[0.03] border border-white/5 rounded p-2"
+                  >
+                    <div className="flex items-center justify-between gap-2 mb-1.5">
+                      <div className="flex items-center gap-2">
+                        <span className="w-5 h-5 flex items-center justify-center rounded bg-mining-yellow text-black text-[10px] font-black">
+                          {i + 1}
+                        </span>
+                        <span className="text-xs font-bold text-foreground tracking-tight">
+                          {e.equipamento}
+                        </span>
+                      </div>
+                      <span className="text-xs font-black text-mining-blue">
+                        {fmt(e.tph)} t/h
+                      </span>
                     </div>
-                    <span className="w-12 text-right text-mining-blue font-bold">{fmt(e.tph)}</span>
+                    <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 text-[10px] font-mono text-muted-foreground mb-1.5">
+                      <div className="truncate">
+                        <span className="text-mining-blue/70">Mat:</span>{" "}
+                        {e.material || "—"}
+                      </div>
+                      <div className="truncate">
+                        <span className="text-mining-blue/70">Frente:</span>{" "}
+                        {e.origem || "—"}
+                      </div>
+                      <div className="truncate">
+                        <span className="text-mining-blue/70">Subárea:</span>{" "}
+                        {e.subarea || "—"}
+                      </div>
+                      <div className="truncate">
+                        <span className="text-mining-blue/70">Destino:</span>{" "}
+                        {e.destino || "—"}
+                      </div>
+                      <div className="truncate">
+                        <span className="text-mining-blue/70">Viagens:</span>{" "}
+                        {fmt(e.viagens)}
+                      </div>
+                      <div className="truncate">
+                        <span className="text-mining-blue/70">Tonelagem:</span>{" "}
+                        {fmt(e.massa)} t
+                      </div>
+                    </div>
+                    <div className="h-2 bg-white/5 rounded overflow-hidden">
+                      <div
+                        className="h-full bg-mining-blue"
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
                   </div>
                 );
               })}
