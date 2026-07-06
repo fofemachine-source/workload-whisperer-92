@@ -375,9 +375,13 @@ export default function DashboardProducaoUM() {
           <div className="flex flex-wrap items-end gap-3 px-3 py-2">
             <FilterField label="Data Inicial" value={dtIni} onChange={setDtIni} type="date" />
             <FilterField label="Data Final" value={dtFim} onChange={setDtFim} type="date" />
+            <div className="flex flex-col text-right text-[10px] font-mono text-mining-blue/80 ml-auto leading-tight">
+              <span>Atualização automática: <span className="text-mining-blue font-bold">60s</span></span>
+              <span>Última atualização: <span className="text-foreground font-bold">{ultima ? ultima.toLocaleString("pt-BR") : "—"}</span></span>
+            </div>
             <button
               onClick={limparFiltros}
-              className="ml-auto flex items-center gap-1 border border-mining-blue/40 hover:bg-mining-blue/10 px-3 py-1.5 rounded text-[11px] font-bold text-mining-blue uppercase tracking-wider"
+              className="flex items-center gap-1 border border-mining-blue/40 hover:bg-mining-blue/10 px-3 py-1.5 rounded text-[11px] font-bold text-mining-blue uppercase tracking-wider"
             >
               <Filter className="w-3 h-3" /> Limpar Filtros
             </button>
@@ -512,6 +516,20 @@ export default function DashboardProducaoUM() {
                           <div><span className="text-mining-blue/70">Tonelagem:</span> <span className="text-mining-green font-bold">{fmt(e.massa)} t</span></div>
                         </div>
                       </div>
+                      {e.destino && (
+                        <div className="mb-1.5 text-[10px] font-mono">
+                          <div className="grid grid-cols-[1fr_auto_auto] gap-x-4 text-mining-blue/60 border-b border-white/5 pb-0.5">
+                            <span>Destino</span>
+                            <span className="text-right">Quantidade (Viagens)</span>
+                            <span className="text-right">Tonelagem (t)</span>
+                          </div>
+                          <div className="grid grid-cols-[1fr_auto_auto] gap-x-4 pt-0.5">
+                            <span className="truncate text-foreground">{e.destino}</span>
+                            <span className="text-right text-mining-blue">{fmt(e.viagens)}</span>
+                            <span className="text-right text-mining-green">{fmt(e.massa)}</span>
+                          </div>
+                        </div>
+                      )}
                       <div className="h-1.5 bg-white/5 rounded overflow-hidden">
                         <div className="h-full bg-mining-blue" style={{ width: `${pct}%` }} />
                       </div>
@@ -732,8 +750,11 @@ export default function DashboardProducaoUM() {
           Fonte: http://192.168.17.15:3001/api/dashboard · auto 60s
           {isLoading && <Loader2 className="h-3 w-3 animate-spin" />}
         </span>
-        <span>
-          Atualizado em: {ultima ? ultima.toLocaleString("pt-BR") : "—"}
+        <span className="flex items-center gap-1.5">
+          <span className={`w-2 h-2 rounded-full ${isError ? "bg-mining-red" : "bg-mining-green animate-pulse"}`} />
+          <span className={isError ? "text-mining-red" : "text-mining-green"}>
+            {isError ? "Desconectado" : "Conectado"}
+          </span>
         </span>
       </div>
     </div>
