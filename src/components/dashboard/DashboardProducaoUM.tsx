@@ -15,7 +15,7 @@ import {
   Legend,
 } from "recharts";
 import { Filter, AlertTriangle, Loader2 } from "lucide-react";
-import { useDashboardApi, useTempoApi, useProducaoApi, useViagensApi, useTempoCicloApi } from "@/hooks/useDashboardApi";
+import { useDashboardApi, useProducaoApi, useViagensApi } from "@/hooks/useDashboardApi";
 
 /* ---------- helpers ---------- */
 const fmt = (n: number, d = 0) =>
@@ -165,20 +165,13 @@ export default function DashboardProducaoUM() {
   const [dtFim, setDtFim] = useState(hoje);
 
   const { data, isLoading, isError, error, dataUpdatedAt } = useDashboardApi();
-  const { data: tempoData } = useTempoApi();
   const { data: producaoData } = useProducaoApi();
   const { data: viagensData } = useViagensApi();
-  const { data: tempoCicloData } = useTempoCicloApi();
 
   const kpis = data?.kpis;
   const producaoReal = Number(kpis?.producaoReal ?? 0);
   const metaDiaria = Number(kpis?.metaDiaria ?? 0);
   const acumuladoMes = Number(kpis?.acumuladoMes ?? 0);
-  const totalTphEscav = (data?.rankingEscavadeiras ?? []).reduce(
-    (total, item: any) => total + Number(item?.th ?? item?.tph ?? 0),
-    0,
-  );
-  const totalViagens = Number(kpis?.viagens ?? 0);
   const tphMedio = Number(kpis?.produtividadeMedia ?? 0);
   const totalPrevisto = metaDiaria; // sem série prevista da API
   const variacao = producaoReal - metaDiaria;
@@ -205,20 +198,62 @@ export default function DashboardProducaoUM() {
   const topEscav = useMemo(
     () => {
       if (!Array.isArray(data?.rankingEscavadeiras) || data.rankingEscavadeiras.length === 0) return [];
+
       return data.rankingEscavadeiras
-        .map((e: any) => ({
-          equipamento: String(e.equipamento ?? ""),
-          th: Number(e.th ?? 0),
-          viagens: Number(e.viagens ?? 0),
-          massa: Number(e.massa ?? 0),
-          material: e.material,
-          subarea: e.subarea,
-          destino: e.destino,
-        }))
-        .filter((e) => e.th > 0 || e.massa > 0);
+        .map((e: any) => {
+          const equipamento = String(e.equipamento ?? "").trim();
+          const equipamentoNorm = normEquip(equipamento);
+          const linhasProducao = (producaoData ?? []).filter((r) => {
+            const carga = pick(r, ["equipamento_carga", "escavadeira", "equipamentoCarga"]);
+            return normEquip(carga) === equipamentoNorm;
+          });
+
+          const destinoAgg = new Map<string, { destino: string; viagens: number; massa: number }>();
+          for (const r of linhasProducao) {
+            const destino = String(pick(r, ["destino", "destination"]) ?? "—");
+            const viagens = toNum(pick(r, ["quantidade", "viagens", "viagem", "trips"])) || 1;
+            const massa = toNum(pick(r, ["massa", "material_tonnage", "tonelagem", "tonnage"]));
+            const atual = destinoAgg.get(destino) ?? { destino, viagens: 0, massa: 0 };
+            atual.viagens += viagens;
+            atual.massa += massa;
+            destinoAgg.set(destino, atual);
+          }
+
+          const destinos = Array.from(destinoAgg.values())
+            .filter((d) => d.destino !== "—" || d.viagens > 0 || d.massa > 0)
+            .sort((a, b) => b.massa - a.massa);
+
+          const firstProd = linhasProducao[0] ?? {};
+          const destinoRanking = e.destino ? String(e.destino) : "";
+          const destinoLinhas = destinos.map((d) => d.destino).filter((d) => d && d !== "—");
+          const destinoResumo = destinoLinhas.length > 0 ? destinoLinhas.slice(0, 2).join(" / ") : destinoRanking;
+          const viagensRanking = Number(e.viagens ?? 0);
+          const massaRanking = Number(e.massa ?? 0);
+
+          return {
+            equipamento,
+            th: Number(e.th ?? e.tph ?? 0),
+            viagens: destinos.length ? destinos.reduce((s, d) => s + d.viagens, 0) : viagensRanking,
+            massa: destinos.length ? destinos.reduce((s, d) => s + d.massa, 0) : massaRanking,
+            material: e.material ?? pick(firstProd, ["material", "material_name"]),
+            subarea: e.subarea ?? pick(firstProd, ["subarea", "subárea", "origem", "frente_lavra", "frenteDeLavra"]),
+            destino: destinoResumo,
+            destinos: destinos.length
+              ? destinos
+              : destinoRanking
+                ? [{ destino: destinoRanking, viagens: viagensRanking, massa: massaRanking }]
+                : [],
+          };
+        })
+        .filter((e) => isEscavadeiraValida(e.equipamento))
+        .filter((e) => e.th > 0 || e.massa > 0)
+        .sort((a, b) => b.th - a.th)
+        .slice(0, 6);
     },
-    [data],
+    [data, producaoData],
   );
+
+  const totalTphEscav = topEscav.reduce((total, item) => total + Number(item.th || 0), 0);
 
   const viagensPorHora = useMemo(() => {
     const base = Array.from({ length: 24 }, (_, h) => ({
@@ -245,36 +280,6 @@ export default function DashboardProducaoUM() {
   const mediaViagens = 0;
   const dfMedio = 0;
   const utMedio = 0;
-
-
-  const tempoParado = useMemo(() => {
-    const rows = tempoData ?? [];
-    const groups = new Map<string, number>();
-    for (const r of rows) {
-      const eq = pick(r, ["equipamento"]);
-      const carga = pick(r, ["equipamento_carga"]);
-      // Aceita linha se: (a) tem par caminhão+escavadeira válido, OU
-      // (b) só tem escavadeira válida, OU (c) só tem caminhão CR válido,
-      // OU (d) não traz equipamento algum (motivo agregado).
-      if (eq !== undefined || carga !== undefined) {
-        const okPar = eq !== undefined && carga !== undefined
-          ? linhaValida(eq, carga)
-          : (eq !== undefined ? isCaminhaoValido(eq) : true) &&
-            (carga !== undefined ? isEscavadeiraValida(carga) : true);
-        if (!okPar) continue;
-      }
-      const motivo = String(
-        pick(r, ["motivo", "descricao", "status", "estado", "tipo", "reason", "categoria"]) ?? "—",
-      );
-      const val = toNum(pick(r, ["duracao", "minutos", "tempo_min", "tempo", "duration", "total"]));
-      groups.set(motivo, (groups.get(motivo) ?? 0) + val);
-    }
-    return Array.from(groups.entries())
-      .map(([motivo, min]) => ({ motivo, min }))
-      .filter((r) => r.min > 0)
-      .sort((a, b) => b.min - a.min)
-      .slice(0, 10);
-  }, [tempoData]);
 
   const detalhamento = useMemo(
     () =>
@@ -318,33 +323,6 @@ export default function DashboardProducaoUM() {
     [viagensData],
   );
 
-  const resumoCiclo = useMemo(() => {
-    const rows = tempoCicloData ?? [];
-    const groups = new Map<string, { total: number; count: number }>();
-    for (const r of rows) {
-      const eq = pick(r, ["equipamento"]);
-      const carga = pick(r, ["equipamento_carga"]);
-      if (carga !== undefined && !isEscavadeiraValida(carga)) continue;
-      if (eq !== undefined) {
-        // equipamento pode ser caminhão (CR) ou escavadeira (whitelist)
-        if (!isCaminhaoValido(eq) && !isEscavadeiraValida(eq)) continue;
-      }
-      const cat = String(pick(r, ["equipamento", "estado", "categoria"]) ?? "—");
-      const val = toNum(pick(r, ["tempo_ciclo", "ciclo", "minutos", "duracao", "tempo"]));
-      const g = groups.get(cat) ?? { total: 0, count: 0 };
-      g.total += val;
-      g.count += 1;
-      groups.set(cat, g);
-    }
-    const arr = Array.from(groups.entries())
-      .map(([estado, g]) => ({ estado, media: g.count ? g.total / g.count : 0 }))
-      .filter((r) => r.media > 0)
-      .sort((a, b) => b.media - a.media)
-      .slice(0, 12);
-    const total = arr.reduce((s, r) => s + r.media, 0);
-    return { arr, total };
-  }, [tempoCicloData]);
-
   const limparFiltros = () => {
     setDtIni(inicioAno);
     setDtFim(hoje);
@@ -358,7 +336,7 @@ export default function DashboardProducaoUM() {
       <div className="grid grid-cols-12 gap-2 items-stretch">
         <Panel className="col-span-12 lg:col-span-4 !p-0">
           <div className="flex items-center gap-3 px-3 py-2">
-            <div className="flex items-center justify-center w-14 h-14 rounded bg-mining-yellow text-black font-black text-lg leading-tight text-center">
+            <div className="flex items-center justify-center w-14 h-14 rounded bg-mining-yellow text-background font-black text-lg leading-tight text-center">
               U&amp;M
             </div>
             <div>
@@ -406,9 +384,9 @@ export default function DashboardProducaoUM() {
         />
       </div>
 
-      {/* Row 2 */}
-      <div className="grid grid-cols-12 gap-2 mt-2">
-        <Panel title="Produção Diária (t)" className="col-span-12 lg:col-span-4">
+      {/* Dashboard grid */}
+      <div className="grid grid-cols-12 gap-2 mt-2 items-stretch">
+        <Panel title="Produção Diária (t)" className="col-span-12 lg:col-span-4 min-h-[360px]">
           {dailySeries.length === 0 ? (
             <Empty />
           ) : (
@@ -428,7 +406,7 @@ export default function DashboardProducaoUM() {
           )}
         </Panel>
 
-        <Panel title="Produção por Frente (t)" className="col-span-12 lg:col-span-3">
+        <Panel title="Produção por Frente (t)" className="col-span-12 lg:col-span-3 min-h-[360px]">
           {frenteAgg.length === 0 ? (
             <Empty />
           ) : (
@@ -470,66 +448,68 @@ export default function DashboardProducaoUM() {
           )}
         </Panel>
 
-        <Panel title="Top 6 Escavadeiras" className="col-span-12 lg:col-span-5">
+        <Panel title="Top 6 Escavadeiras" className="col-span-12 lg:col-span-5 lg:row-span-3 min-h-[760px] lg:min-h-0">
           {topEscav.length === 0 ? (
             <Empty />
           ) : (
             <div className="flex flex-col h-full">
-              <div className="flex-1 min-h-0 overflow-auto space-y-2">
+              <div className="flex-1 min-h-0 overflow-auto space-y-2 pr-1">
                 {topEscav.map((e, i) => {
                   const maxTh = topEscav[0].th || 1;
                   const pct = Math.max(2, (e.th / maxTh) * 100);
                   return (
                     <div
                       key={e.equipamento}
-                      className="bg-white/[0.03] border border-white/5 rounded p-2"
+                      className="bg-mining-surface-2/70 border border-mining-blue/15 rounded-sm p-2 shadow-[inset_0_1px_0_hsl(var(--mining-blue)/0.08)]"
                     >
-                      <div className="flex items-center justify-between gap-2 mb-1">
+                      <div className="flex items-center justify-between gap-2 mb-1.5">
                         <div className="flex items-center gap-2">
-                          <span className="w-5 h-5 flex items-center justify-center rounded bg-mining-yellow text-black text-[10px] font-black">
+                          <span className="w-5 h-5 flex items-center justify-center rounded-sm bg-mining-yellow text-background text-[10px] font-black">
                             {i + 1}
                           </span>
                           <span className="text-xs font-bold text-foreground tracking-tight">
                             {e.equipamento}
                           </span>
                         </div>
-                        <span className="text-xs font-black text-mining-blue">
+                        <span className="text-base font-black text-mining-blue leading-none text-glow-blue">
                           {fmt(e.th)} t/h
                         </span>
                       </div>
-                      <div className="grid grid-cols-[1fr_auto] gap-x-4 text-[10px] font-mono text-muted-foreground mb-1.5">
+                      <div className="grid grid-cols-[1fr_auto] gap-x-4 text-[10px] font-mono text-muted-foreground mb-1.5 leading-tight">
                         <div className="space-y-0.5 min-w-0">
                           {e.material && (
-                            <div className="truncate"><span className="text-mining-blue/70">Material:</span> <span className="text-foreground">{e.material}</span></div>
+                            <div className="truncate"><span className="text-mining-blue/80">Material:</span> <span className="text-mining-yellow font-bold">{e.material}</span></div>
                           )}
                           {e.subarea && (
-                            <div className="truncate"><span className="text-mining-blue/70">Subárea:</span> <span className="text-foreground">{e.subarea}</span></div>
+                            <div className="truncate"><span className="text-mining-blue/80">Subárea:</span> <span className="text-foreground">{e.subarea}</span></div>
                           )}
                           {e.destino && (
-                            <div className="truncate"><span className="text-mining-blue/70">Destino:</span> <span className="text-foreground">{e.destino}</span></div>
+                            <div className="truncate"><span className="text-mining-blue/80">Destino:</span> <span className="text-foreground">{e.destino}</span></div>
                           )}
                         </div>
                         <div className="text-right space-y-0.5 whitespace-nowrap">
-                          <div><span className="text-mining-blue/70">Viagens:</span> <span className="text-mining-blue font-bold">{fmt(e.viagens)}</span></div>
-                          <div><span className="text-mining-blue/70">Tonelagem:</span> <span className="text-mining-green font-bold">{fmt(e.massa)} t</span></div>
+                          <div><span className="text-mining-blue/80">Viagens:</span> <span className="text-mining-blue font-bold">{fmt(e.viagens)}</span></div>
+                          <div><span className="text-mining-blue/80">Tonelagem:</span> <span className="text-foreground font-bold">{fmt(e.massa)} t</span></div>
                         </div>
                       </div>
-                      {e.destino && (
-                        <div className="mb-1.5 text-[10px] font-mono">
-                          <div className="grid grid-cols-[1fr_auto_auto] gap-x-4 text-mining-blue/60 border-b border-white/5 pb-0.5">
+                      {e.destinos.length > 0 && (
+                        <div className="mb-1.5 text-[9px] font-mono overflow-hidden rounded-sm bg-mining-surface/55 border border-mining-blue/5">
+                          <div className="grid grid-cols-[minmax(0,1fr)_6rem_6rem] gap-x-3 px-2 py-1 text-mining-blue/65 border-b border-mining-blue/10">
                             <span>Destino</span>
                             <span className="text-right">Quantidade (Viagens)</span>
                             <span className="text-right">Tonelagem (t)</span>
                           </div>
-                          <div className="grid grid-cols-[1fr_auto_auto] gap-x-4 pt-0.5">
-                            <span className="truncate text-foreground">{e.destino}</span>
-                            <span className="text-right text-mining-blue">{fmt(e.viagens)}</span>
-                            <span className="text-right text-mining-green">{fmt(e.massa)}</span>
-                          </div>
+                          {e.destinos.map((destino) => (
+                            <div key={destino.destino} className="grid grid-cols-[minmax(0,1fr)_6rem_6rem] gap-x-3 px-2 py-0.5 border-b border-mining-blue/5 last:border-b-0">
+                              <span className="truncate text-foreground">{destino.destino}</span>
+                              <span className="text-right text-foreground">{fmt(destino.viagens)}</span>
+                              <span className="text-right text-foreground">{fmt(destino.massa)}</span>
+                            </div>
+                          ))}
                         </div>
                       )}
-                      <div className="h-1.5 bg-white/5 rounded overflow-hidden">
-                        <div className="h-full bg-mining-blue" style={{ width: `${pct}%` }} />
+                      <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
+                        <div className="h-full bg-mining-blue shadow-[0_0_12px_hsl(var(--mining-blue)/0.85)]" style={{ width: `${pct}%` }} />
                       </div>
                     </div>
                   );
@@ -545,11 +525,7 @@ export default function DashboardProducaoUM() {
             </div>
           )}
         </Panel>
-      </div>
-
-      {/* Row 3 */}
-      <div className="grid grid-cols-12 gap-2 mt-2">
-        <Panel title="Produtividade (t/h)" className="col-span-12 lg:col-span-5">
+        <Panel title="Produtividade (t/h)" className="col-span-12 lg:col-span-4">
           {prodSeries.length === 0 ? (
             <Empty />
           ) : (
@@ -570,7 +546,7 @@ export default function DashboardProducaoUM() {
           )}
         </Panel>
 
-        <Panel title="Viagens por Hora" className="col-span-12 lg:col-span-3">
+        <Panel title="Viagens por Hora" className="col-span-12 lg:col-span-2">
           {viagensPorHora.every((v) => v.Real === 0) ? (
             <Empty />
           ) : (
@@ -595,31 +571,6 @@ export default function DashboardProducaoUM() {
           <MiniKpi label="UT% Médio" value={utMedio ? `${fmt(utMedio, 1)}%` : "—"} />
         </div>
 
-        <Panel title="Tempo Parado por Motivo (min)" className="col-span-12 lg:col-span-3">
-          {tempoParado.length === 0 ? (
-            <Empty />
-          ) : (
-            <div className="space-y-1">
-              {tempoParado.map((t) => {
-                const max = tempoParado[0].min || 1;
-                const pct = (t.min / max) * 100;
-                return (
-                  <div key={t.motivo} className="flex items-center gap-2 text-[10px] font-mono">
-                    <span className="w-24 text-foreground truncate" title={t.motivo}>{t.motivo}</span>
-                    <div className="flex-1 h-2.5 bg-white/5 rounded overflow-hidden">
-                      <div className="h-full bg-mining-blue" style={{ width: `${pct}%` }} />
-                    </div>
-                    <span className="w-14 text-right text-mining-blue">{fmt(t.min)}</span>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </Panel>
-      </div>
-
-      {/* Row 4 */}
-      <div className="grid grid-cols-12 gap-2 mt-2">
         <Panel title="Detalhamento de Produção" className="col-span-12 lg:col-span-4">
           {detalhamento.length === 0 ? (
             <Empty />
@@ -664,7 +615,7 @@ export default function DashboardProducaoUM() {
           )}
         </Panel>
 
-        <Panel title="Acompanhamento de Viagens" className="col-span-12 lg:col-span-4">
+        <Panel title="Acompanhamento de Viagens" className="col-span-12 lg:col-span-3">
           {acompViagens.length === 0 ? (
             <Empty />
           ) : (
@@ -711,24 +662,6 @@ export default function DashboardProducaoUM() {
           )}
         </Panel>
 
-        <Panel title="Resumo de Tempos do Ciclo (min)" className="col-span-12 lg:col-span-4">
-          {resumoCiclo.arr.length === 0 ? (
-            <Empty />
-          ) : (
-            <div className="space-y-1 text-[10px] font-mono">
-              {resumoCiclo.arr.map((r) => (
-                <div key={r.estado} className="flex justify-between border-b border-white/5 py-0.5">
-                  <span className="text-foreground">{r.estado}</span>
-                  <span className="text-mining-blue font-bold">{fmt(r.media, 2)}</span>
-                </div>
-              ))}
-              <div className="flex justify-between pt-1 mt-1 border-t border-mining-blue/40 text-mining-yellow font-bold">
-                <span>TEMPO TOTAL DO CICLO</span>
-                <span>{fmt(resumoCiclo.total, 2)}</span>
-              </div>
-            </div>
-          )}
-        </Panel>
       </div>
 
       {/* API status */}
