@@ -785,8 +785,8 @@ function MiniKpi({ label, value, unit }: { label: string; value: string; unit?: 
 function Th({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return <th className={`text-left font-bold py-1 pr-2 ${className}`}>{children}</th>;
 }
-function Td({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  return <td className={`py-1 pr-2 truncate ${className}`}>{children}</td>;
+function Td({ children, className = "", colSpan }: { children: React.ReactNode; className?: string; colSpan?: number }) {
+  return <td colSpan={colSpan} className={`py-1 pr-2 truncate ${className}`}>{children}</td>;
 }
 function Empty() {
   return <p className="text-[11px] text-muted-foreground font-mono py-8 text-center">Sem dados reais disponíveis</p>;
