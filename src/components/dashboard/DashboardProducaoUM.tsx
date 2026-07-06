@@ -135,10 +135,6 @@ export default function DashboardProducaoUM() {
   const inicioAno = `${new Date().getFullYear()}-01-01`;
   const [dtIni, setDtIni] = useState(inicioAno);
   const [dtFim, setDtFim] = useState(hoje);
-  const [fTurno, setFTurno] = useState("");
-  const [fFrente, setFFrente] = useState("");
-  const [fEquip, setFEquip] = useState("");
-  const [fMaterial, setFMaterial] = useState("");
 
   const { data, isLoading, isError, error, dataUpdatedAt } = useDashboardApi();
   const { data: tempoData } = useTempoApi();
@@ -328,15 +324,9 @@ export default function DashboardProducaoUM() {
     return { arr, total };
   }, [tempoCicloData]);
 
-  const opts = { turnos: [] as string[], frentes: [] as string[], equipamentos: [] as string[], materiais: [] as string[] };
-
   const limparFiltros = () => {
     setDtIni(inicioAno);
     setDtFim(hoje);
-    setFTurno("");
-    setFFrente("");
-    setFEquip("");
-    setFMaterial("");
   };
 
   const ultima = dataUpdatedAt ? new Date(dataUpdatedAt) : null;
@@ -364,15 +354,6 @@ export default function DashboardProducaoUM() {
           <div className="flex flex-wrap items-end gap-3 px-3 py-2">
             <FilterField label="Data Inicial" value={dtIni} onChange={setDtIni} type="date" />
             <FilterField label="Data Final" value={dtFim} onChange={setDtFim} type="date" />
-            <FilterField label="Turno" value={fTurno} onChange={setFTurno} options={opts.turnos} />
-            <FilterField label="Frente" value={fFrente} onChange={setFFrente} options={opts.frentes} />
-            <FilterField
-              label="Equipamento"
-              value={fEquip}
-              onChange={setFEquip}
-              options={opts.equipamentos}
-            />
-            <FilterField label="Material" value={fMaterial} onChange={setFMaterial} options={opts.materiais} />
             <button
               onClick={limparFiltros}
               className="ml-auto flex items-center gap-1 border border-mining-blue/40 hover:bg-mining-blue/10 px-3 py-1.5 rounded text-[11px] font-bold text-mining-blue uppercase tracking-wider"
