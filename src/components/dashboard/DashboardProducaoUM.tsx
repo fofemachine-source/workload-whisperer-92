@@ -14,16 +14,8 @@ import {
   YAxis,
   Legend,
 } from "recharts";
-import { Filter, Target, BarChart3, Gauge, Calendar, TrendingUp, Flag } from "lucide-react";
-import { useProducaoDiaria } from "@/hooks/useProducaoDiaria";
-import { useProducaoFrente, useProducaoEquipamento } from "@/hooks/useProducaoKpis";
-import {
-  useViagens,
-  useTempoCiclo,
-  useTempoDetalhado,
-  useTempoEstado,
-  useProducaoView,
-} from "@/hooks/useHexagonViews";
+import { Filter, Target, BarChart3, Gauge, Calendar, TrendingUp, Flag, AlertTriangle, Loader2 } from "lucide-react";
+import { useDashboardApi } from "@/hooks/useDashboardApi";
 
 /* ---------- helpers ---------- */
 const fmt = (n: number, d = 0) =>
