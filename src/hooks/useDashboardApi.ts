@@ -55,7 +55,7 @@ export function useDashboardApi() {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       return (await res.json()) as DashboardApiPayload;
     },
-    refetchInterval: 60_000,
+    refetchInterval: 5_000,
     refetchOnWindowFocus: true,
     retry: 1,
   });
@@ -75,7 +75,7 @@ function makeExtraHook<T = any>(key: string, path: string) {
         if (Array.isArray(json?.items)) return json.items as T[];
         return [] as T[];
       },
-      refetchInterval: 60_000,
+      refetchInterval: 5_000,
       refetchOnWindowFocus: true,
       retry: 1,
     });
