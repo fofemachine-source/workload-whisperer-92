@@ -174,7 +174,10 @@ export default function DashboardProducaoUM() {
   const producaoReal = Number(kpis?.producaoReal ?? 0);
   const metaDiaria = Number(kpis?.metaDiaria ?? 0);
   const acumuladoMes = Number(kpis?.acumuladoMes ?? 0);
-  const faltaMeta = Number(kpis?.faltaParaMeta ?? 0);
+  const totalTphEscav = (data?.rankingEscavadeiras ?? []).reduce(
+    (total, item: any) => total + Number(item?.th ?? item?.tph ?? 0),
+    0,
+  );
   const totalViagens = Number(kpis?.viagens ?? 0);
   const tphMedio = Number(kpis?.produtividadeMedia ?? 0);
   const totalPrevisto = metaDiaria; // sem série prevista da API
@@ -454,7 +457,12 @@ export default function DashboardProducaoUM() {
         />
         <Kpi label="Meta Diária (t)" value={fmt(metaDiaria)} color="text-mining-blue" />
         <Kpi label="Acumulado Mês (t)" value={fmt(acumuladoMes)} color="text-mining-blue" />
-        <Kpi label="Falta Para Meta (t)" value={fmt(faltaMeta)} color="text-mining-blue" />
+        <Kpi
+          label="Produção Total das Escavadeiras (t/h)"
+          value={`${fmt(totalTphEscav)} t/h`}
+          color="text-mining-green"
+          borderClass="border-mining-green/60"
+        />
       </div>
 
       {/* Row 2 */}
@@ -819,13 +827,15 @@ function Kpi({
   label,
   value,
   color,
+  borderClass = "border-mining-blue/20",
 }: {
   label: string;
   value: string;
   color: string;
+  borderClass?: string;
 }) {
   return (
-    <div className="bg-[hsl(220_45%_9%/0.85)] border border-mining-blue/20 rounded-md px-3 py-2 flex items-center">
+    <div className={`bg-[hsl(220_45%_9%/0.85)] border ${borderClass} rounded-md px-3 py-2 flex items-center`}>
       <div className="min-w-0">
         <p className="text-[9px] uppercase tracking-widest text-mining-blue/70 font-bold truncate">{label}</p>
         <p className={`text-lg md:text-xl font-black leading-tight ${color}`}>{value}</p>
