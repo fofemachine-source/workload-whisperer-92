@@ -253,7 +253,10 @@ export default function DashboardProducaoUM() {
     }).slice(0, 6);
   }, [data]);
 
-  const totalTphEscav = topEscav.reduce((total, item) => total + Number(item.th || 0), 0);
+  const top5Escav = topEscav.slice(0, 5);
+  const totalTphEscav = top5Escav.reduce((total, item) => total + Number(item.th || 0), 0);
+  const totalMassaTop5 = top5Escav.reduce((total, item) => total + Number(item.massa || 0), 0);
+  const totalViagensTop5 = top5Escav.reduce((total, item) => total + Number(item.viagens || 0), 0);
 
   const viagensPorHora = useMemo(() => {
     const base = Array.from({ length: 24 }, (_, h) => ({
@@ -330,16 +333,16 @@ export default function DashboardProducaoUM() {
       {/* Header */}
       <div className="grid grid-cols-12 gap-2 items-stretch">
         <Panel className="col-span-12 lg:col-span-4 !p-0">
-          <div className="flex items-center gap-3 px-3 py-2">
-            <div className="flex items-center justify-center w-14 h-14 rounded bg-mining-yellow text-background font-black text-lg leading-tight text-center">
-              U&amp;M
+          <div className="flex items-center gap-3 px-3 py-2 h-[58px]">
+            <div className="flex items-center justify-center w-12 h-12 rounded bg-mining-yellow text-background font-black text-base leading-tight text-center">
+              USIM
             </div>
             <div>
-              <h1 className="text-xl md:text-2xl font-black tracking-tight text-foreground">
+              <h1 className="text-lg md:text-xl font-black tracking-tight text-foreground">
                 DASHBOARD DE PRODUÇÃO
               </h1>
-              <p className="text-[11px] font-mono tracking-widest text-mining-blue/80">
-                U&amp;M MINERAÇÃO · Hexagon / JMineOps
+              <p className="text-[10px] font-mono tracking-widest text-mining-blue/80">
+                Usina Samaritá / Ethanodes / Energia
               </p>
             </div>
           </div>
@@ -375,16 +378,16 @@ export default function DashboardProducaoUM() {
       {/* KPI strip */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 mt-2">
         <GradientKpi label="Produção Diária (t)" numeric={producaoReal} tone="green" />
-        <GradientKpi label="Produção Prevista (t)" numeric={totalPrevisto} tone="amber" />
-        <GradientKpi label="Acumulado Mês (t)" numeric={acumuladoMes} tone="teal" />
+        <GradientKpi label="Produção Mês (t)" numeric={acumuladoMes} tone="amber" />
+        <GradientKpi label="Produção 12M (t)" numeric={producaoReal + acumuladoMes} tone="green" />
         <GradientKpi label="Meta Diária (t)" numeric={metaDiaria} tone="blue" />
-        <GradientKpi label="Variação (t)" numeric={variacao} tone={variacao < 0 ? "amber" : "green"} />
-        <GradientKpi label="Produtividade Escav. (t/h)" numeric={totalTphEscav} tone="cyan" suffix=" t/h" />
+        <GradientKpi label="Produção 12M (t)" numeric={totalPrevisto + acumuladoMes} tone="blue" />
+        <GradientKpi label="Produtividade Lab. 6/ Colheita (t/h)" numeric={totalTphEscav} tone="green" suffix=" t/h" decimals={3} />
       </div>
 
       {/* Dashboard grid */}
       <div className="grid grid-cols-12 gap-2 mt-2 items-stretch">
-        <Panel title="Produção Diária (t)" className="col-span-12 lg:col-span-4 min-h-[360px]">
+        <Panel title="Produção Diária (t)" className="col-span-12 lg:col-span-4 h-[300px]">
           {dailySeries.length === 0 ? (
             <Empty />
           ) : (
@@ -404,7 +407,7 @@ export default function DashboardProducaoUM() {
           )}
         </Panel>
 
-        <Panel title="Produção por Frente (t)" className="col-span-12 lg:col-span-3 min-h-[360px]">
+        <Panel title="Produção por Frente (t)" className="col-span-12 lg:col-span-3 h-[300px]">
           {frenteAgg.length === 0 ? (
             <Empty />
           ) : (
