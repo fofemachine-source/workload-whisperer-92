@@ -492,82 +492,67 @@ export default function DashboardProducaoUM() {
           )}
         </Panel>
 
-        <Panel title="Top 6 Escavadeiras (t/h)" className="col-span-12 lg:col-span-5">
+        <Panel title="Top Escavadeiras" className="col-span-12 lg:col-span-5">
           {topEscav.length === 0 ? (
             <Empty />
           ) : (
-            <div className="space-y-2 flex flex-col h-full">
-              <div className="flex-1 min-h-0 overflow-auto space-y-2">
-                {topEscav.map((e, i) => {
-                  const max = topEscav[0].tph || 1;
-                  const pct = (e.tph / max) * 100;
-                  return (
-                    <div
-                      key={e.equipamento}
-                      className="bg-white/[0.03] border border-white/5 rounded p-2"
-                    >
-                      <div className="flex items-center justify-between gap-2 mb-1.5">
-                        <div className="flex items-center gap-2">
-                          <span className="w-5 h-5 flex items-center justify-center rounded bg-mining-yellow text-black text-[10px] font-black">
-                            {i + 1}
-                          </span>
-                          <span className="text-xs font-bold text-foreground tracking-tight">
-                            {e.equipamento}
-                          </span>
-                        </div>
-                        <span className="text-xs font-black text-mining-blue">
-                          {fmt(e.tph)} t/h
+            <div className="flex-1 min-h-0 overflow-auto space-y-2">
+              {topEscav.map((e, i) => {
+                const maxTph = topEscav[0].tph || 1;
+                const pct = Math.max(2, (e.tph / maxTph) * 100);
+                return (
+                  <div
+                    key={e.equipamento}
+                    className="bg-white/[0.03] border border-white/5 rounded p-2"
+                  >
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <div className="flex items-center gap-2">
+                        <span className="w-5 h-5 flex items-center justify-center rounded bg-mining-yellow text-black text-[10px] font-black">
+                          {i + 1}
+                        </span>
+                        <span className="text-xs font-bold text-foreground tracking-tight">
+                          {e.equipamento}
                         </span>
                       </div>
-                      <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 text-[10px] font-mono text-muted-foreground mb-1.5">
-                        <div className="truncate">
-                          <span className="text-mining-blue/70">Mat:</span>{" "}
-                          {e.material || "—"}
-                        </div>
-                        <div className="truncate">
-                          <span className="text-mining-blue/70">Frente:</span>{" "}
-                          {e.origem || "—"}
-                        </div>
-                        <div className="truncate">
-                          <span className="text-mining-blue/70">Subárea:</span>{" "}
-                          {e.subarea || "—"}
-                        </div>
-                        <div className="truncate">
-                          <span className="text-mining-blue/70">Destino:</span>{" "}
-                          {e.destino || "—"}
-                        </div>
-                        <div className="truncate">
-                          <span className="text-mining-blue/70">Viagens:</span>{" "}
-                          {fmt(e.viagens)}
-                        </div>
-                        <div className="truncate">
-                          <span className="text-mining-blue/70">Tonelagem:</span>{" "}
-                          {fmt(e.massa)} t
-                        </div>
-                      </div>
-                      <div className="h-2 bg-white/5 rounded overflow-hidden">
-                        <div
-                          className="h-full bg-mining-blue"
-                          style={{ width: `${pct}%` }}
-                        />
-                      </div>
+                      <span className="text-xs font-black text-mining-blue">
+                        {fmt(e.tph)} t/h
+                      </span>
                     </div>
-                  );
-                })}
-              </div>
-              <div className="bg-white/[0.03] border-t border-mining-blue/30 rounded px-3 py-2 flex items-center justify-between">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-foreground">
-                  TOTAL TOP 6
-                </span>
-                <div className="flex items-center gap-6 text-[12px] font-mono">
-                  <span className="text-muted-foreground">
-                    Viagens: <span className="text-mining-green font-bold">{fmt(topEscav.reduce((s, e) => s + e.viagens, 0))}</span>
-                  </span>
-                  <span className="text-muted-foreground">
-                    Tonelagem: <span className="text-mining-green font-bold">{fmt(topEscav.reduce((s, e) => s + e.massa, 0))} t</span>
-                  </span>
-                </div>
-              </div>
+                    <div className="text-[10px] font-mono text-muted-foreground mb-1">
+                      <span className="text-mining-blue/70">Material:</span>{" "}
+                      <span className="text-foreground">{e.material || "—"}</span>
+                    </div>
+                    <table className="w-full text-[10px] font-mono mb-1.5">
+                      <thead className="text-mining-blue/70">
+                        <tr className="border-b border-mining-blue/20">
+                          <th className="text-left font-semibold py-0.5">Destino</th>
+                          <th className="text-right font-semibold py-0.5 w-16">Qtd</th>
+                          <th className="text-right font-semibold py-0.5 w-20">Tonelagem</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {e.destinos.map((d) => (
+                          <tr key={d.destino} className="border-b border-white/5">
+                            <td className="py-0.5 truncate text-foreground" title={d.destino}>{d.destino}</td>
+                            <td className="py-0.5 text-right text-mining-blue">{fmt(d.viagens)}</td>
+                            <td className="py-0.5 text-right text-mining-green">{fmt(d.massa)} t</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                      <tfoot>
+                        <tr className="font-bold border-t border-mining-blue/40">
+                          <td className="py-0.5 text-mining-blue/80">TOTAL</td>
+                          <td className="py-0.5 text-right text-mining-blue">{fmt(e.totalViagens)}</td>
+                          <td className="py-0.5 text-right text-mining-green">{fmt(e.totalMassa)} t</td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                    <div className="h-2 bg-white/5 rounded overflow-hidden">
+                      <div className="h-full bg-mining-blue" style={{ width: `${pct}%` }} />
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
         </Panel>
