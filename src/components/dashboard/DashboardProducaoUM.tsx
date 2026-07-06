@@ -71,6 +71,22 @@ const toNum = (v: unknown) => {
   return Number.isFinite(n) ? n : 0;
 };
 
+const fmtHora = (v: unknown): string => {
+  if (v === null || v === undefined || v === "") return "—";
+  const s = String(v);
+  // Já é HH:mm ou HH:mm:ss
+  const m = s.match(/(\d{2}):(\d{2})/);
+  if (m) return `${m[1]}:${m[2]}`;
+  // Tenta parsear como Date
+  const d = new Date(s);
+  if (!Number.isNaN(d.getTime())) {
+    const hh = String(d.getHours()).padStart(2, "0");
+    const mm = String(d.getMinutes()).padStart(2, "0");
+    return `${hh}:${mm}`;
+  }
+  return s;
+};
+
 
 /* ---------- shared card ---------- */
 function Panel({
