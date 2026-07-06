@@ -475,63 +475,78 @@ export default function DashboardProducaoUM() {
           {topEscav.length === 0 ? (
             <Empty />
           ) : (
-            <div className="space-y-2">
-              {topEscav.map((e, i) => {
-                const max = topEscav[0].tph || 1;
-                const pct = (e.tph / max) * 100;
-                return (
-                  <div
-                    key={e.equipamento}
-                    className="bg-white/[0.03] border border-white/5 rounded p-2"
-                  >
-                    <div className="flex items-center justify-between gap-2 mb-1.5">
-                      <div className="flex items-center gap-2">
-                        <span className="w-5 h-5 flex items-center justify-center rounded bg-mining-yellow text-black text-[10px] font-black">
-                          {i + 1}
+            <div className="space-y-2 flex flex-col h-full">
+              <div className="flex-1 min-h-0 overflow-auto space-y-2">
+                {topEscav.map((e, i) => {
+                  const max = topEscav[0].tph || 1;
+                  const pct = (e.tph / max) * 100;
+                  return (
+                    <div
+                      key={e.equipamento}
+                      className="bg-white/[0.03] border border-white/5 rounded p-2"
+                    >
+                      <div className="flex items-center justify-between gap-2 mb-1.5">
+                        <div className="flex items-center gap-2">
+                          <span className="w-5 h-5 flex items-center justify-center rounded bg-mining-yellow text-black text-[10px] font-black">
+                            {i + 1}
+                          </span>
+                          <span className="text-xs font-bold text-foreground tracking-tight">
+                            {e.equipamento}
+                          </span>
+                        </div>
+                        <span className="text-xs font-black text-mining-blue">
+                          {fmt(e.tph)} t/h
                         </span>
-                        <span className="text-xs font-bold text-foreground tracking-tight">
-                          {e.equipamento}
-                        </span>
                       </div>
-                      <span className="text-xs font-black text-mining-blue">
-                        {fmt(e.tph)} t/h
-                      </span>
+                      <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 text-[10px] font-mono text-muted-foreground mb-1.5">
+                        <div className="truncate">
+                          <span className="text-mining-blue/70">Mat:</span>{" "}
+                          {e.material || "—"}
+                        </div>
+                        <div className="truncate">
+                          <span className="text-mining-blue/70">Frente:</span>{" "}
+                          {e.origem || "—"}
+                        </div>
+                        <div className="truncate">
+                          <span className="text-mining-blue/70">Subárea:</span>{" "}
+                          {e.subarea || "—"}
+                        </div>
+                        <div className="truncate">
+                          <span className="text-mining-blue/70">Destino:</span>{" "}
+                          {e.destino || "—"}
+                        </div>
+                        <div className="truncate">
+                          <span className="text-mining-blue/70">Viagens:</span>{" "}
+                          {fmt(e.viagens)}
+                        </div>
+                        <div className="truncate">
+                          <span className="text-mining-blue/70">Tonelagem:</span>{" "}
+                          {fmt(e.massa)} t
+                        </div>
+                      </div>
+                      <div className="h-2 bg-white/5 rounded overflow-hidden">
+                        <div
+                          className="h-full bg-mining-blue"
+                          style={{ width: `${pct}%` }}
+                        />
+                      </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 text-[10px] font-mono text-muted-foreground mb-1.5">
-                      <div className="truncate">
-                        <span className="text-mining-blue/70">Mat:</span>{" "}
-                        {e.material || "—"}
-                      </div>
-                      <div className="truncate">
-                        <span className="text-mining-blue/70">Frente:</span>{" "}
-                        {e.origem || "—"}
-                      </div>
-                      <div className="truncate">
-                        <span className="text-mining-blue/70">Subárea:</span>{" "}
-                        {e.subarea || "—"}
-                      </div>
-                      <div className="truncate">
-                        <span className="text-mining-blue/70">Destino:</span>{" "}
-                        {e.destino || "—"}
-                      </div>
-                      <div className="truncate">
-                        <span className="text-mining-blue/70">Viagens:</span>{" "}
-                        {fmt(e.viagens)}
-                      </div>
-                      <div className="truncate">
-                        <span className="text-mining-blue/70">Tonelagem:</span>{" "}
-                        {fmt(e.massa)} t
-                      </div>
-                    </div>
-                    <div className="h-2 bg-white/5 rounded overflow-hidden">
-                      <div
-                        className="h-full bg-mining-blue"
-                        style={{ width: `${pct}%` }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
+              <div className="bg-white/[0.03] border border-mining-blue/30 rounded p-2 flex items-center justify-between">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-mining-blue/80">
+                  Total Top 6
+                </span>
+                <div className="flex items-center gap-4 text-[11px] font-mono">
+                  <span className="text-muted-foreground">
+                    Viagens: <span className="text-foreground font-bold">{fmt(topEscav.reduce((s, e) => s + e.viagens, 0))}</span>
+                  </span>
+                  <span className="text-muted-foreground">
+                    Tonelagem: <span className="text-mining-green font-bold">{fmt(topEscav.reduce((s, e) => s + e.massa, 0))} t</span>
+                  </span>
+                </div>
+              </div>
             </div>
           )}
         </Panel>
