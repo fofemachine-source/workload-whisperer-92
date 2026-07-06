@@ -18,7 +18,7 @@ import {
   Legend,
 } from "recharts";
 import { Filter, AlertTriangle, Loader2 } from "lucide-react";
-import { useDashboardApi, useProducaoApi, useViagensApi } from "@/hooks/useDashboardApi";
+import { useDashboardApi, useProducaoApi, useViagensApi, useTempoCicloApi } from "@/hooks/useDashboardApi";
 
 /* ---------- helpers ---------- */
 const fmt = (n: number, d = 0) =>
@@ -194,6 +194,7 @@ export default function DashboardProducaoUM() {
   const { data, isLoading, isError, error, dataUpdatedAt } = useDashboardApi();
   const { data: producaoData } = useProducaoApi();
   const { data: viagensData } = useViagensApi();
+  const { data: cicloData } = useTempoCicloApi();
 
   const kpis = data?.kpis;
   const producaoReal = Number(kpis?.producaoReal ?? 0);
@@ -558,12 +559,14 @@ export default function DashboardProducaoUM() {
           )}
         </Panel>
 
-        <div className="col-span-12 lg:col-span-1 grid grid-rows-4 gap-2">
-          <MiniKpi label="Produtividade Média" value={fmt(tphMedio)} unit="t/h" />
-          <MiniKpi label="Viagens Médias" value={fmt(mediaViagens)} unit="viag/h" />
-          <MiniKpi label="DF% Médio" value={dfMedio ? `${fmt(dfMedio, 1)}%` : "—"} />
-          <MiniKpi label="UT% Médio" value={utMedio ? `${fmt(utMedio, 1)}%` : "—"} />
-        </div>
+        <Panel className="col-span-12 lg:col-span-1">
+          <div className="flex flex-col justify-between h-full py-1 gap-2">
+            <StatBlock label="Produção (9H/13H)" value={<Counter value={producaoReal} />} unit="t" big />
+            <StatBlock label="Próxima Média" value={<Counter value={tphMedio} />} />
+            <StatBlock label="Viagens" value={<Counter value={kpis?.viagens ?? 0} />} />
+            <StatBlock label="VOI 10.000" value={<Counter value={mediaViagens} />} />
+          </div>
+        </Panel>
 
         <Panel title="Detalhamento de Produção" className="col-span-12 lg:col-span-4">
           {detalhamento.length === 0 ? (
@@ -609,7 +612,7 @@ export default function DashboardProducaoUM() {
           )}
         </Panel>
 
-        <Panel title="Acompanhamento de Viagens" className="col-span-12 lg:col-span-3">
+        <Panel title="Acompanhamento de Viagens (9H)" className="col-span-12 lg:col-span-4">
           {acompViagens.length === 0 ? (
             <Empty />
           ) : (
@@ -654,6 +657,39 @@ export default function DashboardProducaoUM() {
             </table>
             </div>
           )}
+        </Panel>
+
+        <Panel title="Resumo de Tempos em Ciclo (9H)" className="col-span-12 lg:col-span-4">
+          {(() => {
+            const rows = Array.isArray(cicloData) ? cicloData : [];
+            if (rows.length === 0) return <Empty />;
+            return (
+              <div className="max-h-64 overflow-auto">
+                <table className="w-full text-[10px] font-mono">
+                  <thead className="text-mining-blue/70">
+                    <tr className="border-b border-mining-blue/20">
+                      <Th>Transporte</Th>
+                      <Th className="text-right">Viagens (Qtd)</Th>
+                      <Th className="text-right">Tempo Mín</Th>
+                      <Th className="text-right">Tempo Máx</Th>
+                      <Th className="text-right">Desvio Padrão</Th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rows.slice(0, 100).map((r: any, i: number) => (
+                      <tr key={i} className="border-b border-white/5">
+                        <Td>{String(pick(r, ["transporte", "categoria", "estado", "sub_estado", "descricao"]) ?? "—")}</Td>
+                        <Td className="text-right text-mining-blue">{fmt(toNum(pick(r, ["viagens", "quantidade", "qtd"])))}</Td>
+                        <Td className="text-right">{String(pick(r, ["tempo_min", "min", "tempoMin"]) ?? "—")}</Td>
+                        <Td className="text-right">{String(pick(r, ["tempo_max", "max", "tempoMax"]) ?? "—")}</Td>
+                        <Td className="text-right text-mining-yellow">{String(pick(r, ["desvio_padrao", "desvio", "std"]) ?? "—")}</Td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            );
+          })()}
         </Panel>
 
       </div>
@@ -788,6 +824,28 @@ function MiniKpi({ label, value, unit }: { label: string; value: string; unit?: 
     <div className="bg-[hsl(220_45%_9%/0.85)] border border-mining-blue/20 rounded-md p-2 flex flex-col justify-center">
       <p className="text-[8px] uppercase tracking-widest text-mining-blue/70 font-bold leading-tight">{label}</p>
       <p className="text-base font-black text-mining-blue leading-tight">{value}</p>
+      {unit && <p className="text-[9px] font-mono text-muted-foreground">{unit}</p>}
+    </div>
+  );
+}
+
+function StatBlock({
+  label,
+  value,
+  unit,
+  big = false,
+}: {
+  label: string;
+  value: React.ReactNode;
+  unit?: string;
+  big?: boolean;
+}) {
+  return (
+    <div className="leading-tight">
+      <p className="text-[8px] uppercase tracking-widest text-mining-blue/70 font-bold">{label}</p>
+      <p className={`${big ? "text-xl" : "text-sm"} font-black text-foreground font-mono tabular-nums`}>
+        {value}
+      </p>
       {unit && <p className="text-[9px] font-mono text-muted-foreground">{unit}</p>}
     </div>
   );
