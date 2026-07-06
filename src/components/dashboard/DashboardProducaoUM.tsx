@@ -135,10 +135,6 @@ export default function DashboardProducaoUM() {
   const inicioAno = `${new Date().getFullYear()}-01-01`;
   const [dtIni, setDtIni] = useState(inicioAno);
   const [dtFim, setDtFim] = useState(hoje);
-  const [fTurno, setFTurno] = useState("");
-  const [fFrente, setFFrente] = useState("");
-  const [fEquip, setFEquip] = useState("");
-  const [fMaterial, setFMaterial] = useState("");
 
   const { data, isLoading, isError, error, dataUpdatedAt } = useDashboardApi();
   const { data: tempoData } = useTempoApi();
