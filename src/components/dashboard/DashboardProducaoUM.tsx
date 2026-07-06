@@ -707,12 +707,16 @@ function Kpi({
 
 function GradientKpi({
   label,
-  value,
+  numeric,
   tone,
+  suffix = "",
+  decimals = 0,
 }: {
   label: string;
-  value: string;
+  numeric: number;
   tone: "green" | "amber" | "teal" | "blue" | "cyan" | "indigo";
+  suffix?: string;
+  decimals?: number;
 }) {
   const toneMap: Record<string, { grad: string; border: string; text: string; label: string }> = {
     green: {
@@ -754,12 +758,18 @@ function GradientKpi({
   };
   const t = toneMap[tone];
   return (
-    <div
-      className={`relative overflow-hidden rounded-md border ${t.border} bg-gradient-to-br ${t.grad} px-3 py-2.5 shadow-[0_0_20px_-14px_rgba(0,0,0,0.9)]`}
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: "easeOut" }}
+      whileHover={{ boxShadow: "0 0 14px rgba(0,180,255,0.15)" }}
+      className={`relative overflow-hidden rounded-md border ${t.border} bg-gradient-to-br ${t.grad} px-3 py-2.5 shadow-[0_0_0_rgba(0,0,0,0)] transition-shadow duration-300`}
     >
       <p className={`text-[9px] uppercase tracking-[0.18em] font-bold truncate ${t.label}`}>{label}</p>
-      <p className={`text-2xl md:text-[26px] font-black leading-tight ${t.text} font-mono tabular-nums`}>{value}</p>
-    </div>
+      <p className={`text-2xl md:text-[26px] font-black leading-tight ${t.text} font-mono tabular-nums`}>
+        <Counter value={numeric} decimals={decimals} suffix={suffix} />
+      </p>
+    </motion.div>
   );
 }
 
