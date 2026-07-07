@@ -304,11 +304,11 @@ export default function DashboardProducaoUM() {
 
       {/* Dashboard grid */}
       <div className="grid grid-cols-12 gap-2 mt-2 items-stretch">
-        <Panel title="Produção Diária (t)" className="col-span-12 lg:col-span-4 h-[300px]">
+        <Panel title="Produção Diária (t)" className="col-span-12 lg:col-span-4 h-[300px] animated-card">
           {dailySeries.length === 0 ? (
             <Empty />
           ) : (
-            <div key={`daily-${dataUpdatedAt}`} className="h-full chart-bar-grow">
+            <div key={`daily-${dataUpdatedAt}`} className="h-full chart-bar-grow neon-chart pulse-bar rain-effect">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={dailySeries} margin={{ top: 12, right: 8, left: 0, bottom: 0 }}>
                   <CartesianGrid stroke="rgba(255,255,255,0.05)" vertical={false} />
@@ -324,12 +324,12 @@ export default function DashboardProducaoUM() {
           )}
         </Panel>
 
-        <Panel title="Produção por Frente (t)" className="col-span-12 lg:col-span-3 h-[300px]">
+        <Panel title="Produção por Frente (t)" className="col-span-12 lg:col-span-3 h-[300px] animated-card">
           {frenteAgg.length === 0 ? (
             <Empty />
           ) : (
             <div key={`front-${dataUpdatedAt}`} className="h-full flex items-center gap-2">
-              <div className="w-[45%] h-full relative chart-pie-spin">
+              <div className="w-[45%] h-full relative chart-pie-spin neon-donut neon-chart">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
@@ -373,7 +373,7 @@ export default function DashboardProducaoUM() {
           )}
         </Panel>
 
-        <Panel title="ESCAVADEIRAS" className="col-span-12 lg:col-span-5 lg:row-span-2 h-[492px]">
+        <Panel title="ESCAVADEIRAS" className="col-span-12 lg:col-span-5 lg:row-span-2 h-[492px] animated-card">
           {top5Escav.length === 0 ? (
             <Empty />
           ) : (
@@ -438,11 +438,11 @@ export default function DashboardProducaoUM() {
             </div>
           )}
         </Panel>
-        <Panel title="Produtividade (t/h)" className="col-span-12 lg:col-span-4 h-[184px]">
+        <Panel title="Produtividade (t/h)" className="col-span-12 lg:col-span-4 h-[184px] animated-card">
           {prodSeries.length === 0 ? (
             <Empty />
           ) : (
-            <div key={`line-${dataUpdatedAt}`} className="h-full chart-line-neon">
+            <div key={`line-${dataUpdatedAt}`} className="h-full chart-line-neon glow-line neon-chart scan-line">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={prodSeries} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                   <CartesianGrid stroke="rgba(255,255,255,0.05)" vertical={false} />
@@ -459,11 +459,11 @@ export default function DashboardProducaoUM() {
           )}
         </Panel>
 
-        <Panel title="Viagens por Hora" className="col-span-12 lg:col-span-2 h-[184px]">
+        <Panel title="Viagens por Hora" className="col-span-12 lg:col-span-2 h-[184px] animated-card">
           {viagensPorHora.every((v) => v.Real === 0) ? (
             <Empty />
           ) : (
-            <div key={`hours-${dataUpdatedAt}`} className="h-full chart-bar-grow">
+            <div key={`hours-${dataUpdatedAt}`} className="h-full chart-bar-grow neon-chart pulse-bar scan-line">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={viagensPorHora} margin={{ top: 8, right: 4, left: 0, bottom: 0 }}>
                   <CartesianGrid stroke="rgba(255,255,255,0.05)" vertical={false} />
@@ -477,7 +477,7 @@ export default function DashboardProducaoUM() {
           )}
         </Panel>
 
-        <Panel className="col-span-12 lg:col-span-1 h-[184px]">
+        <Panel className="col-span-12 lg:col-span-1 h-[184px] animated-card">
           <div className="flex flex-col justify-between h-full py-1 gap-2">
             <StatBlock label="Produção (9H/13H)" value={<Counter value={producaoDia} />} unit="t" big />
             <StatBlock label="Próxima Média" value={<Counter value={producaoTotalEscavadeirasTH} />} />
@@ -486,7 +486,7 @@ export default function DashboardProducaoUM() {
           </div>
         </Panel>
 
-        <Panel title="Acompanhamento de Viagens (CRs)" className="col-span-12 h-[260px]">
+        <Panel title="Acompanhamento de Viagens (CRs)" className="col-span-12 h-[260px] animated-card">
           {acompViagens.length === 0 ? (
             <Empty />
           ) : (() => {
