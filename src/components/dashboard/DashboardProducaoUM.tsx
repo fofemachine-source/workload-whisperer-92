@@ -199,65 +199,11 @@ export default function DashboardProducaoUM() {
   const { data: viagensData } = useViagensApi();
   const { data: cicloData } = useTempoCicloApi();
 
-  const kpis = data?.kpis;
-  const producaoReal = Number(kpis?.producaoReal ?? 0);
-  const metaDiaria = Number(kpis?.metaDiaria ?? 0);
-  const acumuladoMesApi = Number(kpis?.acumuladoMes ?? 0);
-  const tphMedio = Number(kpis?.produtividadeMedia ?? 0);
-  const totalPrevisto = metaDiaria; // sem série prevista da API
-
-  // ---------- Produção LAV x RET (acumulado dia) ----------
-  // LAV: contém LAV / LAVRA / MINA. Exclui RET e CB.
-  // RET: contém RET. Exclui LAV, MINA e CB.
-  const { lavAcum, retAcum } = useMemo(() => {
-    let lav = 0;
-    let ret = 0;
-    (data?.producaoFrente ?? []).forEach((f) => {
-      const name = String(f.frente ?? "").toUpperCase();
-      const v = Number(f.massa ?? 0);
-      if (!v) return;
-      if (name.includes("CB")) return;
-      const hasRET = name.includes("RET");
-      const hasLAV = name.includes("LAV") || name.includes("LAVRA");
-      const hasMINA = name.includes("MINA");
-      if (hasRET && !hasLAV && !hasMINA) {
-        ret += v;
-      } else if ((hasLAV || hasMINA) && !hasRET) {
-        lav += v;
-      }
-    });
-    return { lavAcum: lav, retAcum: ret };
-  }, [data]);
-
-  const projetar = (acum: number) => {
-    const now = new Date();
-    const h = now.getHours() + now.getMinutes() / 60 + now.getSeconds() / 3600;
-    if (h < 0.1) return acum;
-    return (acum / h) * 24;
-  };
-  const lavProj = projetar(lavAcum);
-  const retProj = projetar(retAcum);
-
-  // Corrige mapeamento: API entrega producaoReal como acumulado agregado.
-  // Recalcula Produção Diária (hoje) e Produção Mês a partir da série diária.
-  const { producaoDia, producaoMes } = useMemo(() => {
-    const serie = data?.producaoDiaria ?? [];
-    const hojeStr = new Date().toISOString().slice(0, 10);
-    const mesAtual = hojeStr.slice(0, 7);
-    let dia = 0;
-    let mes = 0;
-    for (const d of serie) {
-      const iso = String(d.data ?? "").slice(0, 10);
-      const real = Number(d.real ?? 0);
-      if (iso === hojeStr) dia += real;
-      if (iso.slice(0, 7) === mesAtual) mes += real;
-    }
-    return { producaoDia: dia, producaoMes: mes };
-  }, [data]);
-
-  const diarioReal = producaoDia > 0 ? producaoDia : producaoReal;
-  const acumuladoMes = producaoMes > 0 ? producaoMes : acumuladoMesApi;
-  const variacao = diarioReal - metaDiaria;
+  // Valores direto da API — sem cálculo no frontend
+  const kpis = (data?.kpis ?? {}) as Record<string, any>;
+  const producaoDia = Number(kpis.producaoDia ?? 0);
+  const producaoMensal = Number(kpis.producaoMensal ?? 0);
+  const producaoTotalEscavadeirasTH = Number(kpis.producaoTotalEscavadeirasTH ?? 0);
 
   const dailySeries = useMemo(
     () =>
@@ -300,7 +246,6 @@ export default function DashboardProducaoUM() {
       };
     }).sort((a, b) => b.th - a.th);
   }, [data]);
-  const totalTphEscav = top5Escav.reduce((total, item) => total + Number(item.th || 0), 0);
   const totalMassaTop5 = top5Escav.reduce((total, item) => total + Number(item.massa || 0), 0);
   const totalViagensTop5 = top5Escav.reduce((total, item) => total + Number(item.viagens || 0), 0);
 
@@ -421,12 +366,11 @@ export default function DashboardProducaoUM() {
         </Panel>
       </div>
 
-      {/* KPI strip */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 mt-2">
-        <DualKpi label="Produção LAV" sublabel="Produção Diária" acumulado={lavAcum} tone="green" />
-        <DualKpi label="Produção RET" sublabel="Produção Diária" acumulado={retAcum} tone="indigo" />
-        <DualKpi label="Produção Mensal" sublabel="Acumulado do Mês" acumulado={acumuladoMes} tone="amber" />
-        <GradientKpi label="Produção Total das Escavadeiras (t/h)" numeric={totalTphEscav} tone="green" suffix=" t/h" decimals={0} />
+      {/* KPI strip — valores exclusivos de data.kpis */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-2">
+        <DualKpi label="Produção Diária" sublabel="Hoje" acumulado={producaoDia} tone="green" />
+        <DualKpi label="Produção Mensal" sublabel="Acumulado do Mês" acumulado={producaoMensal} tone="amber" />
+        <GradientKpi label="Produção Total das Escavadeiras (t/h)" numeric={producaoTotalEscavadeirasTH} tone="green" suffix=" t/h" decimals={0} />
       </div>
 
       {/* Dashboard grid */}
@@ -606,9 +550,9 @@ export default function DashboardProducaoUM() {
 
         <Panel className="col-span-12 lg:col-span-1 h-[184px]">
           <div className="flex flex-col justify-between h-full py-1 gap-2">
-            <StatBlock label="Produção (9H/13H)" value={<Counter value={producaoReal} />} unit="t" big />
-            <StatBlock label="Próxima Média" value={<Counter value={tphMedio} />} />
-            <StatBlock label="Viagens" value={<Counter value={kpis?.viagens ?? 0} />} />
+            <StatBlock label="Produção (9H/13H)" value={<Counter value={producaoDia} />} unit="t" big />
+            <StatBlock label="Próxima Média" value={<Counter value={producaoTotalEscavadeirasTH} />} />
+            <StatBlock label="Viagens" value={<Counter value={Number(kpis?.viagens ?? 0)} />} />
             <StatBlock label="VOI 10.000" value={<Counter value={mediaViagens} />} />
           </div>
         </Panel>
