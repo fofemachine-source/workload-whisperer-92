@@ -443,8 +443,8 @@ export default function DashboardProducaoUM() {
                   <YAxis stroke="#7fb2d9" tick={{ fontSize: 10 }} />
                   <Tooltip contentStyle={tooltipStyle} />
                   <Legend wrapperStyle={{ fontSize: 10 }} />
-                  <Bar dataKey="Prevista" fill="#f59e0b" radius={[2, 2, 0, 0]} />
-                  <Bar dataKey="Real" fill="#22c55e" radius={[2, 2, 0, 0]} />
+                  <Bar dataKey="Prevista" fill="#f59e0b" radius={[2, 2, 0, 0]} animationDuration={900} animationEasing="ease-out" />
+                  <Bar dataKey="Real" fill="#22c55e" radius={[2, 2, 0, 0]} animationDuration={900} animationEasing="ease-out" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -467,6 +467,8 @@ export default function DashboardProducaoUM() {
                       outerRadius="90%"
                       paddingAngle={1}
                       stroke="none"
+                      animationDuration={900}
+                      animationEasing="ease-out"
                     >
                       {frenteAgg.map((_, i) => (
                         <Cell key={i} fill={FRENTE_COLORS[i % FRENTE_COLORS.length]} />
@@ -569,9 +571,9 @@ export default function DashboardProducaoUM() {
                   <YAxis stroke="#7fb2d9" tick={{ fontSize: 10 }} />
                   <Tooltip contentStyle={tooltipStyle} />
                   <Legend wrapperStyle={{ fontSize: 10 }} />
-                  <Line type="monotone" dataKey="Meta" stroke="#f59e0b" dot={false} strokeWidth={2} />
-                  <Line type="monotone" dataKey="Previsto" stroke="#38bdf8" dot={false} strokeWidth={2} />
-                  <Line type="monotone" dataKey="Real" stroke="#22c55e" dot={false} strokeWidth={2} />
+                  <Line type="monotone" dataKey="Meta" stroke="#f59e0b" dot={false} strokeWidth={2} animationDuration={1200} animationEasing="ease-out" />
+                  <Line type="monotone" dataKey="Previsto" stroke="#38bdf8" dot={false} strokeWidth={2} animationDuration={1200} animationEasing="ease-out" />
+                  <Line type="monotone" dataKey="Real" stroke="#22c55e" dot={false} strokeWidth={2} animationDuration={1200} animationEasing="ease-out" />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -589,7 +591,7 @@ export default function DashboardProducaoUM() {
                   <XAxis dataKey="hora" stroke="#7fb2d9" tick={{ fontSize: 8 }} interval={1} />
                   <YAxis stroke="#7fb2d9" tick={{ fontSize: 9 }} />
                   <Tooltip contentStyle={tooltipStyle} />
-                  <Bar dataKey="Real" fill="#22d3ee" radius={[2, 2, 0, 0]} />
+                  <Bar dataKey="Real" fill="#22d3ee" radius={[2, 2, 0, 0]} animationDuration={900} animationEasing="ease-out" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
