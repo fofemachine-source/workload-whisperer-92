@@ -273,14 +273,26 @@ export default function DashboardProducaoUM() {
 
     return data.rankingEscavadeiras.map((e: any) => {
       const equipamento = String(e.equipamento ?? "").trim();
-      const destinos = (detalhado as any[])
+      const linhas = (detalhado as any[])
         .filter((d) => String(d.equipamento ?? "").trim() === equipamento)
         .map((d) => ({
-          destino: String(d.destino ?? "—"),
-          viagens: toNum(d.quantidade ?? d.viagens),
-          massa: toNum(d.tonelagem ?? d.massa),
+          material: d.material ?? e.material ?? null,
+          frente: d.frente ?? d.frente_lavra ?? e.frente ?? null,
+          subarea: d.subarea ?? e.subarea ?? null,
+          destino: d.destino ?? e.destino ?? null,
+          quantidade: toNum(d.quantidade ?? d.viagens),
+          tonelagem: toNum(d.tonelagem ?? d.massa),
         }));
-
+      if (linhas.length === 0) {
+        linhas.push({
+          material: e.material ?? null,
+          frente: e.frente ?? null,
+          subarea: e.subarea ?? null,
+          destino: e.destino ?? null,
+          quantidade: toNum(e.viagens),
+          tonelagem: toNum(e.massa),
+        });
+      }
       return {
         equipamento,
         th: Number(e.th ?? 0),
@@ -290,12 +302,12 @@ export default function DashboardProducaoUM() {
         frente: e.frente,
         subarea: e.subarea,
         destino: e.destino,
-        destinos,
+        detalhes: linhas,
       };
     });
   }, [data]);
 
-  const top5Escav = topEscav;
+  const top5Escav = topEscav.slice(0, 6);
   const totalTphEscav = top5Escav.reduce((total, item) => total + Number(item.th || 0), 0);
   const totalMassaTop5 = top5Escav.reduce((total, item) => total + Number(item.massa || 0), 0);
   const totalViagensTop5 = top5Escav.reduce((total, item) => total + Number(item.viagens || 0), 0);
@@ -489,59 +501,69 @@ export default function DashboardProducaoUM() {
           )}
         </Panel>
 
-        <Panel title="Top Escavadeiras" className="col-span-12 lg:col-span-5 lg:row-span-2 h-[492px]">
+        <Panel title="TOP 6 ESCAVADEIRAS" className="col-span-12 lg:col-span-5 lg:row-span-2 h-[492px]">
           {top5Escav.length === 0 ? (
             <Empty />
           ) : (
             <div className="flex flex-col h-full">
-              <div className="grid grid-cols-[1.6rem_1.05fr_1fr_1.15fr_1.1fr_4.4rem_5rem_3rem] gap-x-2 px-2 pb-1 border-b border-mining-blue/25 text-[9px] font-bold text-mining-blue/70">
-                <span />
-                <span>Biocombustível</span>
-                <span>Material</span>
-                <span>Ponto de coleta</span>
-                <span>Destino</span>
-                <span>Safronas</span>
-                <span className="text-right">Capacidade</span>
-                <span className="text-right">Toneladas</span>
-                <span className="text-right">%</span>
-              </div>
-              <div className="flex-1 min-h-0 overflow-auto divide-y divide-mining-blue/10">
-                <AnimatePresence initial={false}>
-                {top5Escav.map((e, i) => {
-                  const pct = totalMassaTop5 > 0 ? (Number(e.massa || 0) / totalMassaTop5) * 100 : 0;
-                  return (
-                    <motion.div
-                      key={e.equipamento}
-                      layout
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.4, ease: "easeOut" }}
-                      className="px-2 py-2"
-                    >
-                      <div className="grid grid-cols-[1.6rem_1.05fr_1fr_1.15fr_1.1fr_4.4rem_5rem_3rem] gap-x-2 items-center text-[10px] font-mono">
-                        <span className="w-5 h-5 flex items-center justify-center rounded-sm bg-mining-yellow text-background text-[10px] font-black font-sans">
-                          {i + 1}
-                        </span>
-                        <span className="text-[11px] font-black text-foreground truncate">{e.equipamento}</span>
-                        <span className="text-foreground/90 truncate">{e.material ?? "waste"}</span>
-                        <span className="text-foreground/90 truncate">{e.frente ?? e.subarea ?? "—"}</span>
-                        <span className="text-foreground/90 truncate">{e.destino ?? "—"}</span>
-                        <span className="text-foreground/90 truncate">{e.subarea ?? e.frente ?? "—"}</span>
-                        <span className="text-right text-foreground"><Counter value={e.th} decimals={1} suffix=" /h" /></span>
-                        <span className="text-right text-foreground font-bold"><Counter value={e.massa} /></span>
-                        <span className="text-right text-muted-foreground"><Counter value={pct} decimals={1} /></span>
-                      </div>
-                    </motion.div>
-                  );
-                })}
-                </AnimatePresence>
+              <div className="flex-1 min-h-0 overflow-auto">
+                <table className="w-full table-fixed text-[10px] font-mono border-collapse">
+                  <colgroup>
+                    <col style={{ width: "13%" }} />
+                    <col style={{ width: "10%" }} />
+                    <col style={{ width: "14%" }} />
+                    <col style={{ width: "10%" }} />
+                    <col style={{ width: "14%" }} />
+                    <col style={{ width: "10%" }} />
+                    <col style={{ width: "13%" }} />
+                    <col style={{ width: "10%" }} />
+                  </colgroup>
+                  <thead className="text-mining-blue/70 sticky top-0 bg-[hsl(220_45%_9%)] z-10">
+                    <tr className="border-b border-mining-blue/25">
+                      <Th>Escavadeira</Th>
+                      <Th>Material</Th>
+                      <Th>Frente</Th>
+                      <Th>Subárea</Th>
+                      <Th>Destino</Th>
+                      <Th className="text-right">Qtd</Th>
+                      <Th className="text-right">Tonelagem</Th>
+                      <Th className="text-right">T/H</Th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {top5Escav.map((esc, index) => (
+                      esc.detalhes.map((item: any, idx: number) => (
+                        <tr key={`${esc.equipamento}-${idx}`} className="border-b border-white/5">
+                          <Td>
+                            {idx === 0 ? (
+                              <span className="flex items-center gap-1.5">
+                                <span className="w-4 h-4 flex items-center justify-center rounded-sm bg-mining-yellow text-background text-[9px] font-black font-sans">
+                                  {index + 1}
+                                </span>
+                                <span className="font-black text-foreground">{esc.equipamento}</span>
+                              </span>
+                            ) : ""}
+                          </Td>
+                          <Td>{item.material ?? "—"}</Td>
+                          <Td>{item.frente ?? "—"}</Td>
+                          <Td>{item.subarea ?? "—"}</Td>
+                          <Td>{item.destino ?? "—"}</Td>
+                          <Td className="text-right text-mining-blue">{fmt(item.quantidade)}</Td>
+                          <Td className="text-right text-mining-green">{fmt(item.tonelagem)} t</Td>
+                          <Td className="text-right text-foreground font-bold">
+                            {idx === 0 ? `${fmt(esc.th, 1)} t/h` : ""}
+                          </Td>
+                        </tr>
+                      ))
+                    ))}
+                  </tbody>
+                </table>
               </div>
               <div className="border-t border-mining-blue/30 mt-2 pt-2 flex items-center justify-between px-1 text-[11px] font-mono">
-                <span className="font-bold uppercase tracking-wider text-foreground">Total Escavadeiras</span>
+                <span className="font-bold uppercase tracking-wider text-foreground">TOTAL TOP 6</span>
                 <div className="flex items-center gap-6">
                   <span className="text-muted-foreground">Viagens: <span className="text-mining-blue font-bold">{fmt(totalViagensTop5)}</span></span>
-                  <span className="text-muted-foreground">Toneladas: <span className="text-mining-green font-bold">{fmt(totalMassaTop5)} t</span></span>
+                  <span className="text-muted-foreground">Tonelagem: <span className="text-mining-green font-bold">{fmt(totalMassaTop5)} t</span></span>
                 </div>
               </div>
             </div>
