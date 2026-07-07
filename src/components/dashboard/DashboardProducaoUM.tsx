@@ -203,6 +203,28 @@ export default function DashboardProducaoUM() {
   const tphMedio = Number(kpis?.produtividadeMedia ?? 0);
   const totalPrevisto = metaDiaria; // sem série prevista da API
 
+  // ---------- Produção LAV x RET (acumulado dia + projeção linear) ----------
+  const { lavAcum, retAcum } = useMemo(() => {
+    let lav = 0;
+    let ret = 0;
+    (data?.producaoFrente ?? []).forEach((f) => {
+      const name = String(f.frente ?? "").toUpperCase();
+      const v = Number(f.massa ?? 0);
+      if (name.startsWith("RET")) ret += v;
+      else if (name.startsWith("LAV") || name.startsWith("MOV") || name.startsWith("BST") || name.startsWith("FORRO")) lav += v;
+    });
+    return { lavAcum: lav, retAcum: ret };
+  }, [data]);
+
+  const projetar = (acum: number) => {
+    const now = new Date();
+    const h = now.getHours() + now.getMinutes() / 60 + now.getSeconds() / 3600;
+    if (h < 0.1) return acum;
+    return (acum / h) * 24;
+  };
+  const lavProj = projetar(lavAcum);
+  const retProj = projetar(retAcum);
+
   // Corrige mapeamento: API entrega producaoReal como acumulado agregado.
   // Recalcula Produção Diária (hoje) e Produção Mês a partir da série diária.
   const { producaoDia, producaoMes } = useMemo(() => {
@@ -396,12 +418,10 @@ export default function DashboardProducaoUM() {
       </div>
 
       {/* KPI strip */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 mt-2">
-        <GradientKpi label="Produção Diária (t)" numeric={diarioReal} tone="green" />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 mt-2">
+        <DualKpi label="Produção LAV" acumulado={lavAcum} projetado={lavProj} tone="green" />
         <GradientKpi label="Produção Mês (t)" numeric={acumuladoMes} tone="amber" />
-        <GradientKpi label="Produção 12M (t)" numeric={diarioReal + acumuladoMes} tone="green" />
-        <GradientKpi label="Meta Diária (t)" numeric={metaDiaria} tone="blue" />
-        <GradientKpi label="Produção 12M (t)" numeric={totalPrevisto + acumuladoMes} tone="blue" />
+        <DualKpi label="Produção RET" acumulado={retAcum} projetado={retProj} tone="indigo" />
         <GradientKpi label="Produtividade Lab. 6/ Colheita (t/h)" numeric={totalTphEscav} tone="green" suffix=" t/h" decimals={3} />
       </div>
 
@@ -575,58 +595,18 @@ export default function DashboardProducaoUM() {
           </div>
         </Panel>
 
-        <Panel title="Detalhamento de Produção" className="col-span-12 lg:col-span-3 h-[164px]">
-          {detalhamento.length === 0 ? (
-            <Empty />
-          ) : (
-            <div className="h-full overflow-auto">
-            <table className="w-full text-[10px] font-mono">
-              <thead className="text-mining-blue/70">
-                <tr className="border-b border-mining-blue/20">
-                  <Th>Dia</Th><Th>Hora</Th><Th>Equip.</Th><Th>Carga</Th><Th>Origem</Th><Th>Destino</Th><Th>Material</Th><Th>Operador</Th>
-                  <Th className="text-right">Massa</Th><Th className="text-right">Viag.</Th>
-                </tr>
-              </thead>
-              <tbody>
-                {detalhamento.map((d, i) => (
-                  <tr key={i} className="border-b border-white/5">
-                    <Td>{d.dia}</Td>
-                    <Td>{d.hora}</Td>
-                    <Td>{String(d.equipamento ?? "—")}</Td>
-                    <Td>{String(d.equipamento_carga ?? "—")}</Td>
-                    <Td>{String(d.origem ?? "—")}</Td>
-                    <Td>{String(d.destino ?? "—")}</Td>
-                    <Td>{String(d.material ?? "—")}</Td>
-                    <Td>{String(d.operador ?? "—")}</Td>
-                    <Td className="text-right text-mining-green">{fmt(d.massa, 2)}</Td>
-                    <Td className="text-right text-mining-blue">{fmt(d.viagens)}</Td>
-                  </tr>
-                ))}
-              </tbody>
-              <tfoot className="sticky bottom-0 bg-mining-navy/95 border-t border-mining-blue/40">
-                <tr className="font-bold">
-                  <Td colSpan={8} className="text-right text-mining-blue/80">TOTAL</Td>
-                  <Td className="text-right text-mining-green">
-                    {fmt(detalhamento.reduce((s, d) => s + Number(d.massa || 0), 0), 2)}
-                  </Td>
-                  <Td className="text-right text-mining-blue">
-                    {fmt(detalhamento.reduce((s, d) => s + Number(d.viagens || 0), 0))}
-                  </Td>
-                </tr>
-              </tfoot>
-            </table>
-            </div>
-          )}
-        </Panel>
-
         <Panel title="Acompanhamento de Viagens (CRs)" className="col-span-12 h-[260px]">
           {acompViagens.length === 0 ? (
             <Empty />
           ) : (() => {
-            const mid = Math.ceil(acompViagens.length / 2);
-            const cols = [acompViagens.slice(0, mid), acompViagens.slice(mid)];
+            const sorted = [...acompViagens].sort(
+              (a, b) => Number(b.tonelagem || 0) - Number(a.tonelagem || 0),
+            );
+            const perCol = 10;
+            const top = sorted.slice(0, perCol * 2);
+            const cols = [top.slice(0, perCol), top.slice(perCol, perCol * 2)];
             const renderTable = (rows: typeof acompViagens) => (
-              <div className="h-full overflow-y-auto overflow-x-hidden">
+              <div className="h-full overflow-hidden">
                 <table className="w-full table-fixed text-[10px] font-mono">
                   <colgroup>
                     <col style={{ width: "9%" }} />
@@ -805,6 +785,82 @@ function GradientKpi({
       <p className={`text-2xl md:text-[26px] font-black leading-tight ${t.text} font-mono tabular-nums`}>
         <Counter value={numeric} decimals={decimals} suffix={suffix} />
       </p>
+    </motion.div>
+  );
+}
+
+function DualKpi({
+  label,
+  acumulado,
+  projetado,
+  tone,
+}: {
+  label: string;
+  acumulado: number;
+  projetado: number;
+  tone: "green" | "amber" | "teal" | "blue" | "cyan" | "indigo";
+}) {
+  const toneMap: Record<string, { grad: string; border: string; text: string; label: string }> = {
+    green: {
+      grad: "from-[hsl(150_80%_18%)] via-[hsl(155_70%_14%)] to-[hsl(220_45%_9%)]",
+      border: "border-emerald-400/30",
+      text: "text-emerald-300",
+      label: "text-emerald-200/70",
+    },
+    amber: {
+      grad: "from-[hsl(35_85%_25%)] via-[hsl(30_70%_16%)] to-[hsl(220_45%_9%)]",
+      border: "border-amber-400/30",
+      text: "text-amber-300",
+      label: "text-amber-200/70",
+    },
+    teal: {
+      grad: "from-[hsl(180_70%_20%)] via-[hsl(190_60%_14%)] to-[hsl(220_45%_9%)]",
+      border: "border-teal-400/30",
+      text: "text-teal-300",
+      label: "text-teal-200/70",
+    },
+    blue: {
+      grad: "from-[hsl(215_80%_25%)] via-[hsl(215_70%_16%)] to-[hsl(220_45%_9%)]",
+      border: "border-sky-400/30",
+      text: "text-sky-300",
+      label: "text-sky-200/70",
+    },
+    cyan: {
+      grad: "from-[hsl(190_85%_25%)] via-[hsl(200_70%_16%)] to-[hsl(220_45%_9%)]",
+      border: "border-cyan-400/30",
+      text: "text-cyan-300",
+      label: "text-cyan-200/70",
+    },
+    indigo: {
+      grad: "from-[hsl(240_60%_25%)] via-[hsl(240_50%_16%)] to-[hsl(220_45%_9%)]",
+      border: "border-indigo-400/30",
+      text: "text-indigo-300",
+      label: "text-indigo-200/70",
+    },
+  };
+  const t = toneMap[tone];
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: "easeOut" }}
+      className={`relative overflow-hidden rounded-md border ${t.border} bg-gradient-to-br ${t.grad} px-3 py-2.5`}
+    >
+      <p className={`text-[9px] uppercase tracking-[0.18em] font-bold truncate ${t.label}`}>{label}</p>
+      <div className="mt-1 grid grid-cols-2 gap-2">
+        <div>
+          <p className={`text-[8px] uppercase tracking-widest font-bold ${t.label}`}>Acumulado Dia</p>
+          <p className={`text-lg md:text-xl font-black leading-tight ${t.text} font-mono tabular-nums`}>
+            <Counter value={acumulado} />
+          </p>
+        </div>
+        <div>
+          <p className={`text-[8px] uppercase tracking-widest font-bold ${t.label}`}>Projetado Dia</p>
+          <p className={`text-lg md:text-xl font-black leading-tight ${t.text} font-mono tabular-nums`}>
+            <Counter value={projetado} />
+          </p>
+        </div>
+      </div>
     </motion.div>
   );
 }
