@@ -434,8 +434,8 @@ export default function DashboardProducaoUM() {
                     {top5Escav.map((esc, index) => (
                       <motion.tr
                         key={`${esc.equipamento}-${dataUpdatedAt}`}
-                        initial={{ opacity: 0, x: -12 }}
-                        animate={{ opacity: 1, x: 0 }}
+                        initial={{ opacity: 0, y: 6 }}
+                        animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.35, ease: "easeOut", delay: index * 0.05 }}
                         className="border-b border-white/5 hover:bg-white/[0.03]"
                       >
