@@ -8,7 +8,11 @@ export interface DashboardApiPayload {
     faltaParaMeta: number;
     viagens: number;
     produtividadeMedia: number;
+    producaoDia?: number;
+    producaoMensal?: number;
+    producaoTotalEscavadeirasTH?: number;
   };
+  atualizadoEm?: string;
   producaoDiaria: Array<{ data: string; real: number; previsto?: number }>;
   producaoFrente: Array<{ frente: string; massa: number }>;
   rankingEscavadeiras: Array<{
@@ -51,13 +55,19 @@ export function useDashboardApi() {
   return useQuery<DashboardApiPayload>({
     queryKey: ["dashboard-api-local"],
     queryFn: async () => {
-      const res = await fetch(DASHBOARD_API_URL, { cache: "no-store" });
+      const res = await fetch(`${DASHBOARD_API_URL}?ts=${Date.now()}`, {
+        cache: "no-store",
+        headers: { "Cache-Control": "no-cache", Pragma: "no-cache" },
+      });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       return (await res.json()) as DashboardApiPayload;
     },
-    refetchInterval: 5_000,
+    refetchInterval: 60_000,
     refetchOnWindowFocus: true,
     retry: 1,
+    staleTime: 0,
+    gcTime: 0,
+    placeholderData: undefined,
   });
 }
 
@@ -66,7 +76,11 @@ function makeExtraHook<T = any>(key: string, path: string) {
     return useQuery<T[]>({
       queryKey: [key],
       queryFn: async () => {
-        const res = await fetch(`${API_BASE}${path}`, { cache: "no-store" });
+        const sep = path.includes("?") ? "&" : "?";
+        const res = await fetch(`${API_BASE}${path}${sep}ts=${Date.now()}`, {
+          cache: "no-store",
+          headers: { "Cache-Control": "no-cache", Pragma: "no-cache" },
+        });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const json = await res.json();
         if (Array.isArray(json)) return json as T[];
@@ -75,9 +89,11 @@ function makeExtraHook<T = any>(key: string, path: string) {
         if (Array.isArray(json?.items)) return json.items as T[];
         return [] as T[];
       },
-      refetchInterval: 5_000,
+      refetchInterval: 60_000,
       refetchOnWindowFocus: true,
       retry: 1,
+      staleTime: 0,
+      gcTime: 0,
     });
   };
 }
