@@ -789,6 +789,82 @@ function GradientKpi({
   );
 }
 
+function DualKpi({
+  label,
+  acumulado,
+  projetado,
+  tone,
+}: {
+  label: string;
+  acumulado: number;
+  projetado: number;
+  tone: "green" | "amber" | "teal" | "blue" | "cyan" | "indigo";
+}) {
+  const toneMap: Record<string, { grad: string; border: string; text: string; label: string }> = {
+    green: {
+      grad: "from-[hsl(150_80%_18%)] via-[hsl(155_70%_14%)] to-[hsl(220_45%_9%)]",
+      border: "border-emerald-400/30",
+      text: "text-emerald-300",
+      label: "text-emerald-200/70",
+    },
+    amber: {
+      grad: "from-[hsl(35_85%_25%)] via-[hsl(30_70%_16%)] to-[hsl(220_45%_9%)]",
+      border: "border-amber-400/30",
+      text: "text-amber-300",
+      label: "text-amber-200/70",
+    },
+    teal: {
+      grad: "from-[hsl(180_70%_20%)] via-[hsl(190_60%_14%)] to-[hsl(220_45%_9%)]",
+      border: "border-teal-400/30",
+      text: "text-teal-300",
+      label: "text-teal-200/70",
+    },
+    blue: {
+      grad: "from-[hsl(215_80%_25%)] via-[hsl(215_70%_16%)] to-[hsl(220_45%_9%)]",
+      border: "border-sky-400/30",
+      text: "text-sky-300",
+      label: "text-sky-200/70",
+    },
+    cyan: {
+      grad: "from-[hsl(190_85%_25%)] via-[hsl(200_70%_16%)] to-[hsl(220_45%_9%)]",
+      border: "border-cyan-400/30",
+      text: "text-cyan-300",
+      label: "text-cyan-200/70",
+    },
+    indigo: {
+      grad: "from-[hsl(240_60%_25%)] via-[hsl(240_50%_16%)] to-[hsl(220_45%_9%)]",
+      border: "border-indigo-400/30",
+      text: "text-indigo-300",
+      label: "text-indigo-200/70",
+    },
+  };
+  const t = toneMap[tone];
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: "easeOut" }}
+      className={`relative overflow-hidden rounded-md border ${t.border} bg-gradient-to-br ${t.grad} px-3 py-2.5`}
+    >
+      <p className={`text-[9px] uppercase tracking-[0.18em] font-bold truncate ${t.label}`}>{label}</p>
+      <div className="mt-1 grid grid-cols-2 gap-2">
+        <div>
+          <p className={`text-[8px] uppercase tracking-widest font-bold ${t.label}`}>Acumulado Dia</p>
+          <p className={`text-lg md:text-xl font-black leading-tight ${t.text} font-mono tabular-nums`}>
+            <Counter value={acumulado} />
+          </p>
+        </div>
+        <div>
+          <p className={`text-[8px] uppercase tracking-widest font-bold ${t.label}`}>Projetado Dia</p>
+          <p className={`text-lg md:text-xl font-black leading-tight ${t.text} font-mono tabular-nums`}>
+            <Counter value={projetado} />
+          </p>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
 function MiniKpi({ label, value, unit }: { label: string; value: string; unit?: string }) {
   return (
     <div className="bg-[hsl(220_45%_9%/0.85)] border border-mining-blue/20 rounded-md p-2 flex flex-col justify-center">
