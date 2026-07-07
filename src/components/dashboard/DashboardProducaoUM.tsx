@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState, useEffect, useRef, memo } from "react";
+import { useCallback, useMemo, useState, useEffect, memo } from "react";
 import { motion } from "framer-motion";
 import { useAnimatedCounter } from "@/hooks/useAnimatedCounter";
 import {
@@ -16,7 +16,6 @@ import {
   YAxis,
   Legend,
 } from "recharts";
-import { Filter } from "lucide-react";
 import { DASHBOARD_API_URL, type DashboardApiPayload } from "@/hooks/useDashboardApi";
 
 /* ---------- helpers ---------- */
@@ -145,85 +144,105 @@ export default function DashboardProducaoUM() {
   const inicioAno = `${new Date().getFullYear()}-01-01`;
   const [dtIni, setDtIni] = useState(inicioAno);
   const [dtFim, setDtFim] = useState(hoje);
-  const [data, setDashboardData] = useState<DashboardApiPayload | null>(null);
+  const [dashboardData, setDashboardData] = useState<DashboardApiPayload | null>(null);
   const [dataUpdatedAt, setDataUpdatedAt] = useState(0);
-  const [countdown, setCountdown] = useState(60);
-  const swapTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [segundosAtualizacao, setSegundosAtualizacao] = useState(60);
+  const [, setLoading] = useState(false);
+  const [, setErroApi] = useState<string | null>(null);
+  const [ultimaAtualizacao, setUltimaAtualizacao] = useState("");
 
-  const buscarDashboard = useCallback(async () => {
-    setCountdown(0);
-    console.log("Buscando API agora...");
-
+  const carregarDashboard = useCallback(async () => {
     try {
-      const res = await fetch(`${DASHBOARD_API_URL}?ts=${Date.now()}`, {
+      setLoading(true);
+      setSegundosAtualizacao(60);
+      const url = `${DASHBOARD_API_URL}?ts=${Date.now()}`;
+      console.log("Buscando API:", url);
+
+      const response = await fetch(url, {
+        method: "GET",
         cache: "no-store",
         headers: { "Cache-Control": "no-cache", Pragma: "no-cache" },
       });
 
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      if (!response.ok) {
+        throw new Error("Erro HTTP " + response.status);
+      }
 
-      const apiResponse = (await res.json()) as DashboardApiPayload;
+      const apiResponse = (await response.json()) as DashboardApiPayload;
       console.log("Resposta API:", apiResponse.kpis);
 
-      if (swapTimerRef.current) clearTimeout(swapTimerRef.current);
-      setDashboardData(null);
-      swapTimerRef.current = setTimeout(() => {
-        setDashboardData(apiResponse);
-        setDataUpdatedAt(Date.now());
-        setCountdown(60);
-      }, 50);
-    } catch (err) {
-      if (swapTimerRef.current) clearTimeout(swapTimerRef.current);
-      setDashboardData(null);
-      setCountdown(60);
-      console.error("Erro ao buscar API", err);
+      setDashboardData(apiResponse);
+      setUltimaAtualizacao(apiResponse.atualizadoEm || new Date().toISOString());
+      setDataUpdatedAt(Date.now());
+      setErroApi(null);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error("Erro ao atualizar dashboard:", error);
+      setErroApi(message);
+    } finally {
+      setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    buscarDashboard();
-    const interval = setInterval(buscarDashboard, 60_000);
-    return () => {
-      clearInterval(interval);
-      if (swapTimerRef.current) clearTimeout(swapTimerRef.current);
+    let ativo = true;
+    let intervalo: ReturnType<typeof setInterval>;
+
+    const executar = async () => {
+      if (!ativo) return;
+      await carregarDashboard();
     };
-  }, [buscarDashboard]);
+
+    executar();
+    intervalo = setInterval(() => {
+      executar();
+    }, 60000);
+
+    return () => {
+      ativo = false;
+      clearInterval(intervalo);
+    };
+  }, [carregarDashboard]);
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setCountdown((value) => (value > 0 ? value - 1 : 0));
+      setSegundosAtualizacao((prev) => {
+        if (prev <= 1) return 60;
+        return prev - 1;
+      });
     }, 1000);
     return () => clearInterval(timer);
   }, []);
 
   // Valores direto da API — sem cálculo no frontend
-  const kpis = (data?.kpis ?? {}) as Record<string, any>;
+  const kpis = (dashboardData?.kpis ?? {}) as Record<string, any>;
   const producaoDia = Number(kpis.producaoDia ?? 0);
   const producaoMensal = Number(kpis.producaoMensal ?? 0);
   const producaoTotalEscavadeirasTH = Number(kpis.producaoTotalEscavadeirasTH ?? 0);
+  const viagens = Number(kpis.viagens ?? 0);
 
   const dailySeries = useMemo(
     () =>
-      (data?.producaoDiaria ?? []).map((d) => ({
+      (dashboardData?.producaoDiaria ?? []).map((d) => ({
         dia: d.data,
         Real: Number(d.real ?? 0),
         Prevista: Number(d.previsto ?? 0),
       })),
-    [data],
+    [dashboardData],
   );
 
   const frenteAgg = useMemo(() => {
-    const arr = (data?.producaoFrente ?? [])
+    const arr = (dashboardData?.producaoFrente ?? [])
       .map((f) => ({ name: String(f.frente), value: Number(f.massa ?? 0) }))
       .filter((r) => r.value > 0)
       .sort((a, b) => b.value - a.value);
     const total = arr.reduce((s, r) => s + r.value, 0) || 1;
     return arr.map((r) => ({ ...r, pct: (r.value / total) * 100 }));
-  }, [data]);
+  }, [dashboardData]);
 
   // Mostra SEMPRE todas as escavadeiras da whitelist, mesmo com zero.
   const top5Escav = useMemo(() => {
-    const rank = Array.isArray(data?.rankingEscavadeiras) ? data!.rankingEscavadeiras! : [];
+    const rank = Array.isArray(dashboardData?.rankingEscavadeiras) ? dashboardData!.rankingEscavadeiras! : [];
     const byCode = new Map<string, any>();
     rank.forEach((e: any) => {
       const code = normEquip(e.equipamento);
@@ -242,7 +261,7 @@ export default function DashboardProducaoUM() {
         destino: e.destino ?? null,
       };
     }).sort((a, b) => b.th - a.th);
-  }, [data]);
+  }, [dashboardData]);
   const totalMassaTop5 = top5Escav.reduce((total, item) => total + Number(item.massa || 0), 0);
   const totalViagensTop5 = top5Escav.reduce((total, item) => total + Number(item.viagens || 0), 0);
 
@@ -251,12 +270,12 @@ export default function DashboardProducaoUM() {
       hora: String(h).padStart(2, "0"),
       Real: 0,
     }));
-    (data?.viagensHora ?? []).forEach((v) => {
+    (dashboardData?.viagensHora ?? []).forEach((v) => {
       const h = Number(String(v.hora).slice(0, 2));
       if (h >= 0 && h < 24) base[h].Real = Number(v.viagens ?? 0);
     });
     return base;
-  }, [data]);
+  }, [dashboardData]);
 
   const prodSeries = useMemo(
     () =>
@@ -271,7 +290,7 @@ export default function DashboardProducaoUM() {
   const mediaViagens = 0;
 
   const acompViagens = useMemo(() => {
-    const arr = Array.isArray(data?.viagensCR) ? data!.viagensCR! : [];
+    const arr = Array.isArray(dashboardData?.viagensCR) ? dashboardData!.viagensCR! : [];
     return arr.map((r: any) => ({
       cr: r.cr ?? r.equipamento ?? null,
       escavadeira: r.escavadeira ?? null,
@@ -284,22 +303,24 @@ export default function DashboardProducaoUM() {
       fim: r.fim ?? r.event_end ?? null,
       ciclo: toNum(r.ciclo ?? r.tempo_ciclo),
     }));
-  }, [data]);
+  }, [dashboardData]);
 
   const limparFiltros = () => {
     setDtIni(inicioAno);
     setDtFim(hoje);
   };
 
-  const atualizadoEm = (data as any)?.atualizadoEm as string | undefined;
+  const atualizadoEm = (dashboardData as any)?.atualizadoEm || ultimaAtualizacao;
+  const atualizadoEmFormatado = atualizadoEm ? new Date(atualizadoEm).toLocaleString("pt-BR") : "—";
 
   return (
     <div className="min-h-screen bg-[hsl(220_50%_5%)] text-foreground p-2 md:p-3 font-sans dashboard-enter">
       {/* KPI strip — valores exclusivos de data.kpis */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
         <DualKpi key={`dia-${dataUpdatedAt}-${producaoDia}`} label="Produção Diária" sublabel="Hoje" acumulado={producaoDia} tone="green" />
         <DualKpi key={`mes-${dataUpdatedAt}-${producaoMensal}`} label="Produção Mensal" sublabel="" acumulado={producaoMensal} tone="amber" />
         <GradientKpi key={`th-${dataUpdatedAt}-${producaoTotalEscavadeirasTH}`} label="Produção Total das Escavadeiras (t/h)" numeric={producaoTotalEscavadeirasTH} tone="green" suffix=" t/h" decimals={0} />
+        <GradientKpi key={`viagens-${dataUpdatedAt}-${viagens}`} label="Viagens" numeric={viagens} tone="blue" decimals={0} />
       </div>
 
       {/* Dashboard grid */}
@@ -481,7 +502,7 @@ export default function DashboardProducaoUM() {
           <div className="flex flex-col justify-between h-full py-1 gap-2">
             <StatBlock label="Produção (9H/13H)" value={<Counter value={producaoDia} />} unit="t" big />
             <StatBlock label="Próxima Média" value={<Counter value={producaoTotalEscavadeirasTH} />} />
-            <StatBlock label="Viagens" value={<Counter value={Number(kpis?.viagens ?? 0)} />} />
+            <StatBlock label="Viagens" value={<Counter value={viagens} />} />
             <StatBlock label="VOI 10.000" value={<Counter value={mediaViagens} />} />
           </div>
         </Panel>
@@ -564,19 +585,15 @@ export default function DashboardProducaoUM() {
       {/* Footer */}
       <div className="mt-3 flex flex-wrap items-center justify-between gap-2 px-1 text-[10px] font-mono text-mining-blue/70">
         <span className="flex items-center gap-2">
-          Fonte: http://192.168.17.15:3001/api/dashboard · auto 60s
+          Fonte: http://192.168.17.15:3001/api/dashboard
         </span>
         <span className="flex items-center gap-4">
           <span>
-            {countdown > 0 ? (
-              <>Atualização em <span className="text-mining-blue font-bold tabular-nums">{countdown}s</span></>
-            ) : (
-              <span className="text-mining-green font-bold animate-pulse">Atualizando...</span>
-            )}
+            Atualização em: <span className="text-mining-blue font-bold tabular-nums">{segundosAtualizacao}s</span>
           </span>
           <span>
             Última atualização:{" "}
-            <span className="text-foreground font-bold">{atualizadoEm ?? "—"}</span>
+            <span className="text-foreground font-bold">{atualizadoEmFormatado}</span>
           </span>
         </span>
       </div>
