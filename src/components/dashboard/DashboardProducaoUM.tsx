@@ -434,7 +434,7 @@ export default function DashboardProducaoUM() {
         <DualKpi label="Produção LAV" acumulado={lavAcum} projetado={lavProj} tone="green" />
         <GradientKpi label="Produção Mês (t)" numeric={acumuladoMes} tone="amber" />
         <DualKpi label="Produção RET" acumulado={retAcum} projetado={retProj} tone="indigo" />
-        <GradientKpi label="Produtividade Lab. 6/ Colheita (t/h)" numeric={totalTphEscav} tone="green" suffix=" t/h" decimals={3} />
+        <GradientKpi label="Produção Total das Escavadeiras (t/h)" numeric={totalTphEscav} tone="green" suffix=" t/h" decimals={3} />
       </div>
 
       {/* Dashboard grid */}
@@ -860,19 +860,11 @@ function DualKpi({
       className={`relative overflow-hidden rounded-md border ${t.border} bg-gradient-to-br ${t.grad} px-3 py-2.5`}
     >
       <p className={`text-[9px] uppercase tracking-[0.18em] font-bold truncate ${t.label}`}>{label}</p>
-      <div className="mt-1 grid grid-cols-2 gap-2">
-        <div>
-          <p className={`text-[8px] uppercase tracking-widest font-bold ${t.label}`}>Acumulado Dia</p>
-          <p className={`text-lg md:text-xl font-black leading-tight ${t.text} font-mono tabular-nums`}>
-            <Counter value={acumulado} />
-          </p>
-        </div>
-        <div>
-          <p className={`text-[8px] uppercase tracking-widest font-bold ${t.label}`}>Projetado Dia</p>
-          <p className={`text-lg md:text-xl font-black leading-tight ${t.text} font-mono tabular-nums`}>
-            <Counter value={projetado} />
-          </p>
-        </div>
+      <div className="mt-1">
+        <p className={`text-[8px] uppercase tracking-widest font-bold ${t.label}`}>Acumulado Dia</p>
+        <p className={`text-2xl md:text-[26px] font-black leading-tight ${t.text} font-mono tabular-nums`}>
+          <Counter value={acumulado} />
+        </p>
       </div>
     </motion.div>
   );
