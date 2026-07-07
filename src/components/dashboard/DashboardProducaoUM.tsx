@@ -203,6 +203,28 @@ export default function DashboardProducaoUM() {
   const tphMedio = Number(kpis?.produtividadeMedia ?? 0);
   const totalPrevisto = metaDiaria; // sem série prevista da API
 
+  // ---------- Produção LAV x RET (acumulado dia + projeção linear) ----------
+  const { lavAcum, retAcum } = useMemo(() => {
+    let lav = 0;
+    let ret = 0;
+    (data?.producaoFrente ?? []).forEach((f) => {
+      const name = String(f.frente ?? "").toUpperCase();
+      const v = Number(f.massa ?? 0);
+      if (name.startsWith("RET")) ret += v;
+      else if (name.startsWith("LAV") || name.startsWith("MOV") || name.startsWith("BST") || name.startsWith("FORRO")) lav += v;
+    });
+    return { lavAcum: lav, retAcum: ret };
+  }, [data]);
+
+  const projetar = (acum: number) => {
+    const now = new Date();
+    const h = now.getHours() + now.getMinutes() / 60 + now.getSeconds() / 3600;
+    if (h < 0.1) return acum;
+    return (acum / h) * 24;
+  };
+  const lavProj = projetar(lavAcum);
+  const retProj = projetar(retAcum);
+
   // Corrige mapeamento: API entrega producaoReal como acumulado agregado.
   // Recalcula Produção Diária (hoje) e Produção Mês a partir da série diária.
   const { producaoDia, producaoMes } = useMemo(() => {
@@ -396,12 +418,10 @@ export default function DashboardProducaoUM() {
       </div>
 
       {/* KPI strip */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 mt-2">
-        <GradientKpi label="Produção Diária (t)" numeric={diarioReal} tone="green" />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 mt-2">
+        <DualKpi label="Produção LAV" acumulado={lavAcum} projetado={lavProj} tone="green" />
         <GradientKpi label="Produção Mês (t)" numeric={acumuladoMes} tone="amber" />
-        <GradientKpi label="Produção 12M (t)" numeric={diarioReal + acumuladoMes} tone="green" />
-        <GradientKpi label="Meta Diária (t)" numeric={metaDiaria} tone="blue" />
-        <GradientKpi label="Produção 12M (t)" numeric={totalPrevisto + acumuladoMes} tone="blue" />
+        <DualKpi label="Produção RET" acumulado={retAcum} projetado={retProj} tone="indigo" />
         <GradientKpi label="Produtividade Lab. 6/ Colheita (t/h)" numeric={totalTphEscav} tone="green" suffix=" t/h" decimals={3} />
       </div>
 
@@ -575,58 +595,18 @@ export default function DashboardProducaoUM() {
           </div>
         </Panel>
 
-        <Panel title="Detalhamento de Produção" className="col-span-12 lg:col-span-3 h-[164px]">
-          {detalhamento.length === 0 ? (
-            <Empty />
-          ) : (
-            <div className="h-full overflow-auto">
-            <table className="w-full text-[10px] font-mono">
-              <thead className="text-mining-blue/70">
-                <tr className="border-b border-mining-blue/20">
-                  <Th>Dia</Th><Th>Hora</Th><Th>Equip.</Th><Th>Carga</Th><Th>Origem</Th><Th>Destino</Th><Th>Material</Th><Th>Operador</Th>
-                  <Th className="text-right">Massa</Th><Th className="text-right">Viag.</Th>
-                </tr>
-              </thead>
-              <tbody>
-                {detalhamento.map((d, i) => (
-                  <tr key={i} className="border-b border-white/5">
-                    <Td>{d.dia}</Td>
-                    <Td>{d.hora}</Td>
-                    <Td>{String(d.equipamento ?? "—")}</Td>
-                    <Td>{String(d.equipamento_carga ?? "—")}</Td>
-                    <Td>{String(d.origem ?? "—")}</Td>
-                    <Td>{String(d.destino ?? "—")}</Td>
-                    <Td>{String(d.material ?? "—")}</Td>
-                    <Td>{String(d.operador ?? "—")}</Td>
-                    <Td className="text-right text-mining-green">{fmt(d.massa, 2)}</Td>
-                    <Td className="text-right text-mining-blue">{fmt(d.viagens)}</Td>
-                  </tr>
-                ))}
-              </tbody>
-              <tfoot className="sticky bottom-0 bg-mining-navy/95 border-t border-mining-blue/40">
-                <tr className="font-bold">
-                  <Td colSpan={8} className="text-right text-mining-blue/80">TOTAL</Td>
-                  <Td className="text-right text-mining-green">
-                    {fmt(detalhamento.reduce((s, d) => s + Number(d.massa || 0), 0), 2)}
-                  </Td>
-                  <Td className="text-right text-mining-blue">
-                    {fmt(detalhamento.reduce((s, d) => s + Number(d.viagens || 0), 0))}
-                  </Td>
-                </tr>
-              </tfoot>
-            </table>
-            </div>
-          )}
-        </Panel>
-
         <Panel title="Acompanhamento de Viagens (CRs)" className="col-span-12 h-[260px]">
           {acompViagens.length === 0 ? (
             <Empty />
           ) : (() => {
-            const mid = Math.ceil(acompViagens.length / 2);
-            const cols = [acompViagens.slice(0, mid), acompViagens.slice(mid)];
+            const sorted = [...acompViagens].sort(
+              (a, b) => Number(b.tonelagem || 0) - Number(a.tonelagem || 0),
+            );
+            const perCol = 10;
+            const top = sorted.slice(0, perCol * 2);
+            const cols = [top.slice(0, perCol), top.slice(perCol, perCol * 2)];
             const renderTable = (rows: typeof acompViagens) => (
-              <div className="h-full overflow-y-auto overflow-x-hidden">
+              <div className="h-full overflow-hidden">
                 <table className="w-full table-fixed text-[10px] font-mono">
                   <colgroup>
                     <col style={{ width: "9%" }} />
