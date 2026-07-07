@@ -259,6 +259,143 @@
     opacity: 0;
     animation: table-row-soft-in 0.38s ease-out forwards;
   }
+
+  /* =============================================================
+     Classes reutilizáveis — animações futuristas para gráficos
+     Usadas nos painéis do dashboard. Todas puro CSS, GPU-friendly.
+     ============================================================= */
+
+  /* Card com borda neon respirando + gradiente animado sutil */
+  @keyframes card-neon-breath {
+    0%, 100% {
+      box-shadow:
+        0 0 0 1px hsl(var(--mining-blue) / 0.18),
+        0 0 22px -12px hsl(var(--mining-blue) / 0.55);
+    }
+    50% {
+      box-shadow:
+        0 0 0 1px hsl(var(--mining-blue) / 0.45),
+        0 0 34px -8px hsl(var(--mining-cyan) / 0.55);
+    }
+  }
+  .animated-card {
+    animation: card-neon-breath 5.5s ease-in-out infinite;
+  }
+
+  /* Wrapper que ativa glow neon nos elementos SVG do recharts */
+  .neon-chart .recharts-surface {
+    filter: drop-shadow(0 0 4px hsl(var(--mining-blue) / 0.35));
+  }
+
+  /* Pulso leve nas barras (aplica em qualquer <Bar>) */
+  @keyframes bar-pulse-neon {
+    0%, 100% { filter: drop-shadow(0 0 2px hsl(var(--mining-green) / 0.35)); }
+    50%      { filter: drop-shadow(0 0 8px hsl(var(--mining-green) / 0.85)); }
+  }
+  .pulse-bar .recharts-bar-rectangles .recharts-bar-rectangle:nth-child(even) path {
+    animation: bar-pulse-neon 2.6s ease-in-out infinite;
+  }
+
+  /* Chuva de dados — brilho vertical descendo dentro do painel */
+  @keyframes rain-sweep {
+    0%   { transform: translateY(-100%); opacity: 0; }
+    20%  { opacity: 0.8; }
+    80%  { opacity: 0.8; }
+    100% { transform: translateY(120%); opacity: 0; }
+  }
+  .rain-effect { position: relative; overflow: hidden; }
+  .rain-effect::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(180deg,
+      transparent 0%,
+      hsl(var(--mining-green) / 0.12) 45%,
+      hsl(var(--mining-cyan) / 0.18) 50%,
+      hsl(var(--mining-green) / 0.12) 55%,
+      transparent 100%);
+    mix-blend-mode: screen;
+    animation: rain-sweep 4.5s linear infinite;
+    z-index: 1;
+  }
+  .rain-effect > * { position: relative; z-index: 2; }
+
+  /* Varredura horizontal (scan) sobre o gráfico */
+  @keyframes scan-horizontal {
+    0%   { transform: translateX(-30%); opacity: 0; }
+    15%  { opacity: 0.9; }
+    85%  { opacity: 0.9; }
+    100% { transform: translateX(130%); opacity: 0; }
+  }
+  .scan-line { position: relative; overflow: hidden; }
+  .scan-line::after {
+    content: "";
+    position: absolute;
+    top: 0; bottom: 0;
+    left: 0;
+    width: 22%;
+    pointer-events: none;
+    background: linear-gradient(90deg,
+      transparent,
+      hsl(var(--mining-cyan) / 0.22),
+      hsl(var(--mining-blue) / 0.35),
+      hsl(var(--mining-cyan) / 0.22),
+      transparent);
+    mix-blend-mode: screen;
+    animation: scan-horizontal 5s ease-in-out infinite;
+    z-index: 3;
+  }
+
+  /* Linha do gráfico com brilho neon animado (energia correndo) */
+  @keyframes line-flow {
+    from { stroke-dashoffset: 0; }
+    to   { stroke-dashoffset: -60; }
+  }
+  .glow-line .recharts-line-curve {
+    filter: drop-shadow(0 0 4px hsl(var(--mining-green) / 0.85))
+            drop-shadow(0 0 8px hsl(var(--mining-green) / 0.35));
+    stroke-dasharray: 6 4;
+    animation: line-flow 2.2s linear infinite;
+  }
+  .glow-line .recharts-line-dots circle {
+    filter: drop-shadow(0 0 6px hsl(var(--mining-green) / 0.9));
+    animation: center-breath 2.4s ease-in-out infinite;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  /* Donut: glow externo + rotação sutil já existente reutilizada */
+  .neon-donut {
+    position: relative;
+  }
+  .neon-donut::before {
+    content: "";
+    position: absolute;
+    inset: 4%;
+    border-radius: 50%;
+    pointer-events: none;
+    box-shadow:
+      0 0 22px 2px hsl(var(--mining-cyan) / 0.35),
+      inset 0 0 22px hsl(var(--mining-blue) / 0.25);
+    animation: card-neon-breath 6s ease-in-out infinite;
+    z-index: 0;
+  }
+  .neon-donut > * { position: relative; z-index: 1; }
+
+  /* Count-up entrada suave — utilitário genérico */
+  .count-up { animation: dashboard-soft-enter 0.55s ease-out both; }
+}
+
+/* TV mode: neutraliza as animações pesadas novas */
+html.tv-mode .animated-card,
+html.tv-mode .rain-effect::before,
+html.tv-mode .scan-line::after,
+html.tv-mode .pulse-bar .recharts-bar-rectangles .recharts-bar-rectangle:nth-child(even) path,
+html.tv-mode .glow-line .recharts-line-curve,
+html.tv-mode .glow-line .recharts-line-dots circle,
+html.tv-mode .neon-donut::before {
+  animation: none !important;
 }
 
 /* ============================================================
