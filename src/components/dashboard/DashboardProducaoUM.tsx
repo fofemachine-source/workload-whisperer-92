@@ -434,7 +434,7 @@ export default function DashboardProducaoUM() {
         <DualKpi label="Produção LAV" acumulado={lavAcum} projetado={lavProj} tone="green" />
         <GradientKpi label="Produção Mês (t)" numeric={acumuladoMes} tone="amber" />
         <DualKpi label="Produção RET" acumulado={retAcum} projetado={retProj} tone="indigo" />
-        <GradientKpi label="Produtividade Lab. 6/ Colheita (t/h)" numeric={totalTphEscav} tone="green" suffix=" t/h" decimals={3} />
+        <GradientKpi label="Produção Total das Escavadeiras (t/h)" numeric={totalTphEscav} tone="green" suffix=" t/h" decimals={3} />
       </div>
 
       {/* Dashboard grid */}
@@ -506,24 +506,22 @@ export default function DashboardProducaoUM() {
             <Empty />
           ) : (
             <div className="flex flex-col h-full">
-              <div className="flex-1 min-h-0 overflow-auto">
+              <div className="flex-1 min-h-0 overflow-hidden">
                 <table className="w-full table-fixed text-[10px] font-mono border-collapse">
                   <colgroup>
-                    <col style={{ width: "13%" }} />
+                    <col style={{ width: "16%" }} />
+                    <col style={{ width: "12%" }} />
+                    <col style={{ width: "16%" }} />
+                    <col style={{ width: "16%" }} />
                     <col style={{ width: "10%" }} />
-                    <col style={{ width: "14%" }} />
-                    <col style={{ width: "10%" }} />
-                    <col style={{ width: "14%" }} />
-                    <col style={{ width: "10%" }} />
-                    <col style={{ width: "13%" }} />
-                    <col style={{ width: "10%" }} />
+                    <col style={{ width: "15%" }} />
+                    <col style={{ width: "15%" }} />
                   </colgroup>
                   <thead className="text-mining-blue/70 sticky top-0 bg-[hsl(220_45%_9%)] z-10">
                     <tr className="border-b border-mining-blue/25">
                       <Th>Escavadeira</Th>
                       <Th>Material</Th>
                       <Th>Frente</Th>
-                      <Th>Subárea</Th>
                       <Th>Destino</Th>
                       <Th className="text-right">Qtd</Th>
                       <Th className="text-right">Tonelagem</Th>
@@ -532,29 +530,22 @@ export default function DashboardProducaoUM() {
                   </thead>
                   <tbody>
                     {top5Escav.map((esc, index) => (
-                      esc.detalhes.map((item: any, idx: number) => (
-                        <tr key={`${esc.equipamento}-${idx}`} className="border-b border-white/5">
-                          <Td>
-                            {idx === 0 ? (
-                              <span className="flex items-center gap-1.5">
-                                <span className="w-4 h-4 flex items-center justify-center rounded-sm bg-mining-yellow text-background text-[9px] font-black font-sans">
-                                  {index + 1}
-                                </span>
-                                <span className="font-black text-foreground">{esc.equipamento}</span>
-                              </span>
-                            ) : ""}
-                          </Td>
-                          <Td>{item.material ?? "—"}</Td>
-                          <Td>{item.frente ?? "—"}</Td>
-                          <Td>{item.subarea ?? "—"}</Td>
-                          <Td>{item.destino ?? "—"}</Td>
-                          <Td className="text-right text-mining-blue">{fmt(item.quantidade)}</Td>
-                          <Td className="text-right text-mining-green">{fmt(item.tonelagem)} t</Td>
-                          <Td className="text-right text-foreground font-bold">
-                            {idx === 0 ? `${fmt(esc.th, 1)} t/h` : ""}
-                          </Td>
-                        </tr>
-                      ))
+                      <tr key={esc.equipamento} className="border-b border-white/5">
+                        <Td>
+                          <span className="flex items-center gap-1.5">
+                            <span className="w-4 h-4 flex items-center justify-center rounded-sm bg-mining-yellow text-background text-[9px] font-black font-sans">
+                              {index + 1}
+                            </span>
+                            <span className="font-black text-foreground">{esc.equipamento}</span>
+                          </span>
+                        </Td>
+                        <Td>{esc.material ?? "—"}</Td>
+                        <Td>{esc.frente ?? "—"}</Td>
+                        <Td>{esc.destino ?? "—"}</Td>
+                        <Td className="text-right text-mining-blue">{fmt(esc.viagens)}</Td>
+                        <Td className="text-right text-mining-green">{fmt(esc.massa)} t</Td>
+                        <Td className="text-right text-foreground font-bold">{fmt(esc.th, 1)} t/h</Td>
+                      </tr>
                     ))}
                   </tbody>
                 </table>
@@ -869,19 +860,11 @@ function DualKpi({
       className={`relative overflow-hidden rounded-md border ${t.border} bg-gradient-to-br ${t.grad} px-3 py-2.5`}
     >
       <p className={`text-[9px] uppercase tracking-[0.18em] font-bold truncate ${t.label}`}>{label}</p>
-      <div className="mt-1 grid grid-cols-2 gap-2">
-        <div>
-          <p className={`text-[8px] uppercase tracking-widest font-bold ${t.label}`}>Acumulado Dia</p>
-          <p className={`text-lg md:text-xl font-black leading-tight ${t.text} font-mono tabular-nums`}>
-            <Counter value={acumulado} />
-          </p>
-        </div>
-        <div>
-          <p className={`text-[8px] uppercase tracking-widest font-bold ${t.label}`}>Projetado Dia</p>
-          <p className={`text-lg md:text-xl font-black leading-tight ${t.text} font-mono tabular-nums`}>
-            <Counter value={projetado} />
-          </p>
-        </div>
+      <div className="mt-1">
+        <p className={`text-[8px] uppercase tracking-widest font-bold ${t.label}`}>Acumulado Dia</p>
+        <p className={`text-2xl md:text-[26px] font-black leading-tight ${t.text} font-mono tabular-nums`}>
+          <Counter value={acumulado} />
+        </p>
       </div>
     </motion.div>
   );
