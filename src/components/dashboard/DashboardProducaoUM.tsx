@@ -203,15 +203,25 @@ export default function DashboardProducaoUM() {
   const tphMedio = Number(kpis?.produtividadeMedia ?? 0);
   const totalPrevisto = metaDiaria; // sem série prevista da API
 
-  // ---------- Produção LAV x RET (acumulado dia + projeção linear) ----------
+  // ---------- Produção LAV x RET (acumulado dia) ----------
+  // LAV: contém LAV / LAVRA / MINA. Exclui RET e CB.
+  // RET: contém RET. Exclui LAV, MINA e CB.
   const { lavAcum, retAcum } = useMemo(() => {
     let lav = 0;
     let ret = 0;
     (data?.producaoFrente ?? []).forEach((f) => {
       const name = String(f.frente ?? "").toUpperCase();
       const v = Number(f.massa ?? 0);
-      if (name.startsWith("RET")) ret += v;
-      else if (name.startsWith("LAV") || name.startsWith("MOV") || name.startsWith("BST") || name.startsWith("FORRO")) lav += v;
+      if (!v) return;
+      if (name.includes("CB")) return;
+      const hasRET = name.includes("RET");
+      const hasLAV = name.includes("LAV") || name.includes("LAVRA");
+      const hasMINA = name.includes("MINA");
+      if (hasRET && !hasLAV && !hasMINA) {
+        ret += v;
+      } else if ((hasLAV || hasMINA) && !hasRET) {
+        lav += v;
+      }
     });
     return { lavAcum: lav, retAcum: ret };
   }, [data]);
@@ -265,49 +275,28 @@ export default function DashboardProducaoUM() {
     return arr.map((r) => ({ ...r, pct: (r.value / total) * 100 }));
   }, [data]);
 
-  const topEscav = useMemo(() => {
-    if (!Array.isArray(data?.rankingEscavadeiras) || data.rankingEscavadeiras.length === 0) return [];
-    const detalhado = Array.isArray(data?.rankingEscavadeirasDetalhado)
-      ? data!.rankingEscavadeirasDetalhado!
-      : [];
-
-    return data.rankingEscavadeiras.map((e: any) => {
-      const equipamento = String(e.equipamento ?? "").trim();
-      const linhas = (detalhado as any[])
-        .filter((d) => String(d.equipamento ?? "").trim() === equipamento)
-        .map((d) => ({
-          material: d.material ?? e.material ?? null,
-          frente: d.frente ?? d.frente_lavra ?? e.frente ?? null,
-          subarea: d.subarea ?? e.subarea ?? null,
-          destino: d.destino ?? e.destino ?? null,
-          quantidade: toNum(d.quantidade ?? d.viagens),
-          tonelagem: toNum(d.tonelagem ?? d.massa),
-        }));
-      if (linhas.length === 0) {
-        linhas.push({
-          material: e.material ?? null,
-          frente: e.frente ?? null,
-          subarea: e.subarea ?? null,
-          destino: e.destino ?? null,
-          quantidade: toNum(e.viagens),
-          tonelagem: toNum(e.massa),
-        });
-      }
+  // Mostra SEMPRE todas as escavadeiras da whitelist, mesmo com zero.
+  const top5Escav = useMemo(() => {
+    const rank = Array.isArray(data?.rankingEscavadeiras) ? data!.rankingEscavadeiras! : [];
+    const byCode = new Map<string, any>();
+    rank.forEach((e: any) => {
+      const code = normEquip(e.equipamento);
+      if (code) byCode.set(code, e);
+    });
+    const ordem = ["EH4026","EH4039","EH4041","EH4047","EH4050","EH4035","EH5003","EH5004","EH5036"];
+    return ordem.map((code) => {
+      const e = byCode.get(code) ?? {};
       return {
-        equipamento,
+        equipamento: code,
         th: Number(e.th ?? 0),
         viagens: Number(e.viagens ?? 0),
         massa: Number(e.massa ?? 0),
-        material: e.material,
-        frente: e.frente,
-        subarea: e.subarea,
-        destino: e.destino,
-        detalhes: linhas,
+        material: e.material ?? null,
+        frente: e.frente ?? null,
+        destino: e.destino ?? null,
       };
-    });
+    }).sort((a, b) => b.th - a.th);
   }, [data]);
-
-  const top5Escav = topEscav.slice(0, 6);
   const totalTphEscav = top5Escav.reduce((total, item) => total + Number(item.th || 0), 0);
   const totalMassaTop5 = top5Escav.reduce((total, item) => total + Number(item.massa || 0), 0);
   const totalViagensTop5 = top5Escav.reduce((total, item) => total + Number(item.viagens || 0), 0);
@@ -431,10 +420,10 @@ export default function DashboardProducaoUM() {
 
       {/* KPI strip */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 mt-2">
-        <DualKpi label="Produção LAV" acumulado={lavAcum} projetado={lavProj} tone="green" />
-        <GradientKpi label="Produção Mês (t)" numeric={acumuladoMes} tone="amber" />
-        <DualKpi label="Produção RET" acumulado={retAcum} projetado={retProj} tone="indigo" />
-        <GradientKpi label="Produção Total das Escavadeiras (t/h)" numeric={totalTphEscav} tone="green" suffix=" t/h" decimals={3} />
+        <DualKpi label="Produção LAV" sublabel="Produção Diária" acumulado={lavAcum} tone="green" />
+        <DualKpi label="Produção RET" sublabel="Produção Diária" acumulado={retAcum} tone="indigo" />
+        <DualKpi label="Produção Mensal" sublabel="Acumulado do Mês" acumulado={acumuladoMes} tone="amber" />
+        <GradientKpi label="Produção Total das Escavadeiras (t/h)" numeric={totalTphEscav} tone="green" suffix=" t/h" decimals={0} />
       </div>
 
       {/* Dashboard grid */}
@@ -463,37 +452,42 @@ export default function DashboardProducaoUM() {
           {frenteAgg.length === 0 ? (
             <Empty />
           ) : (
-            <div className="h-full flex items-center">
-              <div className="w-2/3 h-full">
+            <div className="h-full flex items-center gap-2">
+              <div className="w-[45%] h-full relative">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
                       data={frenteAgg}
                       dataKey="value"
                       nameKey="name"
-                      innerRadius={45}
-                      outerRadius={80}
+                      innerRadius="55%"
+                      outerRadius="90%"
                       paddingAngle={1}
                       stroke="none"
-                      label={(e: { pct?: number }) => `${(e.pct ?? 0).toFixed(1)}%`}
-                      labelLine={false}
                     >
                       {frenteAgg.map((_, i) => (
                         <Cell key={i} fill={FRENTE_COLORS[i % FRENTE_COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => fmt(v) + " t"} />
+                    <Tooltip contentStyle={tooltipStyle} formatter={(v: number, _n, p: any) => [`${fmt(v)} t (${(p?.payload?.pct ?? 0).toFixed(1)}%)`, p?.payload?.name]} />
                   </PieChart>
                 </ResponsiveContainer>
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                  <span className="text-[9px] uppercase tracking-widest text-mining-blue/70 font-bold">Total</span>
+                  <span className="text-sm font-black text-foreground font-mono tabular-nums">
+                    {fmt(frenteAgg.reduce((s, r) => s + r.value, 0))} t
+                  </span>
+                </div>
               </div>
-              <div className="w-1/3 space-y-1 text-[10px] font-mono">
+              <div className="w-[55%] h-full overflow-auto pr-1 space-y-1 text-[10px] font-mono">
                 {frenteAgg.map((f, i) => (
-                  <div key={f.name} className="flex items-center gap-1">
+                  <div key={f.name} className="flex items-center gap-1.5">
                     <span
-                      className="w-2 h-2 inline-block rounded-sm"
+                      className="w-2 h-2 shrink-0 inline-block rounded-sm"
                       style={{ background: FRENTE_COLORS[i % FRENTE_COLORS.length] }}
                     />
-                    <span className="truncate text-foreground">{f.name}</span>
+                    <span className="truncate text-foreground flex-1" title={f.name}>{f.name}</span>
+                    <span className="text-mining-blue tabular-nums shrink-0">{f.pct.toFixed(1)}%</span>
                   </div>
                 ))}
               </div>
@@ -501,7 +495,7 @@ export default function DashboardProducaoUM() {
           )}
         </Panel>
 
-        <Panel title="TOP 6 ESCAVADEIRAS" className="col-span-12 lg:col-span-5 lg:row-span-2 h-[492px]">
+        <Panel title="ESCAVADEIRAS" className="col-span-12 lg:col-span-5 lg:row-span-2 h-[492px]">
           {top5Escav.length === 0 ? (
             <Empty />
           ) : (
@@ -551,7 +545,7 @@ export default function DashboardProducaoUM() {
                 </table>
               </div>
               <div className="border-t border-mining-blue/30 mt-2 pt-2 flex items-center justify-between px-1 text-[11px] font-mono">
-                <span className="font-bold uppercase tracking-wider text-foreground">TOTAL TOP 6</span>
+                <span className="font-bold uppercase tracking-wider text-foreground">TOTAL</span>
                 <div className="flex items-center gap-6">
                   <span className="text-muted-foreground">Viagens: <span className="text-mining-blue font-bold">{fmt(totalViagensTop5)}</span></span>
                   <span className="text-muted-foreground">Tonelagem: <span className="text-mining-green font-bold">{fmt(totalMassaTop5)} t</span></span>
