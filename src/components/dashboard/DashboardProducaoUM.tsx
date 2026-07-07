@@ -654,7 +654,13 @@ export default function DashboardProducaoUM() {
                   </thead>
                   <tbody>
                     {rows.map((v, i) => (
-                      <tr key={i} className="border-b border-white/5">
+                      <motion.tr
+                        key={i}
+                        initial={{ opacity: 0, y: 6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3, ease: "easeOut", delay: Math.min(i * 0.03, 0.6) }}
+                        className="border-b border-white/5 hover:bg-white/[0.03]"
+                      >
                         <Td>{String(v.cr ?? "—")}</Td>
                         <Td>{String(v.escavadeira ?? "—")}</Td>
                         <Td>{String(v.origem ?? "—")}</Td>
@@ -665,7 +671,7 @@ export default function DashboardProducaoUM() {
                         <Td>{fmtHora(v.inicio)}</Td>
                         <Td>{fmtHora(v.fim)}</Td>
                         <Td className="text-right">{fmt(v.ciclo, 2)}</Td>
-                      </tr>
+                      </motion.tr>
                     ))}
                   </tbody>
                 </table>
