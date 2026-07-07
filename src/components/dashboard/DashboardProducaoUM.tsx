@@ -295,38 +295,8 @@ export default function DashboardProducaoUM() {
 
   return (
     <div className="min-h-screen bg-[hsl(220_50%_5%)] text-foreground p-2 md:p-3 font-sans dashboard-enter">
-      {/* Header */}
-      <div className="grid grid-cols-12 gap-2 items-stretch">
-        <Panel className="col-span-12 !p-0">
-          <div className="flex items-center justify-end gap-4 px-3 py-3 h-full">
-            <div className="flex flex-col text-right text-[11px] font-mono text-mining-blue/80 leading-tight">
-              <span>
-                {countdown > 0 ? (
-                  <>Atualização em <span className="text-mining-blue font-bold tabular-nums">{countdown}s</span></>
-                ) : (
-                  <span className="text-mining-green font-bold animate-pulse">Atualizando...</span>
-                )}
-              </span>
-              <span>
-                Última atualização:{" "}
-                <span className="text-foreground font-bold">{atualizadoEm ?? "—"}</span>
-              </span>
-            </div>
-            <motion.button
-              onClick={limparFiltros}
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.98 }}
-              transition={{ duration: 0.2 }}
-              className="flex items-center gap-1 border border-mining-blue/40 hover:bg-mining-blue/10 px-3 py-1.5 rounded text-[11px] font-bold text-mining-blue uppercase tracking-wider"
-            >
-              <Filter className="w-3 h-3" /> Limpar Filtros
-            </motion.button>
-          </div>
-        </Panel>
-      </div>
-
       {/* KPI strip — valores exclusivos de data.kpis */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-2">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
         <DualKpi key={`dia-${dataUpdatedAt}-${producaoDia}`} label="Produção Diária" sublabel="Hoje" acumulado={producaoDia} tone="green" />
         <DualKpi key={`mes-${dataUpdatedAt}-${producaoMensal}`} label="Produção Mensal" sublabel="" acumulado={producaoMensal} tone="amber" />
         <GradientKpi key={`th-${dataUpdatedAt}-${producaoTotalEscavadeirasTH}`} label="Produção Total das Escavadeiras (t/h)" numeric={producaoTotalEscavadeirasTH} tone="green" suffix=" t/h" decimals={0} />
@@ -596,11 +566,19 @@ export default function DashboardProducaoUM() {
         <span className="flex items-center gap-2">
           Fonte: http://192.168.17.15:3001/api/dashboard · auto 60s
         </span>
-        {atualizadoEm && (
+        <span className="flex items-center gap-4">
           <span>
-            Atualizado em: <span className="text-foreground font-bold">{atualizadoEm}</span>
+            {countdown > 0 ? (
+              <>Atualização em <span className="text-mining-blue font-bold tabular-nums">{countdown}s</span></>
+            ) : (
+              <span className="text-mining-green font-bold animate-pulse">Atualizando...</span>
+            )}
           </span>
-        )}
+          <span>
+            Última atualização:{" "}
+            <span className="text-foreground font-bold">{atualizadoEm ?? "—"}</span>
+          </span>
+        </span>
       </div>
     </div>
   );
