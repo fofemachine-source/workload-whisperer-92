@@ -619,81 +619,64 @@ export default function DashboardProducaoUM() {
           )}
         </Panel>
 
-        <Panel title="Acompanhamento de Viagens (9H)" className="col-span-12 lg:col-span-5 h-[164px]">
+        <Panel title="Acompanhamento de Viagens (CRs)" className="col-span-12 h-[260px]">
           {acompViagens.length === 0 ? (
             <Empty />
-          ) : (
-            <div className="h-full overflow-y-auto overflow-x-hidden">
-            <table className="w-full table-fixed text-[10px] font-mono">
-              <thead className="text-mining-blue/70">
-                <tr className="border-b border-mining-blue/20">
-                  <Th>CR</Th><Th>Origem</Th><Th>Destino</Th><Th>Material</Th>
-                  <Th className="text-right">Qtd</Th>
-                  <Th className="text-right">Tonelagem</Th>
-                  <Th>Início</Th><Th>Fim</Th>
-                  <Th className="text-right">Ciclo</Th>
-                </tr>
-              </thead>
-              <tbody>
-                {acompViagens.map((v, i) => (
-                  <tr key={i} className="border-b border-white/5">
-                    <Td>{String(v.cr ?? "—")}</Td>
-                    <Td>{String(v.origem ?? "—")}</Td>
-                    <Td>{String(v.destino ?? "—")}</Td>
-                    <Td>{String(v.material ?? "—")}</Td>
-                    <Td className="text-right text-mining-blue">{fmt(v.quantidade)}</Td>
-                    <Td className="text-right text-mining-green">{fmt(v.tonelagem, 2)}</Td>
-                    <Td>{fmtHora(v.inicio)}</Td>
-                    <Td>{fmtHora(v.fim)}</Td>
-                    <Td className="text-right">{fmt(v.ciclo, 2)}</Td>
-                  </tr>
-                ))}
-              </tbody>
-              <tfoot className="sticky bottom-0 bg-mining-navy/95 border-t border-mining-blue/40">
-                <tr className="font-bold">
-                  <Td colSpan={4} className="text-right text-mining-blue/80">TOTAL</Td>
-                  <Td className="text-right text-mining-blue">
-                    {fmt(acompViagens.reduce((s, v) => s + (Number(v.quantidade) || 0), 0))}
-                  </Td>
-                  <Td className="text-right text-mining-green">
-                    {fmt(acompViagens.reduce((s, v) => s + Number(v.tonelagem || 0), 0), 2)}
-                  </Td>
-                  <Td colSpan={3}>{""}</Td>
-                </tr>
-              </tfoot>
-            </table>
-            </div>
-          )}
-        </Panel>
-
-        <Panel title="Resumo de Tempos em Ciclo (9H)" className="col-span-12 lg:col-span-4 h-[164px]">
-          {(() => {
-            const rows = Array.isArray(cicloData) ? cicloData : [];
-            if (rows.length === 0) return <Empty />;
-            return (
-              <div className="h-full overflow-auto">
-                <table className="w-full text-[10px] font-mono">
-                  <thead className="text-mining-blue/70">
+          ) : (() => {
+            const mid = Math.ceil(acompViagens.length / 2);
+            const cols = [acompViagens.slice(0, mid), acompViagens.slice(mid)];
+            const renderTable = (rows: typeof acompViagens) => (
+              <div className="h-full overflow-y-auto overflow-x-hidden">
+                <table className="w-full table-fixed text-[10px] font-mono">
+                  <colgroup>
+                    <col style={{ width: "9%" }} />
+                    <col style={{ width: "10%" }} />
+                    <col style={{ width: "15%" }} />
+                    <col style={{ width: "15%" }} />
+                    <col style={{ width: "9%" }} />
+                    <col style={{ width: "6%" }} />
+                    <col style={{ width: "10%" }} />
+                    <col style={{ width: "8%" }} />
+                    <col style={{ width: "8%" }} />
+                    <col style={{ width: "10%" }} />
+                  </colgroup>
+                  <thead className="text-mining-blue/70 sticky top-0 bg-[hsl(220_45%_9%)]">
                     <tr className="border-b border-mining-blue/20">
-                      <Th>Transporte</Th>
-                      <Th className="text-right">Viagens (Qtd)</Th>
-                      <Th className="text-right">Tempo Mín</Th>
-                      <Th className="text-right">Tempo Máx</Th>
-                      <Th className="text-right">Desvio Padrão</Th>
+                      <Th>CR</Th>
+                      <Th>Escavadeira</Th>
+                      <Th>Origem</Th>
+                      <Th>Destino</Th>
+                      <Th>Material</Th>
+                      <Th className="text-right">Qtd</Th>
+                      <Th className="text-right">Tonelagem</Th>
+                      <Th>Início</Th>
+                      <Th>Fim</Th>
+                      <Th className="text-right">Ciclo (min)</Th>
                     </tr>
                   </thead>
                   <tbody>
-                    {rows.slice(0, 100).map((r: any, i: number) => (
+                    {rows.map((v, i) => (
                       <tr key={i} className="border-b border-white/5">
-                        <Td>{String(pick(r, ["transporte", "categoria", "estado", "sub_estado", "descricao"]) ?? "—")}</Td>
-                        <Td className="text-right text-mining-blue">{fmt(toNum(pick(r, ["viagens", "quantidade", "qtd"])))}</Td>
-                        <Td className="text-right">{String(pick(r, ["tempo_min", "min", "tempoMin"]) ?? "—")}</Td>
-                        <Td className="text-right">{String(pick(r, ["tempo_max", "max", "tempoMax"]) ?? "—")}</Td>
-                        <Td className="text-right text-mining-yellow">{String(pick(r, ["desvio_padrao", "desvio", "std"]) ?? "—")}</Td>
+                        <Td>{String(v.cr ?? "—")}</Td>
+                        <Td>{String(v.escavadeira ?? "—")}</Td>
+                        <Td>{String(v.origem ?? "—")}</Td>
+                        <Td>{String(v.destino ?? "—")}</Td>
+                        <Td>{String(v.material ?? "—")}</Td>
+                        <Td className="text-right text-mining-blue">{fmt(v.quantidade)}</Td>
+                        <Td className="text-right text-mining-green">{fmt(v.tonelagem, 2)}</Td>
+                        <Td>{fmtHora(v.inicio)}</Td>
+                        <Td>{fmtHora(v.fim)}</Td>
+                        <Td className="text-right">{fmt(v.ciclo, 2)}</Td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
+              </div>
+            );
+            return (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 h-full">
+                {renderTable(cols[0])}
+                {renderTable(cols[1])}
               </div>
             );
           })()}
