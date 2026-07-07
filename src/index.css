@@ -185,6 +185,46 @@
     100% { transform: translateY(100%); }
   }
   .animate-scanline { animation: scanline 6s linear infinite; }
+
+  /* Donut girando lentamente */
+  @keyframes pie-slow-spin {
+    to { transform: rotate(360deg); }
+  }
+  .chart-pie-spin .recharts-pie {
+    transform-origin: center;
+    transform-box: fill-box;
+    animation: pie-slow-spin 80s linear infinite;
+  }
+
+  /* Pulso suave no centro do donut */
+  @keyframes center-breath {
+    0%, 100% { transform: scale(1); opacity: 0.95; }
+    50%      { transform: scale(1.06); opacity: 1; }
+  }
+  .chart-center-pulse {
+    animation: center-breath 3.2s ease-in-out infinite;
+    transform-origin: center;
+  }
+
+  /* Linha da Produtividade com brilho neon */
+  .chart-line-neon .recharts-line-curve {
+    filter: drop-shadow(0 0 4px hsl(var(--mining-green) / 0.75));
+  }
+  .chart-line-neon .recharts-line-dots circle {
+    animation: center-breath 2.4s ease-in-out infinite;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  /* TV mode: desativa animações extras */
+  html.tv-mode .chart-pie-spin .recharts-pie,
+  html.tv-mode .chart-center-pulse,
+  html.tv-mode .chart-line-neon .recharts-line-dots circle {
+    animation: none !important;
+  }
+  html.tv-mode .chart-line-neon .recharts-line-curve {
+    filter: none !important;
+  }
 }
 
 /* ============================================================

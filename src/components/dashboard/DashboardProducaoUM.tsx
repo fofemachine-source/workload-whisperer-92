@@ -324,22 +324,7 @@ export default function DashboardProducaoUM() {
     <div className="min-h-screen bg-[hsl(220_50%_5%)] text-foreground p-2 md:p-3 font-sans">
       {/* Header */}
       <div className="grid grid-cols-12 gap-2 items-stretch">
-        <Panel className="col-span-12 lg:col-span-4 !p-0">
-          <div className="flex items-center gap-3 px-3 py-2 h-[58px]">
-            <div className="flex items-center justify-center w-12 h-12 rounded bg-mining-yellow text-background font-black text-base leading-tight text-center">
-              USIM
-            </div>
-            <div>
-              <h1 className="text-lg md:text-xl font-black tracking-tight text-foreground">
-                DASHBOARD DE PRODUÇÃO
-              </h1>
-              <p className="text-[10px] font-mono tracking-widest text-mining-blue/80">
-                Usina Samaritá / Ethanodes / Energia
-              </p>
-            </div>
-          </div>
-        </Panel>
-        <Panel className="col-span-12 lg:col-span-8 !p-0">
+        <Panel className="col-span-12 !p-0">
           <div className="flex items-center justify-end gap-4 px-3 py-3 h-full">
             <div className="flex flex-col text-right text-[11px] font-mono text-mining-blue/80 leading-tight">
               <span>
@@ -401,7 +386,7 @@ export default function DashboardProducaoUM() {
             <Empty />
           ) : (
             <div className="h-full flex items-center gap-2">
-              <div className="w-[45%] h-full relative">
+              <div className="w-[45%] h-full relative chart-pie-spin">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
@@ -422,7 +407,7 @@ export default function DashboardProducaoUM() {
                     <Tooltip contentStyle={tooltipStyle} formatter={(v: number, _n, p: any) => [`${fmt(v)} t (${(p?.payload?.pct ?? 0).toFixed(1)}%)`, p?.payload?.name]} />
                   </PieChart>
                 </ResponsiveContainer>
-                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none chart-center-pulse">
                   <span className="text-[9px] uppercase tracking-widest text-mining-blue/70 font-bold">Total</span>
                   <span className="text-sm font-black text-foreground font-mono tabular-nums">
                     {fmt(frenteAgg.reduce((s, r) => s + r.value, 0))} t
@@ -514,7 +499,7 @@ export default function DashboardProducaoUM() {
           {prodSeries.length === 0 ? (
             <Empty />
           ) : (
-            <div className="h-full">
+            <div className="h-full chart-line-neon">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={prodSeries} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                   <CartesianGrid stroke="rgba(255,255,255,0.05)" vertical={false} />
