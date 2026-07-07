@@ -128,8 +128,11 @@ function Panel({
   right?: React.ReactNode;
 }) {
   return (
-    <div
-      className={`bg-[hsl(220_45%_9%/0.85)] border border-mining-blue/20 rounded-md shadow-[0_0_24px_-14px_hsl(var(--mining-blue)/0.6)] flex flex-col ${className}`}
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45, ease: "easeOut" }}
+      className={`bg-[hsl(220_45%_9%/0.85)] border border-mining-blue/20 rounded-md shadow-[0_0_24px_-10px_hsl(var(--mining-blue)/0.55)] hover:shadow-[0_0_28px_-6px_hsl(var(--mining-blue)/0.55)] transition-shadow duration-500 flex flex-col ${className}`}
     >
       {title && (
         <div className="flex items-center justify-between px-3 pt-2">
@@ -138,7 +141,7 @@ function Panel({
         </div>
       )}
       <div className="p-3 pt-2 flex-1 min-h-0">{children}</div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -440,8 +443,8 @@ export default function DashboardProducaoUM() {
                   <YAxis stroke="#7fb2d9" tick={{ fontSize: 10 }} />
                   <Tooltip contentStyle={tooltipStyle} />
                   <Legend wrapperStyle={{ fontSize: 10 }} />
-                  <Bar dataKey="Prevista" fill="#f59e0b" radius={[2, 2, 0, 0]} />
-                  <Bar dataKey="Real" fill="#22c55e" radius={[2, 2, 0, 0]} />
+                  <Bar dataKey="Prevista" fill="#f59e0b" radius={[2, 2, 0, 0]} animationDuration={900} animationEasing="ease-out" />
+                  <Bar dataKey="Real" fill="#22c55e" radius={[2, 2, 0, 0]} animationDuration={900} animationEasing="ease-out" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -464,6 +467,8 @@ export default function DashboardProducaoUM() {
                       outerRadius="90%"
                       paddingAngle={1}
                       stroke="none"
+                      animationDuration={900}
+                      animationEasing="ease-out"
                     >
                       {frenteAgg.map((_, i) => (
                         <Cell key={i} fill={FRENTE_COLORS[i % FRENTE_COLORS.length]} />
@@ -524,7 +529,13 @@ export default function DashboardProducaoUM() {
                   </thead>
                   <tbody>
                     {top5Escav.map((esc, index) => (
-                      <tr key={esc.equipamento} className="border-b border-white/5">
+                      <motion.tr
+                        key={esc.equipamento}
+                        initial={{ opacity: 0, x: -12 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.35, ease: "easeOut", delay: index * 0.05 }}
+                        className="border-b border-white/5 hover:bg-white/[0.03]"
+                      >
                         <Td>
                           <span className="flex items-center gap-1.5">
                             <span className="w-4 h-4 flex items-center justify-center rounded-sm bg-mining-yellow text-background text-[9px] font-black font-sans">
@@ -536,10 +547,10 @@ export default function DashboardProducaoUM() {
                         <Td>{esc.material ?? "—"}</Td>
                         <Td>{esc.frente ?? "—"}</Td>
                         <Td>{esc.destino ?? "—"}</Td>
-                        <Td className="text-right text-mining-blue">{fmt(esc.viagens)}</Td>
-                        <Td className="text-right text-mining-green">{fmt(esc.massa)} t</Td>
-                        <Td className="text-right text-foreground font-bold">{fmt(esc.th, 1)} t/h</Td>
-                      </tr>
+                        <Td className="text-right text-mining-blue tabular-nums"><Counter value={esc.viagens} /></Td>
+                        <Td className="text-right text-mining-green tabular-nums"><Counter value={esc.massa} /> t</Td>
+                        <Td className="text-right text-foreground font-bold tabular-nums"><Counter value={esc.th} decimals={1} /> t/h</Td>
+                      </motion.tr>
                     ))}
                   </tbody>
                 </table>
@@ -566,9 +577,9 @@ export default function DashboardProducaoUM() {
                   <YAxis stroke="#7fb2d9" tick={{ fontSize: 10 }} />
                   <Tooltip contentStyle={tooltipStyle} />
                   <Legend wrapperStyle={{ fontSize: 10 }} />
-                  <Line type="monotone" dataKey="Meta" stroke="#f59e0b" dot={false} strokeWidth={2} />
-                  <Line type="monotone" dataKey="Previsto" stroke="#38bdf8" dot={false} strokeWidth={2} />
-                  <Line type="monotone" dataKey="Real" stroke="#22c55e" dot={false} strokeWidth={2} />
+                  <Line type="monotone" dataKey="Meta" stroke="#f59e0b" dot={false} strokeWidth={2} animationDuration={1200} animationEasing="ease-out" />
+                  <Line type="monotone" dataKey="Previsto" stroke="#38bdf8" dot={false} strokeWidth={2} animationDuration={1200} animationEasing="ease-out" />
+                  <Line type="monotone" dataKey="Real" stroke="#22c55e" dot={false} strokeWidth={2} animationDuration={1200} animationEasing="ease-out" />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -586,7 +597,7 @@ export default function DashboardProducaoUM() {
                   <XAxis dataKey="hora" stroke="#7fb2d9" tick={{ fontSize: 8 }} interval={1} />
                   <YAxis stroke="#7fb2d9" tick={{ fontSize: 9 }} />
                   <Tooltip contentStyle={tooltipStyle} />
-                  <Bar dataKey="Real" fill="#22d3ee" radius={[2, 2, 0, 0]} />
+                  <Bar dataKey="Real" fill="#22d3ee" radius={[2, 2, 0, 0]} animationDuration={900} animationEasing="ease-out" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -643,7 +654,13 @@ export default function DashboardProducaoUM() {
                   </thead>
                   <tbody>
                     {rows.map((v, i) => (
-                      <tr key={i} className="border-b border-white/5">
+                      <motion.tr
+                        key={i}
+                        initial={{ opacity: 0, y: 6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3, ease: "easeOut", delay: Math.min(i * 0.03, 0.6) }}
+                        className="border-b border-white/5 hover:bg-white/[0.03]"
+                      >
                         <Td>{String(v.cr ?? "—")}</Td>
                         <Td>{String(v.escavadeira ?? "—")}</Td>
                         <Td>{String(v.origem ?? "—")}</Td>
@@ -654,7 +671,7 @@ export default function DashboardProducaoUM() {
                         <Td>{fmtHora(v.inicio)}</Td>
                         <Td>{fmtHora(v.fim)}</Td>
                         <Td className="text-right">{fmt(v.ciclo, 2)}</Td>
-                      </tr>
+                      </motion.tr>
                     ))}
                   </tbody>
                 </table>
