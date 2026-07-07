@@ -529,7 +529,13 @@ export default function DashboardProducaoUM() {
                   </thead>
                   <tbody>
                     {top5Escav.map((esc, index) => (
-                      <tr key={esc.equipamento} className="border-b border-white/5">
+                      <motion.tr
+                        key={esc.equipamento}
+                        initial={{ opacity: 0, x: -12 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.35, ease: "easeOut", delay: index * 0.05 }}
+                        className="border-b border-white/5 hover:bg-white/[0.03]"
+                      >
                         <Td>
                           <span className="flex items-center gap-1.5">
                             <span className="w-4 h-4 flex items-center justify-center rounded-sm bg-mining-yellow text-background text-[9px] font-black font-sans">
@@ -541,10 +547,10 @@ export default function DashboardProducaoUM() {
                         <Td>{esc.material ?? "—"}</Td>
                         <Td>{esc.frente ?? "—"}</Td>
                         <Td>{esc.destino ?? "—"}</Td>
-                        <Td className="text-right text-mining-blue">{fmt(esc.viagens)}</Td>
-                        <Td className="text-right text-mining-green">{fmt(esc.massa)} t</Td>
-                        <Td className="text-right text-foreground font-bold">{fmt(esc.th, 1)} t/h</Td>
-                      </tr>
+                        <Td className="text-right text-mining-blue tabular-nums"><Counter value={esc.viagens} /></Td>
+                        <Td className="text-right text-mining-green tabular-nums"><Counter value={esc.massa} /> t</Td>
+                        <Td className="text-right text-foreground font-bold tabular-nums"><Counter value={esc.th} decimals={1} /> t/h</Td>
+                      </motion.tr>
                     ))}
                   </tbody>
                 </table>
