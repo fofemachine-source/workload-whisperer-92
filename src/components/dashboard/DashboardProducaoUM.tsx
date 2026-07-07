@@ -1,7 +1,6 @@
-import { useMemo, useState, useEffect, memo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useCallback, useMemo, useState, useEffect, useRef, memo } from "react";
+import { motion } from "framer-motion";
 import { useAnimatedCounter } from "@/hooks/useAnimatedCounter";
-import { useCountdown } from "@/hooks/useCountdown";
 import {
   Bar,
   BarChart,
@@ -17,8 +16,8 @@ import {
   YAxis,
   Legend,
 } from "recharts";
-import { Filter, AlertTriangle, Loader2 } from "lucide-react";
-import { useDashboardApi, useProducaoApi, useViagensApi, useTempoCicloApi } from "@/hooks/useDashboardApi";
+import { Filter } from "lucide-react";
+import { DASHBOARD_API_URL, type DashboardApiPayload } from "@/hooks/useDashboardApi";
 
 /* ---------- helpers ---------- */
 const fmt = (n: number, d = 0) =>
@@ -41,58 +40,11 @@ const Counter = memo(function Counter({
   return <>{fmt(v, decimals)}{suffix}</>;
 });
 
-/** Live clock, updates every second. */
-const LiveClock = memo(function LiveClock() {
-  const [now, setNow] = useState<Date>(() => new Date());
-  useEffect(() => {
-    const i = setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(i);
-  }, []);
-  return <>{now.toLocaleString("pt-BR")}</>;
-});
-const brDate = (iso: string) => {
-  if (!iso) return "—";
-  const [y, m, d] = iso.split("-");
-  return `${d}/${m}/${y}`;
-};
-const dayLabel = (iso: string) => {
-  const [, m, d] = iso.split("-");
-  const meses = ["", "jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
-  return `${d}/${meses[Number(m)] ?? m}`;
-};
-
 const FRENTE_COLORS = ["#38bdf8", "#22d3ee", "#0ea5e9", "#f59e0b", "#22c55e", "#a855f7", "#ef4444", "#eab308"];
 
-/* ---------- filtro operacional fixo ----------
- * Caminhões válidos: começam com "CR"
- * Escavadeiras válidas: whitelist abaixo
- * NUNCA considerar equipamentos começando com "CB" (Gelado)
- */
-const ESCAVADEIRAS_VALIDAS = new Set([
-  "EH4026", "EH4039", "EH4041", "EH4047", "EH4050",
-  "EH4035", "EH5003", "EH5004", "EH5036",
-]);
 const normEquip = (v: unknown) =>
   String(v ?? "").replace(/[-\s]/g, "").toUpperCase();
-const isCaminhaoValido = (v: unknown) => {
-  const n = normEquip(v);
-  return n.startsWith("CR") && !n.startsWith("CB");
-};
-const isEscavadeiraValida = (v: unknown) => {
-  const n = normEquip(v);
-  if (n.startsWith("CB")) return false;
-  return ESCAVADEIRAS_VALIDAS.has(n);
-};
-/** Regra completa: caminhão CR + escavadeira na whitelist. */
-const linhaValida = (equipamento: unknown, equipamento_carga: unknown) =>
-  isCaminhaoValido(equipamento) && isEscavadeiraValida(equipamento_carga);
 
-const pick = (obj: Record<string, any>, keys: string[]) => {
-  for (const k of keys) {
-    if (obj?.[k] !== undefined && obj?.[k] !== null && obj?.[k] !== "") return obj[k];
-  }
-  return undefined;
-};
 const toNum = (v: unknown) => {
   const n = typeof v === "string" ? parseFloat(v.replace(",", ".")) : Number(v);
   return Number.isFinite(n) ? n : 0;
@@ -193,11 +145,56 @@ export default function DashboardProducaoUM() {
   const inicioAno = `${new Date().getFullYear()}-01-01`;
   const [dtIni, setDtIni] = useState(inicioAno);
   const [dtFim, setDtFim] = useState(hoje);
+  const [data, setDashboardData] = useState<DashboardApiPayload | null>(null);
+  const [dataUpdatedAt, setDataUpdatedAt] = useState(0);
+  const [countdown, setCountdown] = useState(60);
+  const swapTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const { data, isLoading, isError, error, dataUpdatedAt } = useDashboardApi();
-  const { data: producaoData } = useProducaoApi();
-  const { data: viagensData } = useViagensApi();
-  const { data: cicloData } = useTempoCicloApi();
+  const buscarDashboard = useCallback(async () => {
+    setCountdown(0);
+    console.log("Buscando API agora...");
+
+    try {
+      const res = await fetch(`${DASHBOARD_API_URL}?ts=${Date.now()}`, {
+        cache: "no-store",
+        headers: { "Cache-Control": "no-cache", Pragma: "no-cache" },
+      });
+
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      const apiResponse = (await res.json()) as DashboardApiPayload;
+      console.log("Resposta API:", apiResponse.kpis);
+
+      if (swapTimerRef.current) clearTimeout(swapTimerRef.current);
+      setDashboardData(null);
+      swapTimerRef.current = setTimeout(() => {
+        setDashboardData(apiResponse);
+        setDataUpdatedAt(Date.now());
+        setCountdown(60);
+      }, 50);
+    } catch (err) {
+      if (swapTimerRef.current) clearTimeout(swapTimerRef.current);
+      setDashboardData(null);
+      setCountdown(60);
+      console.error("Erro ao buscar API", err);
+    }
+  }, []);
+
+  useEffect(() => {
+    buscarDashboard();
+    const interval = setInterval(buscarDashboard, 60_000);
+    return () => {
+      clearInterval(interval);
+      if (swapTimerRef.current) clearTimeout(swapTimerRef.current);
+    };
+  }, [buscarDashboard]);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCountdown((value) => (value > 0 ? value - 1 : 0));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   // Valores direto da API — sem cálculo no frontend
   const kpis = (data?.kpis ?? {}) as Record<string, any>;
@@ -272,28 +269,6 @@ export default function DashboardProducaoUM() {
   );
 
   const mediaViagens = 0;
-  const dfMedio = 0;
-  const utMedio = 0;
-
-  const detalhamento = useMemo(
-    () =>
-      (producaoData ?? [])
-        .filter((r) => linhaValida(pick(r, ["equipamento"]), pick(r, ["equipamento_carga"])))
-        .slice(0, 50)
-        .map((r) => ({
-        dia: String(pick(r, ["dia", "data"]) ?? "—"),
-        hora: String(pick(r, ["hora"]) ?? "—"),
-        equipamento: pick(r, ["equipamento"]) ?? null,
-        equipamento_carga: pick(r, ["equipamento_carga"]) ?? null,
-        massa: toNum(pick(r, ["massa"])),
-        viagens: toNum(pick(r, ["viagens"])),
-        origem: pick(r, ["origem"]) ?? null,
-        destino: pick(r, ["destino"]) ?? null,
-        material: pick(r, ["material"]) ?? null,
-        operador: pick(r, ["operador"]) ?? null,
-      })),
-    [producaoData],
-  );
 
   const acompViagens = useMemo(() => {
     const arr = Array.isArray(data?.viagensCR) ? data!.viagensCR! : [];
@@ -316,12 +291,10 @@ export default function DashboardProducaoUM() {
     setDtFim(hoje);
   };
 
-  const ultima = dataUpdatedAt ? new Date(dataUpdatedAt) : null;
-  const countdown = useCountdown(60, dataUpdatedAt || 0);
   const atualizadoEm = (data as any)?.atualizadoEm as string | undefined;
 
   return (
-    <div className="min-h-screen bg-[hsl(220_50%_5%)] text-foreground p-2 md:p-3 font-sans">
+    <div className="min-h-screen bg-[hsl(220_50%_5%)] text-foreground p-2 md:p-3 font-sans dashboard-enter">
       {/* Header */}
       <div className="grid grid-cols-12 gap-2 items-stretch">
         <Panel className="col-span-12 !p-0">
@@ -336,7 +309,7 @@ export default function DashboardProducaoUM() {
               </span>
               <span>
                 Última atualização:{" "}
-                <span className="text-foreground font-bold"><LiveClock /></span>
+                <span className="text-foreground font-bold">{atualizadoEm ?? "—"}</span>
               </span>
             </div>
             <motion.button
@@ -354,9 +327,9 @@ export default function DashboardProducaoUM() {
 
       {/* KPI strip — valores exclusivos de data.kpis */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-2">
-        <DualKpi label="Produção Diária" sublabel="Hoje" acumulado={producaoDia} tone="green" />
-        <DualKpi label="Produção Mensal" sublabel="Acumulado do Mês" acumulado={producaoMensal} tone="amber" />
-        <GradientKpi label="Produção Total das Escavadeiras (t/h)" numeric={producaoTotalEscavadeirasTH} tone="green" suffix=" t/h" decimals={0} />
+        <DualKpi key={`dia-${dataUpdatedAt}-${producaoDia}`} label="Produção Diária" sublabel="Hoje" acumulado={producaoDia} tone="green" />
+        <DualKpi key={`mes-${dataUpdatedAt}-${producaoMensal}`} label="Produção Mensal" sublabel="" acumulado={producaoMensal} tone="amber" />
+        <GradientKpi key={`th-${dataUpdatedAt}-${producaoTotalEscavadeirasTH}`} label="Produção Total das Escavadeiras (t/h)" numeric={producaoTotalEscavadeirasTH} tone="green" suffix=" t/h" decimals={0} />
       </div>
 
       {/* Dashboard grid */}
@@ -365,7 +338,7 @@ export default function DashboardProducaoUM() {
           {dailySeries.length === 0 ? (
             <Empty />
           ) : (
-            <div className="h-full">
+            <div key={`daily-${dataUpdatedAt}`} className="h-full chart-bar-grow">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={dailySeries} margin={{ top: 12, right: 8, left: 0, bottom: 0 }}>
                   <CartesianGrid stroke="rgba(255,255,255,0.05)" vertical={false} />
@@ -385,7 +358,7 @@ export default function DashboardProducaoUM() {
           {frenteAgg.length === 0 ? (
             <Empty />
           ) : (
-            <div className="h-full flex items-center gap-2">
+            <div key={`front-${dataUpdatedAt}`} className="h-full flex items-center gap-2">
               <div className="w-[45%] h-full relative chart-pie-spin">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
@@ -416,7 +389,7 @@ export default function DashboardProducaoUM() {
               </div>
               <div className="w-[55%] h-full overflow-auto pr-1 space-y-1 text-[10px] font-mono">
                 {frenteAgg.map((f, i) => (
-                  <div key={f.name} className="flex items-center gap-1.5">
+                  <div key={`${f.name}-${dataUpdatedAt}`} className="flex items-center gap-1.5 table-row-fade" style={{ animationDelay: `${i * 45}ms` }}>
                     <span
                       className="w-2 h-2 shrink-0 inline-block rounded-sm"
                       style={{ background: FRENTE_COLORS[i % FRENTE_COLORS.length] }}
@@ -460,9 +433,9 @@ export default function DashboardProducaoUM() {
                   <tbody>
                     {top5Escav.map((esc, index) => (
                       <motion.tr
-                        key={esc.equipamento}
-                        initial={{ opacity: 0, x: -12 }}
-                        animate={{ opacity: 1, x: 0 }}
+                        key={`${esc.equipamento}-${dataUpdatedAt}`}
+                        initial={{ opacity: 0, y: 6 }}
+                        animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.35, ease: "easeOut", delay: index * 0.05 }}
                         className="border-b border-white/5 hover:bg-white/[0.03]"
                       >
@@ -499,7 +472,7 @@ export default function DashboardProducaoUM() {
           {prodSeries.length === 0 ? (
             <Empty />
           ) : (
-            <div className="h-full chart-line-neon">
+            <div key={`line-${dataUpdatedAt}`} className="h-full chart-line-neon">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={prodSeries} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                   <CartesianGrid stroke="rgba(255,255,255,0.05)" vertical={false} />
@@ -520,7 +493,7 @@ export default function DashboardProducaoUM() {
           {viagensPorHora.every((v) => v.Real === 0) ? (
             <Empty />
           ) : (
-            <div className="h-full">
+            <div key={`hours-${dataUpdatedAt}`} className="h-full chart-bar-grow">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={viagensPorHora} margin={{ top: 8, right: 4, left: 0, bottom: 0 }}>
                   <CartesianGrid stroke="rgba(255,255,255,0.05)" vertical={false} />
@@ -585,7 +558,7 @@ export default function DashboardProducaoUM() {
                   <tbody>
                     {rows.map((v, i) => (
                       <motion.tr
-                        key={i}
+                        key={`${dataUpdatedAt}-${i}`}
                         initial={{ opacity: 0, y: 6 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.3, ease: "easeOut", delay: Math.min(i * 0.03, 0.6) }}
@@ -618,34 +591,16 @@ export default function DashboardProducaoUM() {
 
       </div>
 
-      {/* API status */}
-      {isError && (
-        <div className="mt-2 flex items-center gap-2 rounded-md border border-mining-red/40 bg-mining-red/10 px-3 py-2 text-[11px] font-mono text-mining-red">
-          <AlertTriangle className="h-4 w-4" />
-          Sem comunicação com API local
-          <span className="text-mining-red/60">
-            ({error instanceof Error ? error.message : "erro desconhecido"})
-          </span>
-        </div>
-      )}
-
       {/* Footer */}
       <div className="mt-3 flex flex-wrap items-center justify-between gap-2 px-1 text-[10px] font-mono text-mining-blue/70">
         <span className="flex items-center gap-2">
           Fonte: http://192.168.17.15:3001/api/dashboard · auto 60s
-          {isLoading && <Loader2 className="h-3 w-3 animate-spin" />}
         </span>
         {atualizadoEm && (
           <span>
             Atualizado em: <span className="text-foreground font-bold">{atualizadoEm}</span>
           </span>
         )}
-        <span className="flex items-center gap-1.5">
-          <span className={`w-2 h-2 rounded-full ${isError ? "bg-mining-red" : "bg-mining-green animate-pulse"}`} />
-          <span className={isError ? "text-mining-red" : "text-mining-green"}>
-            {isError ? "Desconectado" : "Conectado"}
-          </span>
-        </span>
       </div>
     </div>
   );
@@ -738,7 +693,7 @@ function GradientKpi({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
       whileHover={{ boxShadow: "0 0 14px rgba(0,180,255,0.15)" }}
-      className={`relative overflow-hidden rounded-md border ${t.border} bg-gradient-to-br ${t.grad} px-3 py-2.5 shadow-[0_0_0_rgba(0,0,0,0)] transition-shadow duration-300`}
+      className={`kpi-pulse-glow relative overflow-hidden rounded-md border ${t.border} bg-gradient-to-br ${t.grad} px-3 py-2.5 shadow-[0_0_0_rgba(0,0,0,0)] transition-shadow duration-300`}
     >
       <p className={`text-[9px] uppercase tracking-[0.18em] font-bold truncate ${t.label}`}>{label}</p>
       <p className={`text-2xl md:text-[26px] font-black leading-tight ${t.text} font-mono tabular-nums`}>
@@ -803,11 +758,11 @@ function DualKpi({
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
-      className={`relative overflow-hidden rounded-md border ${t.border} bg-gradient-to-br ${t.grad} px-3 py-2.5`}
+      className={`kpi-pulse-glow relative overflow-hidden rounded-md border ${t.border} bg-gradient-to-br ${t.grad} px-3 py-2.5`}
     >
       <p className={`text-[9px] uppercase tracking-[0.18em] font-bold truncate ${t.label}`}>{label}</p>
       <div className="mt-1">
-        <p className={`text-[8px] uppercase tracking-widest font-bold ${t.label}`}>{sublabel}</p>
+        {sublabel && <p className={`text-[8px] uppercase tracking-widest font-bold ${t.label}`}>{sublabel}</p>}
         <p className={`text-2xl md:text-[26px] font-black leading-tight ${t.text} font-mono tabular-nums`}>
           <Counter value={acumulado} />
         </p>
