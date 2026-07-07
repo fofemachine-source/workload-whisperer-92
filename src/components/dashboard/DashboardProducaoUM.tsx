@@ -550,9 +550,9 @@ export default function DashboardProducaoUM() {
 
         <Panel className="col-span-12 lg:col-span-1 h-[184px]">
           <div className="flex flex-col justify-between h-full py-1 gap-2">
-            <StatBlock label="Produção (9H/13H)" value={<Counter value={producaoReal} />} unit="t" big />
-            <StatBlock label="Próxima Média" value={<Counter value={tphMedio} />} />
-            <StatBlock label="Viagens" value={<Counter value={kpis?.viagens ?? 0} />} />
+            <StatBlock label="Produção (9H/13H)" value={<Counter value={producaoDia} />} unit="t" big />
+            <StatBlock label="Próxima Média" value={<Counter value={producaoTotalEscavadeirasTH} />} />
+            <StatBlock label="Viagens" value={<Counter value={Number(kpis?.viagens ?? 0)} />} />
             <StatBlock label="VOI 10.000" value={<Counter value={mediaViagens} />} />
           </div>
         </Panel>
