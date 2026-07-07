@@ -186,6 +186,14 @@
   }
   .animate-scanline { animation: scanline 6s linear infinite; }
 
+  @keyframes dashboard-soft-enter {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .dashboard-enter {
+    animation: dashboard-soft-enter 0.65s ease-out both;
+  }
+
   /* Donut girando lentamente */
   @keyframes pie-slow-spin {
     to { transform: rotate(360deg); }
@@ -206,8 +214,26 @@
     transform-origin: center;
   }
 
+  @keyframes bar-grow-up {
+    from { transform: scaleY(0.08); opacity: 0.45; }
+    to { transform: scaleY(1); opacity: 1; }
+  }
+  .chart-bar-grow .recharts-bar-rectangle path,
+  .chart-bar-grow .recharts-bar-rectangle .recharts-rectangle {
+    transform-box: fill-box;
+    transform-origin: bottom center;
+    animation: bar-grow-up 0.9s cubic-bezier(0.2, 0.75, 0.2, 1) both;
+  }
+
   /* Linha da Produtividade com brilho neon */
+  @keyframes line-draw-neon {
+    from { stroke-dashoffset: 1400; opacity: 0.35; }
+    to { stroke-dashoffset: 0; opacity: 1; }
+  }
   .chart-line-neon .recharts-line-curve {
+    stroke-dasharray: 1400;
+    stroke-dashoffset: 1400;
+    animation: line-draw-neon 1.8s ease-out forwards;
     filter: drop-shadow(0 0 4px hsl(var(--mining-green) / 0.75));
   }
   .chart-line-neon .recharts-line-dots circle {
@@ -216,14 +242,22 @@
     transform-origin: center;
   }
 
-  /* TV mode: desativa animações extras */
-  html.tv-mode .chart-pie-spin .recharts-pie,
-  html.tv-mode .chart-center-pulse,
-  html.tv-mode .chart-line-neon .recharts-line-dots circle {
-    animation: none !important;
+  @keyframes kpi-glow-change {
+    0% { box-shadow: 0 0 0 hsl(var(--mining-green) / 0); }
+    35% { box-shadow: 0 0 26px -8px hsl(var(--mining-green) / 0.75); }
+    100% { box-shadow: 0 0 0 hsl(var(--mining-green) / 0); }
   }
-  html.tv-mode .chart-line-neon .recharts-line-curve {
-    filter: none !important;
+  .kpi-pulse-glow {
+    animation: dashboard-soft-enter 0.45s ease-out both, kpi-glow-change 1.8s ease-out both;
+  }
+
+  @keyframes table-row-soft-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .table-row-fade {
+    opacity: 0;
+    animation: table-row-soft-in 0.38s ease-out forwards;
   }
 }
 
@@ -262,11 +296,12 @@ html.tv-mode [style*="drop-shadow"] {
   filter: none !important;
 }
 
-/* Recharts: desliga animação dos gráficos em TV */
-html.tv-mode .recharts-layer,
-html.tv-mode .recharts-bar-rectangle,
-html.tv-mode .recharts-area,
-html.tv-mode .recharts-line {
-  animation: none !important;
-  transition: none !important;
+/* TV: mantém animações do dashboard, apenas suaviza duração para GPU fraca */
+html.tv-mode .chart-pie-spin .recharts-pie {
+  animation-duration: 120s !important;
+}
+
+html.tv-mode .kpi-pulse-glow,
+html.tv-mode .chart-center-pulse {
+  animation-duration: 2.4s, 4.5s !important;
 }
