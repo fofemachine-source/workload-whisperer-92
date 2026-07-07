@@ -762,7 +762,7 @@ function DualKpi({
     >
       <p className={`text-[9px] uppercase tracking-[0.18em] font-bold truncate ${t.label}`}>{label}</p>
       <div className="mt-1">
-        <p className={`text-[8px] uppercase tracking-widest font-bold ${t.label}`}>{sublabel}</p>
+        {sublabel && <p className={`text-[8px] uppercase tracking-widest font-bold ${t.label}`}>{sublabel}</p>}
         <p className={`text-2xl md:text-[26px] font-black leading-tight ${t.text} font-mono tabular-nums`}>
           <Counter value={acumulado} />
         </p>
