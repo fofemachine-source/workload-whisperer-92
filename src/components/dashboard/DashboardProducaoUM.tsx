@@ -317,7 +317,8 @@ export default function DashboardProducaoUM() {
   };
 
   const ultima = dataUpdatedAt ? new Date(dataUpdatedAt) : null;
-  const countdown = useCountdown(5, dataUpdatedAt || 0);
+  const countdown = useCountdown(60, dataUpdatedAt || 0);
+  const atualizadoEm = (data as any)?.atualizadoEm as string | undefined;
 
   return (
     <div className="min-h-screen bg-[hsl(220_50%_5%)] text-foreground p-2 md:p-3 font-sans">
@@ -649,6 +650,11 @@ export default function DashboardProducaoUM() {
           Fonte: http://192.168.17.15:3001/api/dashboard · auto 60s
           {isLoading && <Loader2 className="h-3 w-3 animate-spin" />}
         </span>
+        {atualizadoEm && (
+          <span>
+            Atualizado em: <span className="text-foreground font-bold">{atualizadoEm}</span>
+          </span>
+        )}
         <span className="flex items-center gap-1.5">
           <span className={`w-2 h-2 rounded-full ${isError ? "bg-mining-red" : "bg-mining-green animate-pulse"}`} />
           <span className={isError ? "text-mining-red" : "text-mining-green"}>
