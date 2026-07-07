@@ -316,11 +316,9 @@ export default function DashboardProducaoUM() {
   return (
     <div className="min-h-screen bg-[hsl(220_50%_5%)] text-foreground p-2 md:p-3 font-sans dashboard-enter">
       {/* KPI strip — valores exclusivos de data.kpis */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
         <DualKpi key={`dia-${dataUpdatedAt}-${producaoDia}`} label="Produção Diária" sublabel="Hoje" acumulado={producaoDia} tone="green" />
         <DualKpi key={`mes-${dataUpdatedAt}-${producaoMensal}`} label="Produção Mensal" sublabel="" acumulado={producaoMensal} tone="amber" />
-        <GradientKpi key={`th-${dataUpdatedAt}-${producaoTotalEscavadeirasTH}`} label="Produção Total das Escavadeiras (t/h)" numeric={producaoTotalEscavadeirasTH} tone="green" suffix=" t/h" decimals={0} />
-        <GradientKpi key={`viagens-${dataUpdatedAt}-${viagens}`} label="Viagens" numeric={viagens} tone="blue" decimals={0} />
       </div>
 
       {/* Dashboard grid */}
@@ -580,6 +578,12 @@ export default function DashboardProducaoUM() {
           })()}
         </Panel>
 
+      </div>
+
+      {/* KPIs secundários — no rodapé */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
+        <GradientKpi key={`th-${dataUpdatedAt}-${producaoTotalEscavadeirasTH}`} label="Produção Total das Escavadeiras (t/h)" numeric={producaoTotalEscavadeirasTH} tone="green" suffix=" t/h" decimals={0} />
+        <GradientKpi key={`viagens-${dataUpdatedAt}-${viagens}`} label="Viagens" numeric={viagens} tone="blue" decimals={0} />
       </div>
 
       {/* Footer */}
