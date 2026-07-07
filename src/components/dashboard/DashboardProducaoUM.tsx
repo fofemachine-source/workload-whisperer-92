@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState, useEffect, useRef, memo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useAnimatedCounter } from "@/hooks/useAnimatedCounter";
 import {
   Bar,
@@ -40,49 +40,11 @@ const Counter = memo(function Counter({
   return <>{fmt(v, decimals)}{suffix}</>;
 });
 
-const brDate = (iso: string) => {
-  if (!iso) return "—";
-  const [y, m, d] = iso.split("-");
-  return `${d}/${m}/${y}`;
-};
-const dayLabel = (iso: string) => {
-  const [, m, d] = iso.split("-");
-  const meses = ["", "jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
-  return `${d}/${meses[Number(m)] ?? m}`;
-};
-
 const FRENTE_COLORS = ["#38bdf8", "#22d3ee", "#0ea5e9", "#f59e0b", "#22c55e", "#a855f7", "#ef4444", "#eab308"];
 
-/* ---------- filtro operacional fixo ----------
- * Caminhões válidos: começam com "CR"
- * Escavadeiras válidas: whitelist abaixo
- * NUNCA considerar equipamentos começando com "CB" (Gelado)
- */
-const ESCAVADEIRAS_VALIDAS = new Set([
-  "EH4026", "EH4039", "EH4041", "EH4047", "EH4050",
-  "EH4035", "EH5003", "EH5004", "EH5036",
-]);
 const normEquip = (v: unknown) =>
   String(v ?? "").replace(/[-\s]/g, "").toUpperCase();
-const isCaminhaoValido = (v: unknown) => {
-  const n = normEquip(v);
-  return n.startsWith("CR") && !n.startsWith("CB");
-};
-const isEscavadeiraValida = (v: unknown) => {
-  const n = normEquip(v);
-  if (n.startsWith("CB")) return false;
-  return ESCAVADEIRAS_VALIDAS.has(n);
-};
-/** Regra completa: caminhão CR + escavadeira na whitelist. */
-const linhaValida = (equipamento: unknown, equipamento_carga: unknown) =>
-  isCaminhaoValido(equipamento) && isEscavadeiraValida(equipamento_carga);
 
-const pick = (obj: Record<string, any>, keys: string[]) => {
-  for (const k of keys) {
-    if (obj?.[k] !== undefined && obj?.[k] !== null && obj?.[k] !== "") return obj[k];
-  }
-  return undefined;
-};
 const toNum = (v: unknown) => {
   const n = typeof v === "string" ? parseFloat(v.replace(",", ".")) : Number(v);
   return Number.isFinite(n) ? n : 0;
@@ -184,8 +146,6 @@ export default function DashboardProducaoUM() {
   const [dtIni, setDtIni] = useState(inicioAno);
   const [dtFim, setDtFim] = useState(hoje);
   const [data, setDashboardData] = useState<DashboardApiPayload | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
   const [dataUpdatedAt, setDataUpdatedAt] = useState(0);
   const [countdown, setCountdown] = useState(60);
   const swapTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -206,20 +166,17 @@ export default function DashboardProducaoUM() {
       console.log("Resposta API:", apiResponse.kpis);
 
       if (swapTimerRef.current) clearTimeout(swapTimerRef.current);
-      setError(null);
       setDashboardData(null);
       swapTimerRef.current = setTimeout(() => {
         setDashboardData(apiResponse);
         setDataUpdatedAt(Date.now());
         setCountdown(60);
-        setIsLoading(false);
       }, 50);
     } catch (err) {
       if (swapTimerRef.current) clearTimeout(swapTimerRef.current);
       setDashboardData(null);
-      setError(err instanceof Error ? err : new Error("Erro ao buscar API"));
-      setIsLoading(false);
       setCountdown(60);
+      console.error("Erro ao buscar API", err);
     }
   }, []);
 
@@ -312,8 +269,6 @@ export default function DashboardProducaoUM() {
   );
 
   const mediaViagens = 0;
-  const dfMedio = 0;
-  const utMedio = 0;
 
   const acompViagens = useMemo(() => {
     const arr = Array.isArray(data?.viagensCR) ? data!.viagensCR! : [];
@@ -337,7 +292,6 @@ export default function DashboardProducaoUM() {
   };
 
   const atualizadoEm = (data as any)?.atualizadoEm as string | undefined;
-  const isError = Boolean(error);
 
   return (
     <div className="min-h-screen bg-[hsl(220_50%_5%)] text-foreground p-2 md:p-3 font-sans dashboard-enter">
