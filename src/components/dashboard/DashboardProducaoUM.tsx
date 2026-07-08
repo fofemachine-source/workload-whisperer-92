@@ -688,15 +688,15 @@ function GradientKpi({
   const toneMap: Record<string, { grad: string; border: string; text: string; label: string }> = {
     green: {
       grad: "from-[hsl(150_80%_18%)] via-[hsl(155_70%_14%)] to-[hsl(220_45%_9%)]",
-      border: "border-emerald-400/30",
-      text: "text-emerald-300",
-      label: "text-emerald-200/70",
+      border: "border-emerald-400/40",
+      text: "text-emerald-400 drop-shadow-[0_0_8px_hsl(150_90%_55%/0.55)]",
+      label: "text-emerald-400",
     },
     amber: {
       grad: "from-[hsl(35_85%_25%)] via-[hsl(30_70%_16%)] to-[hsl(220_45%_9%)]",
-      border: "border-amber-400/30",
-      text: "text-amber-300",
-      label: "text-amber-200/70",
+      border: "border-amber-400/50",
+      text: "text-amber-400 drop-shadow-[0_0_8px_hsl(35_100%_55%/0.55)]",
+      label: "text-amber-400",
     },
     teal: {
       grad: "from-[hsl(180_70%_20%)] via-[hsl(190_60%_14%)] to-[hsl(220_45%_9%)]",
@@ -706,9 +706,9 @@ function GradientKpi({
     },
     blue: {
       grad: "from-[hsl(215_80%_25%)] via-[hsl(215_70%_16%)] to-[hsl(220_45%_9%)]",
-      border: "border-sky-400/30",
-      text: "text-sky-300",
-      label: "text-sky-200/70",
+      border: "border-sky-400/40",
+      text: "text-sky-400 drop-shadow-[0_0_8px_hsl(199_100%_60%/0.55)]",
+      label: "text-sky-400",
     },
     cyan: {
       grad: "from-[hsl(190_85%_25%)] via-[hsl(200_70%_16%)] to-[hsl(220_45%_9%)]",
@@ -732,10 +732,11 @@ function GradientKpi({
       whileHover={{ boxShadow: "0 0 14px rgba(0,180,255,0.15)" }}
       className={`kpi-pulse-glow relative overflow-hidden rounded-md border ${t.border} bg-gradient-to-br ${t.grad} px-3 py-2.5 shadow-[0_0_0_rgba(0,0,0,0)] transition-shadow duration-300`}
     >
-      <p className={`text-[9px] uppercase tracking-[0.18em] font-bold truncate ${t.label}`}>{label}</p>
-      <p className={`text-2xl md:text-[26px] font-black leading-tight ${t.text} font-mono tabular-nums`}>
+      <p className={`font-mono-mining text-[10px] uppercase tracking-[0.18em] font-bold truncate ${t.label}`}>{label}</p>
+      <p className={`font-mono-mining text-2xl md:text-[26px] font-black leading-tight ${t.text} tabular-nums`}>
         <Counter value={numeric} decimals={decimals} suffix={suffix} />
       </p>
+      <span className={`pointer-events-none absolute left-4 right-4 bottom-0 h-[2px] rounded-full bg-current ${t.text} opacity-70 blur-[1px]`} />
     </motion.div>
   );
 }
@@ -754,15 +755,15 @@ function DualKpi({
   const toneMap: Record<string, { grad: string; border: string; text: string; label: string }> = {
     green: {
       grad: "from-[hsl(150_80%_18%)] via-[hsl(155_70%_14%)] to-[hsl(220_45%_9%)]",
-      border: "border-emerald-400/30",
-      text: "text-emerald-300",
-      label: "text-emerald-200/70",
+      border: "border-emerald-400/40",
+      text: "text-sky-400 drop-shadow-[0_0_8px_hsl(199_100%_60%/0.55)]",
+      label: "text-emerald-400",
     },
     amber: {
       grad: "from-[hsl(35_85%_25%)] via-[hsl(30_70%_16%)] to-[hsl(220_45%_9%)]",
-      border: "border-amber-400/30",
-      text: "text-amber-300",
-      label: "text-amber-200/70",
+      border: "border-amber-400/50",
+      text: "text-amber-400 drop-shadow-[0_0_8px_hsl(35_100%_55%/0.55)]",
+      label: "text-amber-400",
     },
     teal: {
       grad: "from-[hsl(180_70%_20%)] via-[hsl(190_60%_14%)] to-[hsl(220_45%_9%)]",
@@ -797,13 +798,14 @@ function DualKpi({
       transition={{ duration: 0.4, ease: "easeOut" }}
       className={`kpi-pulse-glow relative overflow-hidden rounded-md border ${t.border} bg-gradient-to-br ${t.grad} px-3 py-2.5`}
     >
-      <p className={`text-[9px] uppercase tracking-[0.18em] font-bold truncate ${t.label}`}>{label}</p>
+      <p className={`font-mono-mining text-[10px] uppercase tracking-[0.18em] font-bold truncate ${t.label}`}>{label}</p>
       <div className="mt-1">
-        {sublabel && <p className={`text-[8px] uppercase tracking-widest font-bold ${t.label}`}>{sublabel}</p>}
-        <p className={`text-2xl md:text-[26px] font-black leading-tight ${t.text} font-mono tabular-nums`}>
+        {sublabel && <p className={`font-mono-mining text-[8px] uppercase tracking-widest font-bold ${t.label} opacity-80`}>{sublabel}</p>}
+        <p className={`font-mono-mining text-2xl md:text-[26px] font-black leading-tight ${t.text} tabular-nums`}>
           <Counter value={acumulado} />
         </p>
       </div>
+      <span className={`pointer-events-none absolute left-4 right-4 bottom-0 h-[2px] rounded-full bg-current ${t.text} opacity-70 blur-[1px]`} />
     </motion.div>
   );
 }
