@@ -146,7 +146,7 @@ export default function DashboardProducaoUM() {
   const [dtFim, setDtFim] = useState(hoje);
   const [dashboardData, setDashboardData] = useState<DashboardApiPayload | null>(null);
   const [dataUpdatedAt, setDataUpdatedAt] = useState(0);
-  const [segundosAtualizacao, setSegundosAtualizacao] = useState(10);
+  const [segundosAtualizacao, setSegundosAtualizacao] = useState(15);
   const [, setLoading] = useState(false);
   const [, setErroApi] = useState<string | null>(null);
   const [ultimaAtualizacao, setUltimaAtualizacao] = useState("");
@@ -178,19 +178,18 @@ export default function DashboardProducaoUM() {
       const apiResponse = (await response.json()) as DashboardApiPayload;
       const k: any = apiResponse?.kpis ?? {};
       const lr: any = (apiResponse as any)?.lavRet ?? {};
-      console.log("[DASHBOARD OK]", {
-        producaoDia: k.producaoDia,
-        producaoMensal: k.producaoMensal,
-        lav: k.lav ?? lr.lav,
-        ret: k.ret ?? lr.ret,
-        th: k.producaoTotalEscavadeirasTH,
-        viagens: k.viagens,
+      console.log("[DASHBOARD ATUALIZADO]", {
+        atualizadoEm: (apiResponse as any)?.atualizadoEm,
+        cards: (apiResponse as any)?.cards,
+        frentes: apiResponse?.producaoFrente,
+        viagensCR: apiResponse?.viagensCR?.length,
+        viagensHora: apiResponse?.viagensHora,
       });
 
       setDashboardData(apiResponse);
       setUltimaAtualizacao(apiResponse.atualizadoEm || new Date().toISOString());
       setDataUpdatedAt(Date.now());
-      setSegundosAtualizacao(10);
+      setSegundosAtualizacao(15);
       setErroApi(null);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
@@ -206,7 +205,7 @@ export default function DashboardProducaoUM() {
     carregarDashboard();
     intervalRef.current = setInterval(() => {
       carregarDashboard();
-    }, 10000);
+    }, 15000);
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
@@ -215,7 +214,7 @@ export default function DashboardProducaoUM() {
   useEffect(() => {
     const timer = setInterval(() => {
       setSegundosAtualizacao((prev) => {
-        if (prev <= 1) return 10;
+        if (prev <= 1) return 15;
         return prev - 1;
       });
     }, 1000);
