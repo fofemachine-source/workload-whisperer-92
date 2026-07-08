@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState, useEffect, memo } from "react";
+import { useCallback, useMemo, useState, useEffect, useRef, memo } from "react";
 import { motion } from "framer-motion";
 import { useAnimatedCounter } from "@/hooks/useAnimatedCounter";
 import {
@@ -146,70 +146,76 @@ export default function DashboardProducaoUM() {
   const [dtFim, setDtFim] = useState(hoje);
   const [dashboardData, setDashboardData] = useState<DashboardApiPayload | null>(null);
   const [dataUpdatedAt, setDataUpdatedAt] = useState(0);
-  const [segundosAtualizacao, setSegundosAtualizacao] = useState(60);
+  const [segundosAtualizacao, setSegundosAtualizacao] = useState(10);
   const [, setLoading] = useState(false);
   const [, setErroApi] = useState<string | null>(null);
   const [ultimaAtualizacao, setUltimaAtualizacao] = useState("");
+  const isFetchingRef = useRef(false);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const carregarDashboard = useCallback(async () => {
+    if (isFetchingRef.current) return;
+    isFetchingRef.current = true;
     try {
       setLoading(true);
-      setSegundosAtualizacao(60);
       const url = `${DASHBOARD_API_URL}?ts=${Date.now()}`;
       console.log("Atualizando dashboard...", url);
 
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000);
       const response = await fetch(url, {
         method: "GET",
         cache: "no-store",
+        signal: controller.signal,
         headers: { "Cache-Control": "no-cache", Pragma: "no-cache" },
       });
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         throw new Error("Erro HTTP " + response.status);
       }
 
       const apiResponse = (await response.json()) as DashboardApiPayload;
-      console.log("KPIs recebidos:", apiResponse.kpis);
-      console.log("CRs recebidos:", Array.isArray((apiResponse as any).viagensCR) ? (apiResponse as any).viagensCR.length : 0);
-      console.log("Escavadeiras recebidas:", Array.isArray((apiResponse as any).rankingEscavadeiras) ? (apiResponse as any).rankingEscavadeiras.length : 0);
+      const k: any = apiResponse?.kpis ?? {};
+      const lr: any = (apiResponse as any)?.lavRet ?? {};
+      console.log("[DASHBOARD OK]", {
+        producaoDia: k.producaoDia,
+        producaoMensal: k.producaoMensal,
+        lav: k.lav ?? lr.lav,
+        ret: k.ret ?? lr.ret,
+        th: k.producaoTotalEscavadeirasTH,
+        viagens: k.viagens,
+      });
 
       setDashboardData(apiResponse);
       setUltimaAtualizacao(apiResponse.atualizadoEm || new Date().toISOString());
       setDataUpdatedAt(Date.now());
+      setSegundosAtualizacao(10);
       setErroApi(null);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      console.error("Erro ao atualizar dashboard:", error);
+      console.error("[DASHBOARD ERRO]", error);
       setErroApi(message);
     } finally {
       setLoading(false);
+      isFetchingRef.current = false;
     }
   }, []);
 
   useEffect(() => {
-    let ativo = true;
-    let intervalo: ReturnType<typeof setInterval>;
-
-    const executar = async () => {
-      if (!ativo) return;
-      await carregarDashboard();
-    };
-
-    executar();
-    intervalo = setInterval(() => {
-      executar();
-    }, 60000);
-
+    carregarDashboard();
+    intervalRef.current = setInterval(() => {
+      carregarDashboard();
+    }, 10000);
     return () => {
-      ativo = false;
-      clearInterval(intervalo);
+      if (intervalRef.current) clearInterval(intervalRef.current);
     };
   }, [carregarDashboard]);
 
   useEffect(() => {
     const timer = setInterval(() => {
       setSegundosAtualizacao((prev) => {
-        if (prev <= 1) return 60;
+        if (prev <= 1) return 10;
         return prev - 1;
       });
     }, 1000);
@@ -218,6 +224,7 @@ export default function DashboardProducaoUM() {
 
   // Valores direto da API — sem cálculo no frontend
   const kpis = (dashboardData?.kpis ?? {}) as Record<string, any>;
+  const lavRetApi = ((dashboardData as any)?.lavRet ?? {}) as Record<string, any>;
   const producaoDia = Number(kpis.producaoDia ?? 0);
   const producaoMensal = Number(kpis.producaoMensal ?? 0);
   const producaoTotalEscavadeirasTH = Number(kpis.producaoTotalEscavadeirasTH ?? 0);
@@ -244,8 +251,13 @@ export default function DashboardProducaoUM() {
       .reduce((total, item) => total + Number(item.massa ?? 0), 0);
     return { lavAcumulado: lav, retAcumulado: ret };
   }, [dashboardData]);
-  const lavProjetado = lavAcumulado;
-  const retProjetado = retAcumulado;
+  // Preferência: usar valores diretos da API (kpis.lav / lavRet.lav). Fallback: cálculo por frente.
+  const lavApi = Number(kpis.lav ?? lavRetApi.lav ?? NaN);
+  const retApi = Number(kpis.ret ?? lavRetApi.ret ?? NaN);
+  const lavFinal = Number.isFinite(lavApi) && lavApi > 0 ? lavApi : lavAcumulado;
+  const retFinal = Number.isFinite(retApi) && retApi > 0 ? retApi : retAcumulado;
+  const lavProjetado = lavFinal;
+  const retProjetado = retFinal;
 
   const dailySeries = useMemo(
     () =>
