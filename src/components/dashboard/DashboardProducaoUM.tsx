@@ -363,18 +363,18 @@ export default function DashboardProducaoUM() {
       {/* KPI strip — valores exclusivos de data.kpis */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
         <LavRetKpi
-          key={`lav-${dataUpdatedAt}-${lavAcumulado}-${lavProjetado}`}
+          key={`lav-${dataUpdatedAt}-${lavFinal}-${lavProjetado}`}
           label="LAV"
-          acumulado={lavAcumulado}
+          acumulado={lavFinal}
           projetado={lavProjetado}
           tone="green"
           acumuladoTone="blue"
           projetadoTone="green"
         />
         <LavRetKpi
-          key={`ret-${dataUpdatedAt}-${retAcumulado}-${retProjetado}`}
+          key={`ret-${dataUpdatedAt}-${retFinal}-${retProjetado}`}
           label="RET"
-          acumulado={retAcumulado}
+          acumulado={retFinal}
           projetado={retProjetado}
           tone="amber"
           acumuladoTone="amber"
