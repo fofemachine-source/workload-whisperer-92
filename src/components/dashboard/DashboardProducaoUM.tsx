@@ -382,10 +382,10 @@ export default function DashboardProducaoUM() {
       {/* Dashboard grid */}
       <div className="grid grid-cols-12 gap-2 mt-2 items-stretch">
         <Panel title="Produção Diária (t)" className="col-span-12 lg:col-span-4 h-[300px] animated-card">
-          {dailySeries.length === 0 ? (
-            <Empty />
-          ) : (
-            <div className="force-live-animation daily-bars h-full chart-bar-grow neon-chart pulse-bar rain-effect">
+          <div className="force-live-animation daily-bars h-full chart-bar-grow neon-chart pulse-bar rain-effect">
+            {dailySeries.length === 0 ? (
+              <Empty />
+            ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={dailySeries} margin={{ top: 12, right: 8, left: 0, bottom: 0 }}>
                   <CartesianGrid stroke="rgba(255,255,255,0.05)" vertical={false} />
@@ -397,17 +397,18 @@ export default function DashboardProducaoUM() {
                   <Bar dataKey="Real" fill="#22c55e" radius={[2, 2, 0, 0]} animationDuration={900} animationEasing="ease-out" />
                 </BarChart>
               </ResponsiveContainer>
-            </div>
-          )}
+            )}
+          </div>
         </Panel>
 
         <Panel title="Produção por Frente (t)" className="col-span-12 lg:col-span-3 h-[300px] animated-card">
-          {frenteAgg.length === 0 ? (
-            <Empty />
-          ) : (() => {
+          <div className="force-live-animation front-donut neon-donut h-full">
+            {frenteAgg.length === 0 ? (
+              <Empty />
+            ) : (() => {
             const totalFrente = frenteAgg.reduce((s, r) => s + r.value, 0);
             return (
-              <div className="force-live-animation front-donut neon-donut h-full flex items-center gap-2">
+              <div className="h-full flex items-center gap-2">
                 <div className="w-[45%] h-full relative">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
@@ -494,7 +495,8 @@ export default function DashboardProducaoUM() {
                 </div>
               </div>
             );
-          })()}
+            })()}
+          </div>
         </Panel>
 
         <Panel title="ESCAVADEIRAS" className="col-span-12 lg:col-span-5 lg:row-span-2 h-[492px] animated-card">
@@ -585,10 +587,10 @@ export default function DashboardProducaoUM() {
           )}
         </Panel>
         <Panel title="Produtividade (t/h)" className="col-span-12 lg:col-span-4 h-[184px] animated-card">
-          {prodSeries.length === 0 ? (
-            <Empty />
-          ) : (
-            <div className="force-live-animation productivity-line h-full chart-line-neon glow-line neon-chart scan-line">
+          <div className="force-live-animation productivity-line h-full chart-line-neon glow-line neon-chart scan-line">
+            {prodSeries.length === 0 ? (
+              <Empty />
+            ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={prodSeries} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                   <CartesianGrid stroke="rgba(255,255,255,0.05)" vertical={false} />
@@ -601,15 +603,15 @@ export default function DashboardProducaoUM() {
                   <Line type="monotone" dataKey="Real" stroke="#22c55e" dot={false} strokeWidth={2} animationDuration={1200} animationEasing="ease-out" />
                 </LineChart>
               </ResponsiveContainer>
-            </div>
-          )}
+            )}
+          </div>
         </Panel>
 
         <Panel title="Viagens por Hora" className="col-span-12 lg:col-span-2 h-[184px] animated-card">
-          {viagensPorHora.every((v) => v.Real === 0) ? (
-            <Empty />
-          ) : (
-            <div className="force-live-animation hourly-trips daily-bars h-full chart-bar-grow neon-chart pulse-bar scan-line">
+          <div className="force-live-animation hourly-trips daily-bars h-full chart-bar-grow neon-chart pulse-bar scan-line">
+            {viagensPorHora.every((v) => v.Real === 0) ? (
+              <Empty />
+            ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={viagensPorHora} margin={{ top: 8, right: 4, left: 0, bottom: 0 }}>
                   <CartesianGrid stroke="rgba(255,255,255,0.05)" vertical={false} />
@@ -619,8 +621,8 @@ export default function DashboardProducaoUM() {
                   <Bar dataKey="Real" fill="#22d3ee" radius={[2, 2, 0, 0]} animationDuration={900} animationEasing="ease-out" />
                 </BarChart>
               </ResponsiveContainer>
-            </div>
-          )}
+            )}
+          </div>
         </Panel>
 
         <Panel className="col-span-12 lg:col-span-1 h-[184px] animated-card">
