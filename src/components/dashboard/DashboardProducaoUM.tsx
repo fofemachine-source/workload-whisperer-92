@@ -40,8 +40,8 @@ const Counter = memo(function Counter({
 });
 
 const FRENTE_COLORS = [
-  "#22d3ee", // cyan
-  "#3b82f6", // blue
+  "#00eaff", // cyan (LAV)
+  "#1687ff", // blue (RET)
   "#a855f7", // purple
   "#ec4899", // pink
   "#f97316", // orange
@@ -53,6 +53,13 @@ const FRENTE_COLORS = [
   "#0ea5e9", // sky
   "#f59e0b", // amber
 ];
+
+const colorForFrente = (name: string, idx: number) => {
+  const n = String(name || "").trim().toUpperCase();
+  if (n === "LAV") return "#00eaff";
+  if (n === "RET") return "#1687ff";
+  return FRENTE_COLORS[idx % FRENTE_COLORS.length];
+};
 
 const normEquip = (v: unknown) =>
   String(v ?? "").replace(/[-\s]/g, "").toUpperCase();
@@ -408,13 +415,13 @@ export default function DashboardProducaoUM() {
             ) : (() => {
             const totalFrente = frenteAgg.reduce((s, r) => s + r.value, 0);
             return (
-              <div className="h-full flex items-center gap-2">
-                <div className="w-[45%] h-full relative">
+              <div className="h-full flex items-center gap-3">
+                <div className="w-[58%] h-full relative">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <defs>
                         <filter id="frenteNeonGlow" x="-50%" y="-50%" width="200%" height="200%">
-                          <feGaussianBlur stdDeviation="4" result="blur" />
+                          <feGaussianBlur stdDeviation="6" result="blur" />
                           <feMerge>
                             <feMergeNode in="blur" />
                             <feMergeNode in="SourceGraphic" />
@@ -430,8 +437,8 @@ export default function DashboardProducaoUM() {
                         data={frenteAgg}
                         dataKey="value"
                         nameKey="name"
-                        innerRadius="60%"
-                        outerRadius="92%"
+                        innerRadius="62%"
+                        outerRadius="94%"
                         paddingAngle={2}
                         stroke="hsl(220 50% 6%)"
                         strokeWidth={1.5}
@@ -440,8 +447,8 @@ export default function DashboardProducaoUM() {
                         animationEasing="ease-out"
                         isAnimationActive
                       >
-                        {frenteAgg.map((_, i) => (
-                          <Cell key={i} fill={FRENTE_COLORS[i % FRENTE_COLORS.length]} />
+                        {frenteAgg.map((f, i) => (
+                          <Cell key={i} fill={colorForFrente(f.name, i)} />
                         ))}
                       </Pie>
                       <Tooltip
@@ -455,43 +462,50 @@ export default function DashboardProducaoUM() {
                   </ResponsiveContainer>
                   <div
                     className="chart-center-pulse absolute inset-0 rounded-full pointer-events-none"
-                    style={{ background: "radial-gradient(circle, hsl(199 100% 60% / 0.18) 0%, transparent 60%)" }}
+                    style={{ background: "radial-gradient(circle, rgba(0,234,255,0.22) 0%, transparent 60%)" }}
                   />
                   <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                    <span className="text-[8px] uppercase tracking-[0.2em] text-cyan-300/80 font-bold">Total</span>
-                    <span className="text-lg font-black text-cyan-300 font-mono tabular-nums drop-shadow-[0_0_10px_hsl(199_100%_60%/0.9)]">
+                    <span className="text-[11px] uppercase tracking-[0.25em] text-cyan-300 font-bold drop-shadow-[0_0_6px_rgba(0,234,255,0.8)]">Total</span>
+                    <span className="text-2xl md:text-3xl font-black text-cyan-300 font-mono tabular-nums drop-shadow-[0_0_14px_rgba(0,234,255,0.95)] leading-none mt-0.5">
                       {fmt(totalFrente)}
                     </span>
-                    <span className="text-[9px] text-cyan-200/60 font-mono tracking-widest">t</span>
+                    <span className="text-sm text-cyan-300/90 font-mono tracking-widest mt-0.5">t</span>
                   </div>
                 </div>
-                <div className="w-[55%] h-full overflow-auto pr-1 space-y-[3px] text-[10px] font-mono">
-                  {frenteAgg.map((f, i) => (
-                    <motion.div
-                      key={f.name}
-                      initial={{ opacity: 0, x: 6 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.3, delay: i * 0.04 }}
-                      className="flex items-center gap-1.5"
-                    >
-                      <span
-                        className="w-2 h-2 shrink-0 inline-block rounded-full"
-                        style={{
-                          background: FRENTE_COLORS[i % FRENTE_COLORS.length],
-                          boxShadow: `0 0 6px ${FRENTE_COLORS[i % FRENTE_COLORS.length]}`,
-                        }}
-                      />
-                      <span className="truncate text-foreground flex-1" title={f.name}>
-                        {f.name}
-                      </span>
-                      <span
-                        className="tabular-nums shrink-0 font-bold"
-                        style={{ color: FRENTE_COLORS[i % FRENTE_COLORS.length] }}
+                <div className="w-[42%] h-full flex flex-col justify-center pr-1 divide-y divide-cyan-400/15">
+                  {frenteAgg.map((f, i) => {
+                    const c = colorForFrente(f.name, i);
+                    return (
+                      <motion.div
+                        key={f.name}
+                        initial={{ opacity: 0, x: 6 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.3, delay: i * 0.04 }}
+                        className="flex items-center gap-2 py-2"
                       >
-                        {f.pct.toFixed(1)}%
-                      </span>
-                    </motion.div>
-                  ))}
+                        <span
+                          className="w-4 h-4 shrink-0 inline-block rounded-full"
+                          style={{
+                            background: c,
+                            boxShadow: `0 0 10px ${c}, 0 0 0 2px rgba(255,255,255,0.12)`,
+                          }}
+                        />
+                        <span
+                          className="flex-1 font-extrabold tracking-wide text-white text-base md:text-lg truncate"
+                          title={f.name}
+                          style={{ textShadow: "0 0 6px rgba(255,255,255,0.35)" }}
+                        >
+                          {f.name}
+                        </span>
+                        <span
+                          className="tabular-nums shrink-0 font-extrabold text-base md:text-lg"
+                          style={{ color: c, textShadow: `0 0 8px ${c}` }}
+                        >
+                          {f.pct.toFixed(1)}%
+                        </span>
+                      </motion.div>
+                    );
+                  })}
                 </div>
               </div>
             );
