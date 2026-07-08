@@ -158,7 +158,6 @@ export default function DashboardProducaoUM() {
   const [dtIni, setDtIni] = useState(inicioAno);
   const [dtFim, setDtFim] = useState(hoje);
   const [dashboardData, setDashboardData] = useState<DashboardApiPayload | null>(null);
-  const [dataUpdatedAt, setDataUpdatedAt] = useState(0);
   const [segundosAtualizacao, setSegundosAtualizacao] = useState(15);
   const [, setLoading] = useState(false);
   const [, setErroApi] = useState<string | null>(null);
@@ -201,7 +200,6 @@ export default function DashboardProducaoUM() {
 
       setDashboardData(apiResponse);
       setUltimaAtualizacao(apiResponse.atualizadoEm || new Date().toISOString());
-      setDataUpdatedAt(Date.now());
       setSegundosAtualizacao(15);
       setErroApi(null);
     } catch (error) {
