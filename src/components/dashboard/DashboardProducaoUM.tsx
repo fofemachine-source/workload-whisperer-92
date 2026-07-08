@@ -863,6 +863,111 @@ function MiniKpi({ label, value, unit }: { label: string; value: string; unit?: 
   );
 }
 
+/* ---------- LAV / RET dual line KPI (photo-1 layout) ---------- */
+type KpiTone = "green" | "amber" | "blue";
+const TONE_TEXT: Record<KpiTone, string> = {
+  green: "text-emerald-400 drop-shadow-[0_0_8px_hsl(150_90%_55%/0.6)]",
+  amber: "text-amber-400 drop-shadow-[0_0_8px_hsl(35_100%_55%/0.6)]",
+  blue: "text-sky-400 drop-shadow-[0_0_8px_hsl(199_100%_60%/0.6)]",
+};
+const TONE_BORDER: Record<KpiTone, string> = {
+  green: "border-emerald-400/45",
+  amber: "border-amber-400/50",
+  blue: "border-sky-400/45",
+};
+const TONE_GLOW: Record<KpiTone, string> = {
+  green: "bg-emerald-400",
+  amber: "bg-amber-400",
+  blue: "bg-sky-400",
+};
+
+function LavRetKpi({
+  label,
+  acumulado,
+  projetado,
+  tone,
+  acumuladoTone,
+  projetadoTone,
+}: {
+  label: string;
+  acumulado: number;
+  projetado: number;
+  tone: KpiTone;
+  acumuladoTone: KpiTone;
+  projetadoTone: KpiTone;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: "easeOut" }}
+      className={`kpi-pulse-glow relative overflow-hidden rounded-lg border ${TONE_BORDER[tone]} bg-[hsl(220_45%_7%/0.9)] px-4 py-3`}
+    >
+      <p className={`font-mono-mining text-[13px] font-black tracking-wider ${TONE_TEXT[tone]}`}>{label}</p>
+      <div className={`mt-1 h-px w-full ${TONE_GLOW[tone]} opacity-40`} />
+
+      <div className="mt-2 flex items-center justify-between gap-2">
+        <p className={`font-mono-mining text-[10px] uppercase tracking-widest font-bold leading-tight ${TONE_TEXT[tone]} opacity-90`}>
+          Acumulado<br />Dia:
+        </p>
+        <p className={`font-mono-mining text-xl md:text-2xl font-black tabular-nums ${TONE_TEXT[acumuladoTone]}`}>
+          <Counter value={acumulado} />
+        </p>
+      </div>
+
+      <div className={`my-2 border-t border-dashed ${TONE_BORDER[tone]} opacity-60`} />
+
+      <div className="flex items-center justify-between gap-2">
+        <p className={`font-mono-mining text-[10px] uppercase tracking-widest font-bold leading-tight ${TONE_TEXT[tone]} opacity-90`}>
+          Projetado<br />Dia:
+        </p>
+        <p className={`font-mono-mining text-xl md:text-2xl font-black tabular-nums ${TONE_TEXT[projetadoTone]}`}>
+          <Counter value={projetado} />
+        </p>
+      </div>
+
+      <span className={`pointer-events-none absolute left-6 right-6 bottom-0 h-[2px] rounded-full ${TONE_GLOW[tone]} opacity-70 blur-[1px]`} />
+    </motion.div>
+  );
+}
+
+/* ---------- Big single value KPI (photo-1 mensal / T/H) ---------- */
+function BigKpi({
+  label,
+  value,
+  suffix = "",
+  tone,
+  showBar = false,
+}: {
+  label: string;
+  value: number;
+  suffix?: string;
+  tone: KpiTone;
+  showBar?: boolean;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: "easeOut" }}
+      className={`kpi-pulse-glow relative overflow-hidden rounded-lg border ${TONE_BORDER[tone]} bg-[hsl(220_45%_7%/0.9)] px-4 py-3 flex flex-col`}
+    >
+      <p className={`font-mono-mining text-[13px] font-black tracking-wider ${TONE_TEXT[tone]}`}>{label}</p>
+      <div className={`mt-1 h-px w-full ${TONE_GLOW[tone]} opacity-40`} />
+
+      <p className={`mt-3 font-mono-mining text-3xl md:text-4xl font-black leading-none tabular-nums ${TONE_TEXT[tone]}`}>
+        <Counter value={value} suffix={suffix} />
+      </p>
+
+      {showBar && (
+        <div className="mt-3 h-[3px] w-full rounded-full bg-sky-400 shadow-[0_0_10px_hsl(199_100%_60%/0.9)]" />
+      )}
+
+      <span className={`pointer-events-none absolute left-6 right-6 bottom-0 h-[2px] rounded-full ${TONE_GLOW[tone]} opacity-70 blur-[1px]`} />
+    </motion.div>
+  );
+}
+
 function StatBlock({
   label,
   value,
