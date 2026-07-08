@@ -646,3 +646,99 @@ html.tv-mode [class*="card"]::after,
 html.tv-mode [class*="Card"]::after {
   animation: none !important;
 }
+
+/* ============================================================
+   FORCE LIVE DASHBOARD ANIMATIONS — CSS-only, continuous
+   Não depende de re-render, timer, state ou atualização da API.
+   ============================================================ */
+.force-live-animation,
+.force-live-animation * {
+  animation-play-state: running !important;
+}
+
+.daily-bars .recharts-bar-rectangle,
+.daily-bars .recharts-bar-rectangle path,
+.daily-bars .recharts-bar-rectangle .recharts-rectangle {
+  transform-box: fill-box !important;
+  transform-origin: bottom center !important;
+  animation: liveBarMove 1.4s ease-in-out infinite alternate !important;
+  animation-play-state: running !important;
+  will-change: transform, filter;
+}
+
+.daily-bars .recharts-bar-rectangle:nth-child(2n),
+.daily-bars .recharts-bar-rectangle:nth-child(2n) path,
+.daily-bars .recharts-bar-rectangle:nth-child(2n) .recharts-rectangle {
+  animation-delay: .2s !important;
+}
+
+.daily-bars .recharts-bar-rectangle:nth-child(3n),
+.daily-bars .recharts-bar-rectangle:nth-child(3n) path,
+.daily-bars .recharts-bar-rectangle:nth-child(3n) .recharts-rectangle {
+  animation-delay: .4s !important;
+}
+
+@keyframes liveBarMove {
+  0% {
+    transform: scaleY(.88);
+    filter: drop-shadow(0 0 5px rgba(0, 234, 255, .35));
+  }
+  100% {
+    transform: scaleY(1.08);
+    filter: drop-shadow(0 0 18px rgba(0, 234, 255, .95));
+  }
+}
+
+.front-donut .recharts-pie {
+  transform-box: fill-box !important;
+  transform-origin: center center !important;
+  animation: liveDonutSpin 22s linear infinite !important;
+  animation-play-state: running !important;
+  will-change: transform;
+}
+
+.front-donut .recharts-pie-sector {
+  filter: drop-shadow(0 0 14px rgba(0, 234, 255, .75)) !important;
+}
+
+@keyframes liveDonutSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.productivity-line .recharts-line-curve {
+  stroke-dasharray: 14 9 !important;
+  animation: liveLineMove 1s linear infinite, liveLineGlow 2s ease-in-out infinite !important;
+  animation-play-state: running !important;
+  will-change: stroke-dashoffset, filter;
+}
+
+@keyframes liveLineMove {
+  from { stroke-dashoffset: 0; }
+  to { stroke-dashoffset: -50; }
+}
+
+@keyframes liveLineGlow {
+  0%, 100% {
+    filter: drop-shadow(0 0 6px rgba(0, 255, 123, .5));
+  }
+  50% {
+    filter: drop-shadow(0 0 20px rgba(0, 255, 123, 1));
+  }
+}
+
+.chart-card,
+.dashboard-card,
+.kpi-card {
+  animation: liveCardGlow 2.8s ease-in-out infinite !important;
+  animation-play-state: running !important;
+}
+
+@keyframes liveCardGlow {
+  0%, 100% {
+    box-shadow: 0 0 14px rgba(0, 234, 255, .22);
+  }
+  50% {
+    box-shadow: 0 0 34px rgba(0, 234, 255, .55);
+  }
+}
