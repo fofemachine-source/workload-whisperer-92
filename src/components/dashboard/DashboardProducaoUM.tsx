@@ -223,19 +223,29 @@ export default function DashboardProducaoUM() {
   const producaoTotalEscavadeirasTH = Number(kpis.producaoTotalEscavadeirasTH ?? 0);
   const viagens = Number(kpis.viagens ?? 0);
 
-  // LAV / RET — vindos direto de data.kpis (fallback 0 quando ausente)
-  const lavAcumulado = Number(
-    kpis.lavAcumulado ?? kpis.lavAcumuladoDia ?? kpis.lav?.acumulado ?? kpis.lav?.acumuladoDia ?? 0,
-  );
-  const lavProjetado = Number(
-    kpis.lavProjetado ?? kpis.lavProjetadoDia ?? kpis.lav?.projetado ?? kpis.lav?.projetadoDia ?? 0,
-  );
-  const retAcumulado = Number(
-    kpis.retAcumulado ?? kpis.retAcumuladoDia ?? kpis.ret?.acumulado ?? kpis.ret?.acumuladoDia ?? 0,
-  );
-  const retProjetado = Number(
-    kpis.retProjetado ?? kpis.retProjetadoDia ?? kpis.ret?.projetado ?? kpis.ret?.projetadoDia ?? 0,
-  );
+  // LAV / RET — calculados a partir de data.producaoFrente (API real)
+  const { lavAcumulado, retAcumulado } = useMemo(() => {
+    const frentes = (dashboardData?.producaoFrente ?? []) as Array<{ frente?: string; massa?: number }>;
+    const norm = (t: unknown) => String(t ?? "").toUpperCase();
+    const lav = frentes
+      .filter((item) => {
+        const f = norm(item.frente);
+        return (
+          (f.includes("LAV") ||
+            f.includes("LAVRA") ||
+            f.includes("MINA") ||
+            f.includes("MOV_N5S") ||
+            f.includes("MOV_N5EN")) && !f.includes("RET")
+        );
+      })
+      .reduce((total, item) => total + Number(item.massa ?? 0), 0);
+    const ret = frentes
+      .filter((item) => norm(item.frente).includes("RET"))
+      .reduce((total, item) => total + Number(item.massa ?? 0), 0);
+    return { lavAcumulado: lav, retAcumulado: ret };
+  }, [dashboardData]);
+  const lavProjetado = lavAcumulado;
+  const retProjetado = retAcumulado;
 
   const dailySeries = useMemo(
     () =>
