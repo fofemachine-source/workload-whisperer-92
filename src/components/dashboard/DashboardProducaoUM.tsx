@@ -824,7 +824,7 @@ function GradientKpi({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
       whileHover={{ boxShadow: "0 0 14px rgba(0,180,255,0.15)" }}
-      className={`kpi-pulse-glow relative overflow-hidden rounded-md border ${t.border} bg-gradient-to-br ${t.grad} px-3 py-2.5 shadow-[0_0_0_rgba(0,0,0,0)] transition-shadow duration-300`}
+      className={`kpi-card kpi-pulse-glow relative overflow-hidden rounded-md border ${t.border} bg-gradient-to-br ${t.grad} px-3 py-2.5 shadow-[0_0_0_rgba(0,0,0,0)] transition-shadow duration-300`}
     >
       <p className={`font-mono-mining text-[10px] uppercase tracking-[0.18em] font-bold truncate ${t.label}`}>{label}</p>
       <p className={`font-mono-mining text-2xl md:text-[26px] font-black leading-tight ${t.text} tabular-nums`}>
@@ -890,7 +890,7 @@ function DualKpi({
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
-      className={`kpi-pulse-glow relative overflow-hidden rounded-md border ${t.border} bg-gradient-to-br ${t.grad} px-3 py-2.5`}
+      className={`kpi-card kpi-pulse-glow relative overflow-hidden rounded-md border ${t.border} bg-gradient-to-br ${t.grad} px-3 py-2.5`}
     >
       <p className={`font-mono-mining text-[10px] uppercase tracking-[0.18em] font-bold truncate ${t.label}`}>{label}</p>
       <div className="mt-1">
@@ -952,7 +952,7 @@ function LavRetKpi({
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
-      className={`kpi-pulse-glow relative overflow-hidden rounded-lg border ${TONE_BORDER[tone]} bg-[hsl(220_45%_7%/0.9)] px-4 py-3`}
+      className={`kpi-card kpi-pulse-glow relative overflow-hidden rounded-lg border ${TONE_BORDER[tone]} bg-[hsl(220_45%_7%/0.9)] px-4 py-3`}
     >
       <p className={`font-mono-mining text-[13px] font-black tracking-wider ${TONE_TEXT[tone]}`}>{label}</p>
       <div className={`mt-1 h-px w-full ${TONE_GLOW[tone]} opacity-40`} />
@@ -1001,7 +1001,7 @@ function BigKpi({
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
-      className={`kpi-pulse-glow relative overflow-hidden rounded-lg border ${TONE_BORDER[tone]} bg-[hsl(220_45%_7%/0.9)] px-4 py-3 flex flex-col`}
+      className={`kpi-card kpi-pulse-glow relative overflow-hidden rounded-lg border ${TONE_BORDER[tone]} bg-[hsl(220_45%_7%/0.9)] px-4 py-3 flex flex-col`}
     >
       <p className={`font-mono-mining text-[13px] font-black tracking-wider ${TONE_TEXT[tone]}`}>{label}</p>
       <div className={`mt-1 h-px w-full ${TONE_GLOW[tone]} opacity-40`} />
