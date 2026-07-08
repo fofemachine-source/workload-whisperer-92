@@ -542,9 +542,20 @@ export default function DashboardProducaoUM() {
           {acompViagens.length === 0 ? (
             <Empty />
           ) : (() => {
-            const sorted = [...acompViagens].sort(
-              (a, b) => Number(b.tonelagem || 0) - Number(a.tonelagem || 0),
-            );
+            const parseInicio = (v: any): number => {
+              if (!v) return 0;
+              const s = String(v);
+              const d = new Date(s);
+              if (!Number.isNaN(d.getTime())) return d.getTime();
+              const m = s.match(/(\d{2}):(\d{2})/);
+              if (m) return Number(m[1]) * 60 + Number(m[2]);
+              return 0;
+            };
+            const sorted = [...acompViagens].sort((a, b) => {
+              const dt = Number(b.tonelagem || 0) - Number(a.tonelagem || 0);
+              if (dt !== 0) return dt;
+              return parseInicio(b.inicio) - parseInicio(a.inicio);
+            });
             const perCol = 10;
             const top = sorted.slice(0, perCol * 2);
             const cols = [top.slice(0, perCol), top.slice(perCol, perCol * 2)];
