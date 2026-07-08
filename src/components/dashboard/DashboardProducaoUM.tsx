@@ -40,8 +40,8 @@ const Counter = memo(function Counter({
 });
 
 const FRENTE_COLORS = [
-  "#22d3ee", // cyan
-  "#3b82f6", // blue
+  "#00eaff", // cyan (LAV)
+  "#1687ff", // blue (RET)
   "#a855f7", // purple
   "#ec4899", // pink
   "#f97316", // orange
@@ -53,6 +53,13 @@ const FRENTE_COLORS = [
   "#0ea5e9", // sky
   "#f59e0b", // amber
 ];
+
+const colorForFrente = (name: string, idx: number) => {
+  const n = String(name || "").trim().toUpperCase();
+  if (n === "LAV") return "#00eaff";
+  if (n === "RET") return "#1687ff";
+  return FRENTE_COLORS[idx % FRENTE_COLORS.length];
+};
 
 const normEquip = (v: unknown) =>
   String(v ?? "").replace(/[-\s]/g, "").toUpperCase();
