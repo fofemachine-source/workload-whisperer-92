@@ -156,7 +156,7 @@ export default function DashboardProducaoUM() {
       setLoading(true);
       setSegundosAtualizacao(60);
       const url = `${DASHBOARD_API_URL}?ts=${Date.now()}`;
-      console.log("Buscando API:", url);
+      console.log("Atualizando dashboard...", url);
 
       const response = await fetch(url, {
         method: "GET",
@@ -169,7 +169,9 @@ export default function DashboardProducaoUM() {
       }
 
       const apiResponse = (await response.json()) as DashboardApiPayload;
-      console.log("Resposta API:", apiResponse.kpis);
+      console.log("KPIs recebidos:", apiResponse.kpis);
+      console.log("CRs recebidos:", Array.isArray((apiResponse as any).viagensCR) ? (apiResponse as any).viagensCR.length : 0);
+      console.log("Escavadeiras recebidas:", Array.isArray((apiResponse as any).rankingEscavadeiras) ? (apiResponse as any).rankingEscavadeiras.length : 0);
 
       setDashboardData(apiResponse);
       setUltimaAtualizacao(apiResponse.atualizadoEm || new Date().toISOString());
