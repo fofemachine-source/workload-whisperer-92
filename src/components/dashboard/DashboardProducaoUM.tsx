@@ -437,14 +437,20 @@ export default function DashboardProducaoUM() {
                         initial={{ opacity: 0, y: 6 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.35, ease: "easeOut", delay: index * 0.05 }}
-                        className="border-b border-white/5 hover:bg-white/[0.03]"
+                        className={`border-b border-white/5 hover:bg-white/[0.03] ${
+                          esc.massa > 0 || esc.th > 0 || esc.viagens > 0
+                            ? "bg-emerald-500/[0.03]"
+                            : "opacity-60"
+                        }`}
                       >
+                        {esc.massa > 0 || esc.th > 0 || esc.viagens > 0 ? (
+                          <>
                         <Td>
                           <span className="flex items-center gap-1.5">
-                            <span className="w-4 h-4 flex items-center justify-center rounded-sm bg-mining-yellow text-background text-[9px] font-black font-sans">
+                            <span className="w-4 h-4 flex items-center justify-center rounded-sm bg-emerald-400 text-background text-[9px] font-black font-sans shadow-[0_0_8px_hsl(142_71%_45%/0.7)] animate-pulse">
                               {index + 1}
                             </span>
-                            <span className="font-black text-foreground">{esc.equipamento}</span>
+                            <span className="font-black text-emerald-300 text-glow-neon">{esc.equipamento}</span>
                           </span>
                         </Td>
                         <Td>{esc.material ?? "—"}</Td>
@@ -453,6 +459,22 @@ export default function DashboardProducaoUM() {
                         <Td className="text-right text-mining-blue tabular-nums"><Counter value={esc.viagens} /></Td>
                         <Td className="text-right text-mining-green tabular-nums"><Counter value={esc.massa} /> t</Td>
                         <Td className="text-right text-foreground font-bold tabular-nums"><Counter value={esc.th} decimals={1} /> t/h</Td>
+                          </>
+                        ) : (
+                          <>
+                            <Td>
+                              <span className="flex items-center gap-1.5">
+                                <span className="w-4 h-4 flex items-center justify-center rounded-sm bg-muted text-muted-foreground text-[9px] font-black font-sans">
+                                  —
+                                </span>
+                                <span className="font-black text-muted-foreground">{esc.equipamento}</span>
+                              </span>
+                            </Td>
+                            <Td colSpan={6} className="text-muted-foreground italic text-[10px]">
+                              SEM PRODUÇÃO NO DIA
+                            </Td>
+                          </>
+                        )}
                       </motion.tr>
                     ))}
                   </tbody>
