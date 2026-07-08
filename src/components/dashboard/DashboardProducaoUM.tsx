@@ -410,50 +410,99 @@ export default function DashboardProducaoUM() {
         <Panel title="Produção por Frente (t)" className="col-span-12 lg:col-span-3 h-[300px] animated-card">
           {frenteAgg.length === 0 ? (
             <Empty />
-          ) : (
-            <div key={`front-${dataUpdatedAt}`} className="h-full flex items-center gap-2">
-              <div className="w-[45%] h-full relative chart-pie-spin neon-donut neon-chart">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={frenteAgg}
-                      dataKey="value"
-                      nameKey="name"
-                      innerRadius="55%"
-                      outerRadius="90%"
-                      paddingAngle={1}
-                      stroke="none"
-                      animationDuration={900}
-                      animationEasing="ease-out"
+          ) : (() => {
+            const totalFrente = frenteAgg.reduce((s, r) => s + r.value, 0);
+            return (
+              <div key={`front-${dataUpdatedAt}`} className="h-full flex items-center gap-2">
+                <div className="w-[45%] h-full relative">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <defs>
+                        <filter id="frenteNeonGlow" x="-50%" y="-50%" width="200%" height="200%">
+                          <feGaussianBlur stdDeviation="4" result="blur" />
+                          <feMerge>
+                            <feMergeNode in="blur" />
+                            <feMergeNode in="SourceGraphic" />
+                          </feMerge>
+                        </filter>
+                        <radialGradient id="frenteCenterGlow" cx="50%" cy="50%" r="50%">
+                          <stop offset="0%" stopColor="hsl(199 100% 60% / 0.55)" />
+                          <stop offset="60%" stopColor="hsl(199 100% 60% / 0.10)" />
+                          <stop offset="100%" stopColor="hsl(199 100% 60% / 0)" />
+                        </radialGradient>
+                      </defs>
+                      <Pie
+                        data={frenteAgg}
+                        dataKey="value"
+                        nameKey="name"
+                        innerRadius="60%"
+                        outerRadius="92%"
+                        paddingAngle={2}
+                        stroke="hsl(220 50% 6%)"
+                        strokeWidth={1.5}
+                        filter="url(#frenteNeonGlow)"
+                        animationDuration={900}
+                        animationEasing="ease-out"
+                        isAnimationActive
+                      >
+                        {frenteAgg.map((_, i) => (
+                          <Cell key={i} fill={FRENTE_COLORS[i % FRENTE_COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        contentStyle={tooltipStyle}
+                        formatter={(v: number, _n, p: any) => [
+                          `${fmt(v)} t (${(p?.payload?.pct ?? 0).toFixed(1)}%)`,
+                          p?.payload?.name,
+                        ]}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <motion.div
+                    className="absolute inset-0 rounded-full pointer-events-none"
+                    style={{ background: "radial-gradient(circle, hsl(199 100% 60% / 0.18) 0%, transparent 60%)" }}
+                    animate={{ opacity: [0.55, 0.95, 0.55], scale: [0.96, 1.02, 0.96] }}
+                    transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }}
+                  />
+                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                    <span className="text-[8px] uppercase tracking-[0.2em] text-cyan-300/80 font-bold">Total</span>
+                    <span className="text-lg font-black text-cyan-300 font-mono tabular-nums drop-shadow-[0_0_10px_hsl(199_100%_60%/0.9)]">
+                      {fmt(totalFrente)}
+                    </span>
+                    <span className="text-[9px] text-cyan-200/60 font-mono tracking-widest">t</span>
+                  </div>
+                </div>
+                <div className="w-[55%] h-full overflow-auto pr-1 space-y-[3px] text-[10px] font-mono">
+                  {frenteAgg.map((f, i) => (
+                    <motion.div
+                      key={`${f.name}-${dataUpdatedAt}`}
+                      initial={{ opacity: 0, x: 6 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.3, delay: i * 0.04 }}
+                      className="flex items-center gap-1.5"
                     >
-                      {frenteAgg.map((_, i) => (
-                        <Cell key={i} fill={FRENTE_COLORS[i % FRENTE_COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip contentStyle={tooltipStyle} formatter={(v: number, _n, p: any) => [`${fmt(v)} t (${(p?.payload?.pct ?? 0).toFixed(1)}%)`, p?.payload?.name]} />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none chart-center-pulse">
-                  <span className="text-[9px] uppercase tracking-widest text-mining-blue/70 font-bold">Total</span>
-                  <span className="text-sm font-black text-foreground font-mono tabular-nums">
-                    {fmt(frenteAgg.reduce((s, r) => s + r.value, 0))} t
-                  </span>
+                      <span
+                        className="w-2 h-2 shrink-0 inline-block rounded-full"
+                        style={{
+                          background: FRENTE_COLORS[i % FRENTE_COLORS.length],
+                          boxShadow: `0 0 6px ${FRENTE_COLORS[i % FRENTE_COLORS.length]}`,
+                        }}
+                      />
+                      <span className="truncate text-foreground flex-1" title={f.name}>
+                        {f.name}
+                      </span>
+                      <span
+                        className="tabular-nums shrink-0 font-bold"
+                        style={{ color: FRENTE_COLORS[i % FRENTE_COLORS.length] }}
+                      >
+                        {f.pct.toFixed(1)}%
+                      </span>
+                    </motion.div>
+                  ))}
                 </div>
               </div>
-              <div className="w-[55%] h-full overflow-auto pr-1 space-y-1 text-[10px] font-mono">
-                {frenteAgg.map((f, i) => (
-                  <div key={`${f.name}-${dataUpdatedAt}`} className="flex items-center gap-1.5 table-row-fade" style={{ animationDelay: `${i * 45}ms` }}>
-                    <span
-                      className="w-2 h-2 shrink-0 inline-block rounded-sm"
-                      style={{ background: FRENTE_COLORS[i % FRENTE_COLORS.length] }}
-                    />
-                    <span className="truncate text-foreground flex-1" title={f.name}>{f.name}</span>
-                    <span className="text-mining-blue tabular-nums shrink-0">{f.pct.toFixed(1)}%</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+            );
+          })()}
         </Panel>
 
         <Panel title="ESCAVADEIRAS" className="col-span-12 lg:col-span-5 lg:row-span-2 h-[492px] animated-card">
