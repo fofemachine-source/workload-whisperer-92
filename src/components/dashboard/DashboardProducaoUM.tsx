@@ -223,6 +223,20 @@ export default function DashboardProducaoUM() {
   const producaoTotalEscavadeirasTH = Number(kpis.producaoTotalEscavadeirasTH ?? 0);
   const viagens = Number(kpis.viagens ?? 0);
 
+  // LAV / RET — vindos direto de data.kpis (fallback 0 quando ausente)
+  const lavAcumulado = Number(
+    kpis.lavAcumulado ?? kpis.lavAcumuladoDia ?? kpis.lav?.acumulado ?? kpis.lav?.acumuladoDia ?? 0,
+  );
+  const lavProjetado = Number(
+    kpis.lavProjetado ?? kpis.lavProjetadoDia ?? kpis.lav?.projetado ?? kpis.lav?.projetadoDia ?? 0,
+  );
+  const retAcumulado = Number(
+    kpis.retAcumulado ?? kpis.retAcumuladoDia ?? kpis.ret?.acumulado ?? kpis.ret?.acumuladoDia ?? 0,
+  );
+  const retProjetado = Number(
+    kpis.retProjetado ?? kpis.retProjetadoDia ?? kpis.ret?.projetado ?? kpis.ret?.projetadoDia ?? 0,
+  );
+
   const dailySeries = useMemo(
     () =>
       (dashboardData?.producaoDiaria ?? []).map((d) => ({
@@ -326,10 +340,39 @@ export default function DashboardProducaoUM() {
     <div className="min-h-screen bg-[hsl(220_50%_5%)] text-foreground p-2 md:p-3 font-sans dashboard-enter">
       {/* KPI strip — valores exclusivos de data.kpis */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
-        <DualKpi key={`dia-${dataUpdatedAt}-${producaoDia}`} label="Produção Diária" sublabel="Hoje" acumulado={producaoDia} tone="green" />
-        <DualKpi key={`mes-${dataUpdatedAt}-${producaoMensal}`} label="Produção Mensal" sublabel="" acumulado={producaoMensal} tone="amber" />
-        <GradientKpi key={`th-${dataUpdatedAt}-${producaoTotalEscavadeirasTH}`} label="Produção Total das Escavadeiras (t/h)" numeric={producaoTotalEscavadeirasTH} tone="green" suffix=" t/h" decimals={0} />
-        <GradientKpi key={`viagens-${dataUpdatedAt}-${viagens}`} label="Viagens" numeric={viagens} tone="blue" decimals={0} />
+        <LavRetKpi
+          key={`lav-${dataUpdatedAt}-${lavAcumulado}-${lavProjetado}`}
+          label="LAV"
+          acumulado={lavAcumulado}
+          projetado={lavProjetado}
+          tone="green"
+          acumuladoTone="blue"
+          projetadoTone="green"
+        />
+        <LavRetKpi
+          key={`ret-${dataUpdatedAt}-${retAcumulado}-${retProjetado}`}
+          label="RET"
+          acumulado={retAcumulado}
+          projetado={retProjetado}
+          tone="amber"
+          acumuladoTone="amber"
+          projetadoTone="amber"
+        />
+        <BigKpi
+          key={`mes-${dataUpdatedAt}-${producaoMensal}`}
+          label="Produção Mensal"
+          value={producaoMensal}
+          suffix=" t"
+          tone="green"
+        />
+        <BigKpi
+          key={`th-${dataUpdatedAt}-${producaoTotalEscavadeirasTH}`}
+          label="T/H"
+          value={producaoTotalEscavadeirasTH}
+          suffix=" t/h"
+          tone="green"
+          showBar
+        />
       </div>
 
       {/* Dashboard grid */}
