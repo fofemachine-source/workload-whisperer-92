@@ -156,7 +156,7 @@ export default function DashboardProducaoUM() {
       setLoading(true);
       setSegundosAtualizacao(60);
       const url = `${DASHBOARD_API_URL}?ts=${Date.now()}`;
-      console.log("Buscando API:", url);
+      console.log("Atualizando dashboard...", url);
 
       const response = await fetch(url, {
         method: "GET",
@@ -169,7 +169,9 @@ export default function DashboardProducaoUM() {
       }
 
       const apiResponse = (await response.json()) as DashboardApiPayload;
-      console.log("Resposta API:", apiResponse.kpis);
+      console.log("KPIs recebidos:", apiResponse.kpis);
+      console.log("CRs recebidos:", Array.isArray((apiResponse as any).viagensCR) ? (apiResponse as any).viagensCR.length : 0);
+      console.log("Escavadeiras recebidas:", Array.isArray((apiResponse as any).rankingEscavadeiras) ? (apiResponse as any).rankingEscavadeiras.length : 0);
 
       setDashboardData(apiResponse);
       setUltimaAtualizacao(apiResponse.atualizadoEm || new Date().toISOString());
@@ -249,7 +251,7 @@ export default function DashboardProducaoUM() {
       if (code) byCode.set(code, e);
     });
     const ordem = ["EH4026","EH4039","EH4041","EH4047","EH4050","EH4035","EH5003","EH5004","EH5036"];
-    return ordem.map((code) => {
+    const rows = ordem.map((code) => {
       const e = byCode.get(code) ?? {};
       return {
         equipamento: code,
@@ -260,7 +262,14 @@ export default function DashboardProducaoUM() {
         frente: e.frente ?? null,
         destino: e.destino ?? null,
       };
-    }).sort((a, b) => b.th - a.th);
+    });
+    // Operando (com produção) no topo, sem produção no fim
+    return rows.sort((a, b) => {
+      const aAtiva = a.massa > 0 || a.th > 0 || a.viagens > 0 ? 1 : 0;
+      const bAtiva = b.massa > 0 || b.th > 0 || b.viagens > 0 ? 1 : 0;
+      if (aAtiva !== bAtiva) return bAtiva - aAtiva;
+      return b.th - a.th;
+    });
   }, [dashboardData]);
   const totalMassaTop5 = top5Escav.reduce((total, item) => total + Number(item.massa || 0), 0);
   const totalViagensTop5 = top5Escav.reduce((total, item) => total + Number(item.viagens || 0), 0);
@@ -428,14 +437,20 @@ export default function DashboardProducaoUM() {
                         initial={{ opacity: 0, y: 6 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.35, ease: "easeOut", delay: index * 0.05 }}
-                        className="border-b border-white/5 hover:bg-white/[0.03]"
+                        className={`border-b border-white/5 hover:bg-white/[0.03] ${
+                          esc.massa > 0 || esc.th > 0 || esc.viagens > 0
+                            ? "bg-emerald-500/[0.03]"
+                            : "opacity-60"
+                        }`}
                       >
+                        {esc.massa > 0 || esc.th > 0 || esc.viagens > 0 ? (
+                          <>
                         <Td>
                           <span className="flex items-center gap-1.5">
-                            <span className="w-4 h-4 flex items-center justify-center rounded-sm bg-mining-yellow text-background text-[9px] font-black font-sans">
+                            <span className="w-4 h-4 flex items-center justify-center rounded-sm bg-emerald-400 text-background text-[9px] font-black font-sans shadow-[0_0_8px_hsl(142_71%_45%/0.7)] animate-pulse">
                               {index + 1}
                             </span>
-                            <span className="font-black text-foreground">{esc.equipamento}</span>
+                            <span className="font-black text-emerald-300 text-glow-neon">{esc.equipamento}</span>
                           </span>
                         </Td>
                         <Td>{esc.material ?? "—"}</Td>
@@ -444,6 +459,22 @@ export default function DashboardProducaoUM() {
                         <Td className="text-right text-mining-blue tabular-nums"><Counter value={esc.viagens} /></Td>
                         <Td className="text-right text-mining-green tabular-nums"><Counter value={esc.massa} /> t</Td>
                         <Td className="text-right text-foreground font-bold tabular-nums"><Counter value={esc.th} decimals={1} /> t/h</Td>
+                          </>
+                        ) : (
+                          <>
+                            <Td>
+                              <span className="flex items-center gap-1.5">
+                                <span className="w-4 h-4 flex items-center justify-center rounded-sm bg-muted text-muted-foreground text-[9px] font-black font-sans">
+                                  —
+                                </span>
+                                <span className="font-black text-muted-foreground">{esc.equipamento}</span>
+                              </span>
+                            </Td>
+                            <Td colSpan={6} className="text-muted-foreground italic text-[10px]">
+                              SEM PRODUÇÃO NO DIA
+                            </Td>
+                          </>
+                        )}
                       </motion.tr>
                     ))}
                   </tbody>
@@ -511,9 +542,20 @@ export default function DashboardProducaoUM() {
           {acompViagens.length === 0 ? (
             <Empty />
           ) : (() => {
-            const sorted = [...acompViagens].sort(
-              (a, b) => Number(b.tonelagem || 0) - Number(a.tonelagem || 0),
-            );
+            const parseInicio = (v: any): number => {
+              if (!v) return 0;
+              const s = String(v);
+              const d = new Date(s);
+              if (!Number.isNaN(d.getTime())) return d.getTime();
+              const m = s.match(/(\d{2}):(\d{2})/);
+              if (m) return Number(m[1]) * 60 + Number(m[2]);
+              return 0;
+            };
+            const sorted = [...acompViagens].sort((a, b) => {
+              const dt = Number(b.tonelagem || 0) - Number(a.tonelagem || 0);
+              if (dt !== 0) return dt;
+              return parseInicio(b.inicio) - parseInicio(a.inicio);
+            });
             const perCol = 10;
             const top = sorted.slice(0, perCol * 2);
             const cols = [top.slice(0, perCol), top.slice(perCol, perCol * 2)];
