@@ -96,7 +96,7 @@ function Panel({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, ease: "easeOut" }}
-      className={`bg-[hsl(220_45%_9%/0.85)] border border-mining-blue/20 rounded-md shadow-[0_0_24px_-10px_hsl(var(--mining-blue)/0.55)] hover:shadow-[0_0_28px_-6px_hsl(var(--mining-blue)/0.55)] transition-shadow duration-500 flex flex-col ${className}`}
+      className={`chart-card dashboard-card bg-[hsl(220_45%_9%/0.85)] border border-mining-blue/20 rounded-md shadow-[0_0_24px_-10px_hsl(var(--mining-blue)/0.55)] hover:shadow-[0_0_28px_-6px_hsl(var(--mining-blue)/0.55)] transition-shadow duration-500 flex flex-col ${className}`}
     >
       {title && (
         <div className="flex items-center justify-between px-3 pt-2">
