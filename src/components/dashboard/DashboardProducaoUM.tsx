@@ -251,7 +251,7 @@ export default function DashboardProducaoUM() {
       if (code) byCode.set(code, e);
     });
     const ordem = ["EH4026","EH4039","EH4041","EH4047","EH4050","EH4035","EH5003","EH5004","EH5036"];
-    return ordem.map((code) => {
+    const rows = ordem.map((code) => {
       const e = byCode.get(code) ?? {};
       return {
         equipamento: code,
@@ -262,7 +262,14 @@ export default function DashboardProducaoUM() {
         frente: e.frente ?? null,
         destino: e.destino ?? null,
       };
-    }).sort((a, b) => b.th - a.th);
+    });
+    // Operando (com produção) no topo, sem produção no fim
+    return rows.sort((a, b) => {
+      const aAtiva = a.massa > 0 || a.th > 0 || a.viagens > 0 ? 1 : 0;
+      const bAtiva = b.massa > 0 || b.th > 0 || b.viagens > 0 ? 1 : 0;
+      if (aAtiva !== bAtiva) return bAtiva - aAtiva;
+      return b.th - a.th;
+    });
   }, [dashboardData]);
   const totalMassaTop5 = top5Escav.reduce((total, item) => total + Number(item.massa || 0), 0);
   const totalViagensTop5 = top5Escav.reduce((total, item) => total + Number(item.viagens || 0), 0);
