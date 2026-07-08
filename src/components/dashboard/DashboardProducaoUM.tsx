@@ -223,6 +223,20 @@ export default function DashboardProducaoUM() {
   const producaoTotalEscavadeirasTH = Number(kpis.producaoTotalEscavadeirasTH ?? 0);
   const viagens = Number(kpis.viagens ?? 0);
 
+  // LAV / RET — vindos direto de data.kpis (fallback 0 quando ausente)
+  const lavAcumulado = Number(
+    kpis.lavAcumulado ?? kpis.lavAcumuladoDia ?? kpis.lav?.acumulado ?? kpis.lav?.acumuladoDia ?? 0,
+  );
+  const lavProjetado = Number(
+    kpis.lavProjetado ?? kpis.lavProjetadoDia ?? kpis.lav?.projetado ?? kpis.lav?.projetadoDia ?? 0,
+  );
+  const retAcumulado = Number(
+    kpis.retAcumulado ?? kpis.retAcumuladoDia ?? kpis.ret?.acumulado ?? kpis.ret?.acumuladoDia ?? 0,
+  );
+  const retProjetado = Number(
+    kpis.retProjetado ?? kpis.retProjetadoDia ?? kpis.ret?.projetado ?? kpis.ret?.projetadoDia ?? 0,
+  );
+
   const dailySeries = useMemo(
     () =>
       (dashboardData?.producaoDiaria ?? []).map((d) => ({
@@ -326,10 +340,39 @@ export default function DashboardProducaoUM() {
     <div className="min-h-screen bg-[hsl(220_50%_5%)] text-foreground p-2 md:p-3 font-sans dashboard-enter">
       {/* KPI strip — valores exclusivos de data.kpis */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
-        <DualKpi key={`dia-${dataUpdatedAt}-${producaoDia}`} label="Produção Diária" sublabel="Hoje" acumulado={producaoDia} tone="green" />
-        <DualKpi key={`mes-${dataUpdatedAt}-${producaoMensal}`} label="Produção Mensal" sublabel="" acumulado={producaoMensal} tone="amber" />
-        <GradientKpi key={`th-${dataUpdatedAt}-${producaoTotalEscavadeirasTH}`} label="Produção Total das Escavadeiras (t/h)" numeric={producaoTotalEscavadeirasTH} tone="green" suffix=" t/h" decimals={0} />
-        <GradientKpi key={`viagens-${dataUpdatedAt}-${viagens}`} label="Viagens" numeric={viagens} tone="blue" decimals={0} />
+        <LavRetKpi
+          key={`lav-${dataUpdatedAt}-${lavAcumulado}-${lavProjetado}`}
+          label="LAV"
+          acumulado={lavAcumulado}
+          projetado={lavProjetado}
+          tone="green"
+          acumuladoTone="blue"
+          projetadoTone="green"
+        />
+        <LavRetKpi
+          key={`ret-${dataUpdatedAt}-${retAcumulado}-${retProjetado}`}
+          label="RET"
+          acumulado={retAcumulado}
+          projetado={retProjetado}
+          tone="amber"
+          acumuladoTone="amber"
+          projetadoTone="amber"
+        />
+        <BigKpi
+          key={`mes-${dataUpdatedAt}-${producaoMensal}`}
+          label="Produção Mensal"
+          value={producaoMensal}
+          suffix=" t"
+          tone="green"
+        />
+        <BigKpi
+          key={`th-${dataUpdatedAt}-${producaoTotalEscavadeirasTH}`}
+          label="T/H"
+          value={producaoTotalEscavadeirasTH}
+          suffix=" t/h"
+          tone="green"
+          showBar
+        />
       </div>
 
       {/* Dashboard grid */}
@@ -817,6 +860,111 @@ function MiniKpi({ label, value, unit }: { label: string; value: string; unit?: 
       <p className="text-base font-black text-mining-blue leading-tight">{value}</p>
       {unit && <p className="text-[9px] font-mono text-muted-foreground">{unit}</p>}
     </div>
+  );
+}
+
+/* ---------- LAV / RET dual line KPI (photo-1 layout) ---------- */
+type KpiTone = "green" | "amber" | "blue";
+const TONE_TEXT: Record<KpiTone, string> = {
+  green: "text-emerald-400 drop-shadow-[0_0_8px_hsl(150_90%_55%/0.6)]",
+  amber: "text-amber-400 drop-shadow-[0_0_8px_hsl(35_100%_55%/0.6)]",
+  blue: "text-sky-400 drop-shadow-[0_0_8px_hsl(199_100%_60%/0.6)]",
+};
+const TONE_BORDER: Record<KpiTone, string> = {
+  green: "border-emerald-400/45",
+  amber: "border-amber-400/50",
+  blue: "border-sky-400/45",
+};
+const TONE_GLOW: Record<KpiTone, string> = {
+  green: "bg-emerald-400",
+  amber: "bg-amber-400",
+  blue: "bg-sky-400",
+};
+
+function LavRetKpi({
+  label,
+  acumulado,
+  projetado,
+  tone,
+  acumuladoTone,
+  projetadoTone,
+}: {
+  label: string;
+  acumulado: number;
+  projetado: number;
+  tone: KpiTone;
+  acumuladoTone: KpiTone;
+  projetadoTone: KpiTone;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: "easeOut" }}
+      className={`kpi-pulse-glow relative overflow-hidden rounded-lg border ${TONE_BORDER[tone]} bg-[hsl(220_45%_7%/0.9)] px-4 py-3`}
+    >
+      <p className={`font-mono-mining text-[13px] font-black tracking-wider ${TONE_TEXT[tone]}`}>{label}</p>
+      <div className={`mt-1 h-px w-full ${TONE_GLOW[tone]} opacity-40`} />
+
+      <div className="mt-2 flex items-center justify-between gap-2">
+        <p className={`font-mono-mining text-[10px] uppercase tracking-widest font-bold leading-tight ${TONE_TEXT[tone]} opacity-90`}>
+          Acumulado<br />Dia:
+        </p>
+        <p className={`font-mono-mining text-xl md:text-2xl font-black tabular-nums ${TONE_TEXT[acumuladoTone]}`}>
+          <Counter value={acumulado} />
+        </p>
+      </div>
+
+      <div className={`my-2 border-t border-dashed ${TONE_BORDER[tone]} opacity-60`} />
+
+      <div className="flex items-center justify-between gap-2">
+        <p className={`font-mono-mining text-[10px] uppercase tracking-widest font-bold leading-tight ${TONE_TEXT[tone]} opacity-90`}>
+          Projetado<br />Dia:
+        </p>
+        <p className={`font-mono-mining text-xl md:text-2xl font-black tabular-nums ${TONE_TEXT[projetadoTone]}`}>
+          <Counter value={projetado} />
+        </p>
+      </div>
+
+      <span className={`pointer-events-none absolute left-6 right-6 bottom-0 h-[2px] rounded-full ${TONE_GLOW[tone]} opacity-70 blur-[1px]`} />
+    </motion.div>
+  );
+}
+
+/* ---------- Big single value KPI (photo-1 mensal / T/H) ---------- */
+function BigKpi({
+  label,
+  value,
+  suffix = "",
+  tone,
+  showBar = false,
+}: {
+  label: string;
+  value: number;
+  suffix?: string;
+  tone: KpiTone;
+  showBar?: boolean;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: "easeOut" }}
+      className={`kpi-pulse-glow relative overflow-hidden rounded-lg border ${TONE_BORDER[tone]} bg-[hsl(220_45%_7%/0.9)] px-4 py-3 flex flex-col`}
+    >
+      <p className={`font-mono-mining text-[13px] font-black tracking-wider ${TONE_TEXT[tone]}`}>{label}</p>
+      <div className={`mt-1 h-px w-full ${TONE_GLOW[tone]} opacity-40`} />
+
+      <p className={`mt-3 font-mono-mining text-3xl md:text-4xl font-black leading-none tabular-nums ${TONE_TEXT[tone]}`}>
+        <Counter value={value} suffix={suffix} />
+      </p>
+
+      {showBar && (
+        <div className="mt-3 h-[3px] w-full rounded-full bg-sky-400 shadow-[0_0_10px_hsl(199_100%_60%/0.9)]" />
+      )}
+
+      <span className={`pointer-events-none absolute left-6 right-6 bottom-0 h-[2px] rounded-full ${TONE_GLOW[tone]} opacity-70 blur-[1px]`} />
+    </motion.div>
   );
 }
 
