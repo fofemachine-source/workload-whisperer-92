@@ -345,11 +345,10 @@ export default function DashboardProducaoUM() {
   const atualizadoEmFormatado = atualizadoEm ? new Date(atualizadoEm).toLocaleString("pt-BR") : "—";
 
   return (
-    <div className="min-h-screen bg-[hsl(220_50%_5%)] text-foreground p-2 md:p-3 font-sans dashboard-enter">
+    <div className="force-live-animation min-h-screen bg-[hsl(220_50%_5%)] text-foreground p-2 md:p-3 font-sans dashboard-enter">
       {/* KPI strip — valores exclusivos de data.kpis */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
         <LavRetKpi
-          key={`lav-${dataUpdatedAt}-${lavFinal}-${lavProjetado}`}
           label="LAV"
           acumulado={lavFinal}
           projetado={lavProjetado}
@@ -358,7 +357,6 @@ export default function DashboardProducaoUM() {
           projetadoTone="green"
         />
         <LavRetKpi
-          key={`ret-${dataUpdatedAt}-${retFinal}-${retProjetado}`}
           label="RET"
           acumulado={retFinal}
           projetado={retProjetado}
@@ -367,14 +365,12 @@ export default function DashboardProducaoUM() {
           projetadoTone="amber"
         />
         <BigKpi
-          key={`mes-${dataUpdatedAt}-${producaoMensal}`}
           label="Produção Mensal"
           value={producaoMensal}
           suffix=" t"
           tone="green"
         />
         <BigKpi
-          key={`th-${dataUpdatedAt}-${producaoTotalEscavadeirasTH}`}
           label="T/H"
           value={producaoTotalEscavadeirasTH}
           suffix=" t/h"
@@ -389,7 +385,7 @@ export default function DashboardProducaoUM() {
           {dailySeries.length === 0 ? (
             <Empty />
           ) : (
-            <div key={`daily-${dataUpdatedAt}`} className="h-full chart-bar-grow neon-chart pulse-bar rain-effect">
+            <div className="force-live-animation daily-bars h-full chart-bar-grow neon-chart pulse-bar rain-effect">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={dailySeries} margin={{ top: 12, right: 8, left: 0, bottom: 0 }}>
                   <CartesianGrid stroke="rgba(255,255,255,0.05)" vertical={false} />
@@ -411,7 +407,7 @@ export default function DashboardProducaoUM() {
           ) : (() => {
             const totalFrente = frenteAgg.reduce((s, r) => s + r.value, 0);
             return (
-              <div key={`front-${dataUpdatedAt}`} className="h-full flex items-center gap-2">
+              <div className="force-live-animation front-donut neon-donut h-full flex items-center gap-2">
                 <div className="w-[45%] h-full relative">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
@@ -456,11 +452,9 @@ export default function DashboardProducaoUM() {
                       />
                     </PieChart>
                   </ResponsiveContainer>
-                  <motion.div
-                    className="absolute inset-0 rounded-full pointer-events-none"
+                  <div
+                    className="chart-center-pulse absolute inset-0 rounded-full pointer-events-none"
                     style={{ background: "radial-gradient(circle, hsl(199 100% 60% / 0.18) 0%, transparent 60%)" }}
-                    animate={{ opacity: [0.55, 0.95, 0.55], scale: [0.96, 1.02, 0.96] }}
-                    transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }}
                   />
                   <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                     <span className="text-[8px] uppercase tracking-[0.2em] text-cyan-300/80 font-bold">Total</span>
@@ -473,7 +467,7 @@ export default function DashboardProducaoUM() {
                 <div className="w-[55%] h-full overflow-auto pr-1 space-y-[3px] text-[10px] font-mono">
                   {frenteAgg.map((f, i) => (
                     <motion.div
-                      key={`${f.name}-${dataUpdatedAt}`}
+                      key={f.name}
                       initial={{ opacity: 0, x: 6 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.3, delay: i * 0.04 }}
@@ -533,7 +527,7 @@ export default function DashboardProducaoUM() {
                   <tbody>
                     {top5Escav.map((esc, index) => (
                       <motion.tr
-                        key={`${esc.equipamento}-${dataUpdatedAt}`}
+                        key={esc.equipamento}
                         initial={{ opacity: 0, y: 6 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.35, ease: "easeOut", delay: index * 0.05 }}
@@ -594,7 +588,7 @@ export default function DashboardProducaoUM() {
           {prodSeries.length === 0 ? (
             <Empty />
           ) : (
-            <div key={`line-${dataUpdatedAt}`} className="h-full chart-line-neon glow-line neon-chart scan-line">
+            <div className="force-live-animation productivity-line h-full chart-line-neon glow-line neon-chart scan-line">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={prodSeries} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                   <CartesianGrid stroke="rgba(255,255,255,0.05)" vertical={false} />
@@ -615,7 +609,7 @@ export default function DashboardProducaoUM() {
           {viagensPorHora.every((v) => v.Real === 0) ? (
             <Empty />
           ) : (
-            <div key={`hours-${dataUpdatedAt}`} className="h-full chart-bar-grow neon-chart pulse-bar scan-line">
+            <div className="force-live-animation hourly-trips daily-bars h-full chart-bar-grow neon-chart pulse-bar scan-line">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={viagensPorHora} margin={{ top: 8, right: 4, left: 0, bottom: 0 }}>
                   <CartesianGrid stroke="rgba(255,255,255,0.05)" vertical={false} />
@@ -691,7 +685,7 @@ export default function DashboardProducaoUM() {
                   <tbody>
                     {rows.map((v, i) => (
                       <motion.tr
-                        key={`${dataUpdatedAt}-${i}`}
+                        key={`${String(v.cr ?? "cr")}-${String(v.inicio ?? "")}-${String(v.fim ?? "")}-${i}`}
                         initial={{ opacity: 0, y: 6 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.3, ease: "easeOut", delay: Math.min(i * 0.03, 0.6) }}
