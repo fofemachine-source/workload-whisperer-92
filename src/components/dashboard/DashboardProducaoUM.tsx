@@ -222,49 +222,18 @@ export default function DashboardProducaoUM() {
     return () => clearInterval(timer);
   }, []);
 
-  // Valores direto da API — sem cálculo no frontend
-  const kpis = (dashboardData?.kpis ?? {}) as Record<string, any>;
-  const lavRetApi = ((dashboardData as any)?.lavRet ?? {}) as Record<string, any>;
-  const producaoDia = Number(kpis.producaoDia ?? 0);
-  const producaoMensal = Number(kpis.producaoMensal ?? 0);
-  const producaoTotalEscavadeirasTH = Number(kpis.producaoTotalEscavadeirasTH ?? 0);
-  const viagens = Number(kpis.viagens ?? 0);
-
-  // LAV / RET — calculados a partir de data.producaoFrente (API real)
-  const { lavAcumulado, retAcumulado } = useMemo(() => {
-    const frentes = (dashboardData?.producaoFrente ?? []) as Array<{ frente?: string; massa?: number }>;
-    const norm = (t: unknown) => String(t ?? "").toUpperCase();
-    const lav = frentes
-      .filter((item) => {
-        const f = norm(item.frente);
-        return (
-          (f.includes("LAV") ||
-            f.includes("LAVRA") ||
-            f.includes("MINA") ||
-            f.includes("MOV_N5S") ||
-            f.includes("MOV_N5EN")) && !f.includes("RET")
-        );
-      })
-      .reduce((total, item) => total + Number(item.massa ?? 0), 0);
-    const ret = frentes
-      .filter((item) => norm(item.frente).includes("RET"))
-      .reduce((total, item) => total + Number(item.massa ?? 0), 0);
-    return { lavAcumulado: lav, retAcumulado: ret };
-  }, [dashboardData]);
-  // Preferência: usar valores diretos da API (kpis.lav / lavRet.lav). Fallback: cálculo por frente.
-  const lavApi = Number(kpis.lav ?? lavRetApi.lav ?? NaN);
-  const retApi = Number(kpis.ret ?? lavRetApi.ret ?? NaN);
-  const lavFinal = Number.isFinite(lavApi) && lavApi > 0 ? lavApi : lavAcumulado;
-  const retFinal = Number.isFinite(retApi) && retApi > 0 ? retApi : retAcumulado;
-  const { lavProjetado, retProjetado } = useMemo(() => {
-    const agora = new Date();
-    const horaAtual = agora.getHours() + agora.getMinutes() / 60;
-    const horasDecorridas = Math.max(horaAtual, 1);
-    return {
-      lavProjetado: (lavFinal / horasDecorridas) * 24,
-      retProjetado: (retFinal / horasDecorridas) * 24,
-    };
-  }, [lavFinal, retFinal, dataUpdatedAt]);
+  // Cards superiores — 100% vindos de data.cards (sem cálculo no frontend)
+  const cards = ((dashboardData as any)?.cards ?? {}) as Record<string, any>;
+  const lavCard = (cards.lav ?? {}) as Record<string, any>;
+  const retCard = (cards.ret ?? {}) as Record<string, any>;
+  const lavFinal = Number(lavCard.acumuladoDia ?? 0);
+  const lavProjetado = Number(lavCard.projetadoDia ?? 0);
+  const retFinal = Number(retCard.acumuladoDia ?? 0);
+  const retProjetado = Number(retCard.projetadoDia ?? 0);
+  const producaoDia = Number(cards.producaoDiaria ?? 0);
+  const producaoMensal = Number(cards.producaoMensal ?? 0);
+  const producaoTotalEscavadeirasTH = Number(cards.th ?? 0);
+  const viagens = Number(cards.viagens ?? 0);
 
   const dailySeries = useMemo(
     () =>
