@@ -256,8 +256,15 @@ export default function DashboardProducaoUM() {
   const retApi = Number(kpis.ret ?? lavRetApi.ret ?? NaN);
   const lavFinal = Number.isFinite(lavApi) && lavApi > 0 ? lavApi : lavAcumulado;
   const retFinal = Number.isFinite(retApi) && retApi > 0 ? retApi : retAcumulado;
-  const lavProjetado = lavFinal;
-  const retProjetado = retFinal;
+  const { lavProjetado, retProjetado } = useMemo(() => {
+    const agora = new Date();
+    const horaAtual = agora.getHours() + agora.getMinutes() / 60;
+    const horasDecorridas = Math.max(horaAtual, 1);
+    return {
+      lavProjetado: (lavFinal / horasDecorridas) * 24,
+      retProjetado: (retFinal / horasDecorridas) * 24,
+    };
+  }, [lavFinal, retFinal, dataUpdatedAt]);
 
   const dailySeries = useMemo(
     () =>
