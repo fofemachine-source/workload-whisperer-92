@@ -39,7 +39,20 @@ const Counter = memo(function Counter({
   return <>{fmt(v, decimals)}{suffix}</>;
 });
 
-const FRENTE_COLORS = ["#38bdf8", "#22d3ee", "#0ea5e9", "#f59e0b", "#22c55e", "#a855f7", "#ef4444", "#eab308"];
+const FRENTE_COLORS = [
+  "#22d3ee", // cyan
+  "#3b82f6", // blue
+  "#a855f7", // purple
+  "#ec4899", // pink
+  "#f97316", // orange
+  "#eab308", // yellow
+  "#22c55e", // green
+  "#14b8a6", // teal
+  "#ef4444", // red
+  "#8b5cf6", // violet
+  "#0ea5e9", // sky
+  "#f59e0b", // amber
+];
 
 const normEquip = (v: unknown) =>
   String(v ?? "").replace(/[-\s]/g, "").toUpperCase();
