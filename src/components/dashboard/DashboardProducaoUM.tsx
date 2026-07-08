@@ -39,7 +39,20 @@ const Counter = memo(function Counter({
   return <>{fmt(v, decimals)}{suffix}</>;
 });
 
-const FRENTE_COLORS = ["#38bdf8", "#22d3ee", "#0ea5e9", "#f59e0b", "#22c55e", "#a855f7", "#ef4444", "#eab308"];
+const FRENTE_COLORS = [
+  "#22d3ee", // cyan
+  "#3b82f6", // blue
+  "#a855f7", // purple
+  "#ec4899", // pink
+  "#f97316", // orange
+  "#eab308", // yellow
+  "#22c55e", // green
+  "#14b8a6", // teal
+  "#ef4444", // red
+  "#8b5cf6", // violet
+  "#0ea5e9", // sky
+  "#f59e0b", // amber
+];
 
 const normEquip = (v: unknown) =>
   String(v ?? "").replace(/[-\s]/g, "").toUpperCase();
@@ -146,7 +159,7 @@ export default function DashboardProducaoUM() {
   const [dtFim, setDtFim] = useState(hoje);
   const [dashboardData, setDashboardData] = useState<DashboardApiPayload | null>(null);
   const [dataUpdatedAt, setDataUpdatedAt] = useState(0);
-  const [segundosAtualizacao, setSegundosAtualizacao] = useState(10);
+  const [segundosAtualizacao, setSegundosAtualizacao] = useState(15);
   const [, setLoading] = useState(false);
   const [, setErroApi] = useState<string | null>(null);
   const [ultimaAtualizacao, setUltimaAtualizacao] = useState("");
@@ -178,19 +191,18 @@ export default function DashboardProducaoUM() {
       const apiResponse = (await response.json()) as DashboardApiPayload;
       const k: any = apiResponse?.kpis ?? {};
       const lr: any = (apiResponse as any)?.lavRet ?? {};
-      console.log("[DASHBOARD OK]", {
-        producaoDia: k.producaoDia,
-        producaoMensal: k.producaoMensal,
-        lav: k.lav ?? lr.lav,
-        ret: k.ret ?? lr.ret,
-        th: k.producaoTotalEscavadeirasTH,
-        viagens: k.viagens,
+      console.log("[DASHBOARD ATUALIZADO]", {
+        atualizadoEm: (apiResponse as any)?.atualizadoEm,
+        cards: (apiResponse as any)?.cards,
+        frentes: apiResponse?.producaoFrente,
+        viagensCR: apiResponse?.viagensCR?.length,
+        viagensHora: apiResponse?.viagensHora,
       });
 
       setDashboardData(apiResponse);
       setUltimaAtualizacao(apiResponse.atualizadoEm || new Date().toISOString());
       setDataUpdatedAt(Date.now());
-      setSegundosAtualizacao(10);
+      setSegundosAtualizacao(15);
       setErroApi(null);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
@@ -206,7 +218,7 @@ export default function DashboardProducaoUM() {
     carregarDashboard();
     intervalRef.current = setInterval(() => {
       carregarDashboard();
-    }, 10000);
+    }, 15000);
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
@@ -215,7 +227,7 @@ export default function DashboardProducaoUM() {
   useEffect(() => {
     const timer = setInterval(() => {
       setSegundosAtualizacao((prev) => {
-        if (prev <= 1) return 10;
+        if (prev <= 1) return 15;
         return prev - 1;
       });
     }, 1000);
@@ -398,50 +410,99 @@ export default function DashboardProducaoUM() {
         <Panel title="Produção por Frente (t)" className="col-span-12 lg:col-span-3 h-[300px] animated-card">
           {frenteAgg.length === 0 ? (
             <Empty />
-          ) : (
-            <div key={`front-${dataUpdatedAt}`} className="h-full flex items-center gap-2">
-              <div className="w-[45%] h-full relative chart-pie-spin neon-donut neon-chart">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={frenteAgg}
-                      dataKey="value"
-                      nameKey="name"
-                      innerRadius="55%"
-                      outerRadius="90%"
-                      paddingAngle={1}
-                      stroke="none"
-                      animationDuration={900}
-                      animationEasing="ease-out"
+          ) : (() => {
+            const totalFrente = frenteAgg.reduce((s, r) => s + r.value, 0);
+            return (
+              <div key={`front-${dataUpdatedAt}`} className="h-full flex items-center gap-2">
+                <div className="w-[45%] h-full relative">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <defs>
+                        <filter id="frenteNeonGlow" x="-50%" y="-50%" width="200%" height="200%">
+                          <feGaussianBlur stdDeviation="4" result="blur" />
+                          <feMerge>
+                            <feMergeNode in="blur" />
+                            <feMergeNode in="SourceGraphic" />
+                          </feMerge>
+                        </filter>
+                        <radialGradient id="frenteCenterGlow" cx="50%" cy="50%" r="50%">
+                          <stop offset="0%" stopColor="hsl(199 100% 60% / 0.55)" />
+                          <stop offset="60%" stopColor="hsl(199 100% 60% / 0.10)" />
+                          <stop offset="100%" stopColor="hsl(199 100% 60% / 0)" />
+                        </radialGradient>
+                      </defs>
+                      <Pie
+                        data={frenteAgg}
+                        dataKey="value"
+                        nameKey="name"
+                        innerRadius="60%"
+                        outerRadius="92%"
+                        paddingAngle={2}
+                        stroke="hsl(220 50% 6%)"
+                        strokeWidth={1.5}
+                        filter="url(#frenteNeonGlow)"
+                        animationDuration={900}
+                        animationEasing="ease-out"
+                        isAnimationActive
+                      >
+                        {frenteAgg.map((_, i) => (
+                          <Cell key={i} fill={FRENTE_COLORS[i % FRENTE_COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        contentStyle={tooltipStyle}
+                        formatter={(v: number, _n, p: any) => [
+                          `${fmt(v)} t (${(p?.payload?.pct ?? 0).toFixed(1)}%)`,
+                          p?.payload?.name,
+                        ]}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <motion.div
+                    className="absolute inset-0 rounded-full pointer-events-none"
+                    style={{ background: "radial-gradient(circle, hsl(199 100% 60% / 0.18) 0%, transparent 60%)" }}
+                    animate={{ opacity: [0.55, 0.95, 0.55], scale: [0.96, 1.02, 0.96] }}
+                    transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }}
+                  />
+                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                    <span className="text-[8px] uppercase tracking-[0.2em] text-cyan-300/80 font-bold">Total</span>
+                    <span className="text-lg font-black text-cyan-300 font-mono tabular-nums drop-shadow-[0_0_10px_hsl(199_100%_60%/0.9)]">
+                      {fmt(totalFrente)}
+                    </span>
+                    <span className="text-[9px] text-cyan-200/60 font-mono tracking-widest">t</span>
+                  </div>
+                </div>
+                <div className="w-[55%] h-full overflow-auto pr-1 space-y-[3px] text-[10px] font-mono">
+                  {frenteAgg.map((f, i) => (
+                    <motion.div
+                      key={`${f.name}-${dataUpdatedAt}`}
+                      initial={{ opacity: 0, x: 6 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.3, delay: i * 0.04 }}
+                      className="flex items-center gap-1.5"
                     >
-                      {frenteAgg.map((_, i) => (
-                        <Cell key={i} fill={FRENTE_COLORS[i % FRENTE_COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip contentStyle={tooltipStyle} formatter={(v: number, _n, p: any) => [`${fmt(v)} t (${(p?.payload?.pct ?? 0).toFixed(1)}%)`, p?.payload?.name]} />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none chart-center-pulse">
-                  <span className="text-[9px] uppercase tracking-widest text-mining-blue/70 font-bold">Total</span>
-                  <span className="text-sm font-black text-foreground font-mono tabular-nums">
-                    {fmt(frenteAgg.reduce((s, r) => s + r.value, 0))} t
-                  </span>
+                      <span
+                        className="w-2 h-2 shrink-0 inline-block rounded-full"
+                        style={{
+                          background: FRENTE_COLORS[i % FRENTE_COLORS.length],
+                          boxShadow: `0 0 6px ${FRENTE_COLORS[i % FRENTE_COLORS.length]}`,
+                        }}
+                      />
+                      <span className="truncate text-foreground flex-1" title={f.name}>
+                        {f.name}
+                      </span>
+                      <span
+                        className="tabular-nums shrink-0 font-bold"
+                        style={{ color: FRENTE_COLORS[i % FRENTE_COLORS.length] }}
+                      >
+                        {f.pct.toFixed(1)}%
+                      </span>
+                    </motion.div>
+                  ))}
                 </div>
               </div>
-              <div className="w-[55%] h-full overflow-auto pr-1 space-y-1 text-[10px] font-mono">
-                {frenteAgg.map((f, i) => (
-                  <div key={`${f.name}-${dataUpdatedAt}`} className="flex items-center gap-1.5 table-row-fade" style={{ animationDelay: `${i * 45}ms` }}>
-                    <span
-                      className="w-2 h-2 shrink-0 inline-block rounded-sm"
-                      style={{ background: FRENTE_COLORS[i % FRENTE_COLORS.length] }}
-                    />
-                    <span className="truncate text-foreground flex-1" title={f.name}>{f.name}</span>
-                    <span className="text-mining-blue tabular-nums shrink-0">{f.pct.toFixed(1)}%</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+            );
+          })()}
         </Panel>
 
         <Panel title="ESCAVADEIRAS" className="col-span-12 lg:col-span-5 lg:row-span-2 h-[492px] animated-card">
