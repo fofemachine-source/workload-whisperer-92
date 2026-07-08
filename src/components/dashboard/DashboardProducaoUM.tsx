@@ -96,7 +96,7 @@ function Panel({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, ease: "easeOut" }}
-      className={`bg-[hsl(220_45%_9%/0.85)] border border-mining-blue/20 rounded-md shadow-[0_0_24px_-10px_hsl(var(--mining-blue)/0.55)] hover:shadow-[0_0_28px_-6px_hsl(var(--mining-blue)/0.55)] transition-shadow duration-500 flex flex-col ${className}`}
+      className={`chart-card dashboard-card bg-[hsl(220_45%_9%/0.85)] border border-mining-blue/20 rounded-md shadow-[0_0_24px_-10px_hsl(var(--mining-blue)/0.55)] hover:shadow-[0_0_28px_-6px_hsl(var(--mining-blue)/0.55)] transition-shadow duration-500 flex flex-col ${className}`}
     >
       {title && (
         <div className="flex items-center justify-between px-3 pt-2">
@@ -158,7 +158,6 @@ export default function DashboardProducaoUM() {
   const [dtIni, setDtIni] = useState(inicioAno);
   const [dtFim, setDtFim] = useState(hoje);
   const [dashboardData, setDashboardData] = useState<DashboardApiPayload | null>(null);
-  const [dataUpdatedAt, setDataUpdatedAt] = useState(0);
   const [segundosAtualizacao, setSegundosAtualizacao] = useState(15);
   const [, setLoading] = useState(false);
   const [, setErroApi] = useState<string | null>(null);
@@ -201,7 +200,6 @@ export default function DashboardProducaoUM() {
 
       setDashboardData(apiResponse);
       setUltimaAtualizacao(apiResponse.atualizadoEm || new Date().toISOString());
-      setDataUpdatedAt(Date.now());
       setSegundosAtualizacao(15);
       setErroApi(null);
     } catch (error) {
@@ -347,11 +345,10 @@ export default function DashboardProducaoUM() {
   const atualizadoEmFormatado = atualizadoEm ? new Date(atualizadoEm).toLocaleString("pt-BR") : "—";
 
   return (
-    <div className="min-h-screen bg-[hsl(220_50%_5%)] text-foreground p-2 md:p-3 font-sans dashboard-enter">
+    <div className="force-live-animation min-h-screen bg-[hsl(220_50%_5%)] text-foreground p-2 md:p-3 font-sans dashboard-enter">
       {/* KPI strip — valores exclusivos de data.kpis */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
         <LavRetKpi
-          key={`lav-${dataUpdatedAt}-${lavFinal}-${lavProjetado}`}
           label="LAV"
           acumulado={lavFinal}
           projetado={lavProjetado}
@@ -360,7 +357,6 @@ export default function DashboardProducaoUM() {
           projetadoTone="green"
         />
         <LavRetKpi
-          key={`ret-${dataUpdatedAt}-${retFinal}-${retProjetado}`}
           label="RET"
           acumulado={retFinal}
           projetado={retProjetado}
@@ -369,14 +365,12 @@ export default function DashboardProducaoUM() {
           projetadoTone="amber"
         />
         <BigKpi
-          key={`mes-${dataUpdatedAt}-${producaoMensal}`}
           label="Produção Mensal"
           value={producaoMensal}
           suffix=" t"
           tone="green"
         />
         <BigKpi
-          key={`th-${dataUpdatedAt}-${producaoTotalEscavadeirasTH}`}
           label="T/H"
           value={producaoTotalEscavadeirasTH}
           suffix=" t/h"
@@ -388,10 +382,10 @@ export default function DashboardProducaoUM() {
       {/* Dashboard grid */}
       <div className="grid grid-cols-12 gap-2 mt-2 items-stretch">
         <Panel title="Produção Diária (t)" className="col-span-12 lg:col-span-4 h-[300px] animated-card">
-          {dailySeries.length === 0 ? (
-            <Empty />
-          ) : (
-            <div key={`daily-${dataUpdatedAt}`} className="h-full chart-bar-grow neon-chart pulse-bar rain-effect">
+          <div className="force-live-animation daily-bars h-full chart-bar-grow neon-chart pulse-bar rain-effect">
+            {dailySeries.length === 0 ? (
+              <Empty />
+            ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={dailySeries} margin={{ top: 12, right: 8, left: 0, bottom: 0 }}>
                   <CartesianGrid stroke="rgba(255,255,255,0.05)" vertical={false} />
@@ -403,17 +397,18 @@ export default function DashboardProducaoUM() {
                   <Bar dataKey="Real" fill="#22c55e" radius={[2, 2, 0, 0]} animationDuration={900} animationEasing="ease-out" />
                 </BarChart>
               </ResponsiveContainer>
-            </div>
-          )}
+            )}
+          </div>
         </Panel>
 
         <Panel title="Produção por Frente (t)" className="col-span-12 lg:col-span-3 h-[300px] animated-card">
-          {frenteAgg.length === 0 ? (
-            <Empty />
-          ) : (() => {
+          <div className="force-live-animation front-donut neon-donut h-full">
+            {frenteAgg.length === 0 ? (
+              <Empty />
+            ) : (() => {
             const totalFrente = frenteAgg.reduce((s, r) => s + r.value, 0);
             return (
-              <div key={`front-${dataUpdatedAt}`} className="h-full flex items-center gap-2">
+              <div className="h-full flex items-center gap-2">
                 <div className="w-[45%] h-full relative">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
@@ -458,11 +453,9 @@ export default function DashboardProducaoUM() {
                       />
                     </PieChart>
                   </ResponsiveContainer>
-                  <motion.div
-                    className="absolute inset-0 rounded-full pointer-events-none"
+                  <div
+                    className="chart-center-pulse absolute inset-0 rounded-full pointer-events-none"
                     style={{ background: "radial-gradient(circle, hsl(199 100% 60% / 0.18) 0%, transparent 60%)" }}
-                    animate={{ opacity: [0.55, 0.95, 0.55], scale: [0.96, 1.02, 0.96] }}
-                    transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }}
                   />
                   <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                     <span className="text-[8px] uppercase tracking-[0.2em] text-cyan-300/80 font-bold">Total</span>
@@ -475,7 +468,7 @@ export default function DashboardProducaoUM() {
                 <div className="w-[55%] h-full overflow-auto pr-1 space-y-[3px] text-[10px] font-mono">
                   {frenteAgg.map((f, i) => (
                     <motion.div
-                      key={`${f.name}-${dataUpdatedAt}`}
+                      key={f.name}
                       initial={{ opacity: 0, x: 6 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.3, delay: i * 0.04 }}
@@ -502,7 +495,8 @@ export default function DashboardProducaoUM() {
                 </div>
               </div>
             );
-          })()}
+            })()}
+          </div>
         </Panel>
 
         <Panel title="ESCAVADEIRAS" className="col-span-12 lg:col-span-5 lg:row-span-2 h-[492px] animated-card">
@@ -535,7 +529,7 @@ export default function DashboardProducaoUM() {
                   <tbody>
                     {top5Escav.map((esc, index) => (
                       <motion.tr
-                        key={`${esc.equipamento}-${dataUpdatedAt}`}
+                        key={esc.equipamento}
                         initial={{ opacity: 0, y: 6 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.35, ease: "easeOut", delay: index * 0.05 }}
@@ -593,10 +587,10 @@ export default function DashboardProducaoUM() {
           )}
         </Panel>
         <Panel title="Produtividade (t/h)" className="col-span-12 lg:col-span-4 h-[184px] animated-card">
-          {prodSeries.length === 0 ? (
-            <Empty />
-          ) : (
-            <div key={`line-${dataUpdatedAt}`} className="h-full chart-line-neon glow-line neon-chart scan-line">
+          <div className="force-live-animation productivity-line h-full chart-line-neon glow-line neon-chart scan-line">
+            {prodSeries.length === 0 ? (
+              <Empty />
+            ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={prodSeries} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                   <CartesianGrid stroke="rgba(255,255,255,0.05)" vertical={false} />
@@ -609,15 +603,15 @@ export default function DashboardProducaoUM() {
                   <Line type="monotone" dataKey="Real" stroke="#22c55e" dot={false} strokeWidth={2} animationDuration={1200} animationEasing="ease-out" />
                 </LineChart>
               </ResponsiveContainer>
-            </div>
-          )}
+            )}
+          </div>
         </Panel>
 
         <Panel title="Viagens por Hora" className="col-span-12 lg:col-span-2 h-[184px] animated-card">
-          {viagensPorHora.every((v) => v.Real === 0) ? (
-            <Empty />
-          ) : (
-            <div key={`hours-${dataUpdatedAt}`} className="h-full chart-bar-grow neon-chart pulse-bar scan-line">
+          <div className="force-live-animation hourly-trips daily-bars h-full chart-bar-grow neon-chart pulse-bar scan-line">
+            {viagensPorHora.every((v) => v.Real === 0) ? (
+              <Empty />
+            ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={viagensPorHora} margin={{ top: 8, right: 4, left: 0, bottom: 0 }}>
                   <CartesianGrid stroke="rgba(255,255,255,0.05)" vertical={false} />
@@ -627,8 +621,8 @@ export default function DashboardProducaoUM() {
                   <Bar dataKey="Real" fill="#22d3ee" radius={[2, 2, 0, 0]} animationDuration={900} animationEasing="ease-out" />
                 </BarChart>
               </ResponsiveContainer>
-            </div>
-          )}
+            )}
+          </div>
         </Panel>
 
         <Panel className="col-span-12 lg:col-span-1 h-[184px] animated-card">
@@ -693,7 +687,7 @@ export default function DashboardProducaoUM() {
                   <tbody>
                     {rows.map((v, i) => (
                       <motion.tr
-                        key={`${dataUpdatedAt}-${i}`}
+                        key={`${String(v.cr ?? "cr")}-${String(v.inicio ?? "")}-${String(v.fim ?? "")}-${i}`}
                         initial={{ opacity: 0, y: 6 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.3, ease: "easeOut", delay: Math.min(i * 0.03, 0.6) }}
@@ -832,7 +826,7 @@ function GradientKpi({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
       whileHover={{ boxShadow: "0 0 14px rgba(0,180,255,0.15)" }}
-      className={`kpi-pulse-glow relative overflow-hidden rounded-md border ${t.border} bg-gradient-to-br ${t.grad} px-3 py-2.5 shadow-[0_0_0_rgba(0,0,0,0)] transition-shadow duration-300`}
+      className={`kpi-card kpi-pulse-glow relative overflow-hidden rounded-md border ${t.border} bg-gradient-to-br ${t.grad} px-3 py-2.5 shadow-[0_0_0_rgba(0,0,0,0)] transition-shadow duration-300`}
     >
       <p className={`font-mono-mining text-[10px] uppercase tracking-[0.18em] font-bold truncate ${t.label}`}>{label}</p>
       <p className={`font-mono-mining text-2xl md:text-[26px] font-black leading-tight ${t.text} tabular-nums`}>
@@ -898,7 +892,7 @@ function DualKpi({
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
-      className={`kpi-pulse-glow relative overflow-hidden rounded-md border ${t.border} bg-gradient-to-br ${t.grad} px-3 py-2.5`}
+      className={`kpi-card kpi-pulse-glow relative overflow-hidden rounded-md border ${t.border} bg-gradient-to-br ${t.grad} px-3 py-2.5`}
     >
       <p className={`font-mono-mining text-[10px] uppercase tracking-[0.18em] font-bold truncate ${t.label}`}>{label}</p>
       <div className="mt-1">
@@ -960,7 +954,7 @@ function LavRetKpi({
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
-      className={`kpi-pulse-glow relative overflow-hidden rounded-lg border ${TONE_BORDER[tone]} bg-[hsl(220_45%_7%/0.9)] px-4 py-3`}
+      className={`kpi-card kpi-pulse-glow relative overflow-hidden rounded-lg border ${TONE_BORDER[tone]} bg-[hsl(220_45%_7%/0.9)] px-4 py-3`}
     >
       <p className={`font-mono-mining text-[13px] font-black tracking-wider ${TONE_TEXT[tone]}`}>{label}</p>
       <div className={`mt-1 h-px w-full ${TONE_GLOW[tone]} opacity-40`} />
@@ -1009,7 +1003,7 @@ function BigKpi({
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
-      className={`kpi-pulse-glow relative overflow-hidden rounded-lg border ${TONE_BORDER[tone]} bg-[hsl(220_45%_7%/0.9)] px-4 py-3 flex flex-col`}
+      className={`kpi-card kpi-pulse-glow relative overflow-hidden rounded-lg border ${TONE_BORDER[tone]} bg-[hsl(220_45%_7%/0.9)] px-4 py-3 flex flex-col`}
     >
       <p className={`font-mono-mining text-[13px] font-black tracking-wider ${TONE_TEXT[tone]}`}>{label}</p>
       <div className={`mt-1 h-px w-full ${TONE_GLOW[tone]} opacity-40`} />
