@@ -388,8 +388,8 @@ export default function DashboardProducaoUM() {
 
       {/* Dashboard grid */}
       <div className="grid grid-cols-12 gap-2 mt-2 items-stretch">
-        <Panel title="Produção Diária (t)" className="col-span-12 lg:col-span-4 h-[300px] animated-card">
-          <div className="force-live-animation daily-bars h-full chart-bar-grow neon-chart pulse-bar rain-effect">
+        <Panel title="Produção Diária (t)" className="col-span-12 lg:col-span-4 h-[300px]">
+          <div className="h-full neon-chart">
             {dailySeries.length === 0 ? (
               <Empty />
             ) : (
@@ -400,8 +400,8 @@ export default function DashboardProducaoUM() {
                   <YAxis stroke="#7fb2d9" tick={{ fontSize: 10 }} />
                   <Tooltip contentStyle={tooltipStyle} />
                   <Legend wrapperStyle={{ fontSize: 10 }} />
-                  <Bar dataKey="Prevista" fill="#f59e0b" radius={[2, 2, 0, 0]} animationDuration={900} animationEasing="ease-out" />
-                  <Bar dataKey="Real" fill="#22c55e" radius={[2, 2, 0, 0]} animationDuration={900} animationEasing="ease-out" />
+                  <Bar dataKey="Prevista" fill="#f59e0b" radius={[2, 2, 0, 0]} isAnimationActive={false} />
+                  <Bar dataKey="Real" fill="#22c55e" radius={[2, 2, 0, 0]} isAnimationActive={false} />
                 </BarChart>
               </ResponsiveContainer>
             )}
