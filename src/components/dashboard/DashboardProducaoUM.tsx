@@ -264,8 +264,39 @@ export default function DashboardProducaoUM() {
 
   const frenteAgg = useMemo(() => {
     const arr = (dashboardData?.producaoFrente ?? [])
-      .map((f) => ({ name: String(f.frente), value: Number(f.massa ?? 0) }))
-      .filter((r) => r.value > 0)
+      .map((f) => {
+        const name = String(f.frente || "").trim();
+        return { name, value: Number(f.massa ?? 0) };
+      })
+      .filter((r) => {
+        if (r.value <= 0) return false;
+        if (!r.name) return false;
+        
+        const lower = r.name.toLowerCase();
+        if (
+          lower === "null" ||
+          lower === "undefined" ||
+          lower === "nulo" ||
+          lower === "n/a" ||
+          lower === "n/d" ||
+          lower === "none" ||
+          lower === "não informado"
+        ) {
+          return false;
+        }
+
+        const upper = r.name.toUpperCase();
+        if (
+          upper.includes("GELADO") ||
+          upper.includes("GEL") ||
+          upper.includes("TESTE") ||
+          upper.includes("DEMO")
+        ) {
+          return false;
+        }
+
+        return true;
+      })
       .sort((a, b) => b.value - a.value);
     const total = arr.reduce((s, r) => s + r.value, 0) || 1;
     return arr.map((r) => ({ ...r, pct: (r.value / total) * 100 }));

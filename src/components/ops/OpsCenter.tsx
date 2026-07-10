@@ -254,8 +254,22 @@ export function OpsCenter() {
     return sorted
       .filter((f) => f.data_referencia === head.data_referencia && f.turno === head.turno)
       .filter((f) => {
-        const nome = String(f.frente || "").toUpperCase();
-        return !nome.includes("GELADO") && !nome.includes("GEL") && !nome.includes("TESTE") && !nome.includes("DEMO");
+        const nome = String(f.frente || "").trim();
+        if (!nome) return false;
+        const lower = nome.toLowerCase();
+        if (
+          lower === "null" ||
+          lower === "undefined" ||
+          lower === "nulo" ||
+          lower === "n/a" ||
+          lower === "n/d" ||
+          lower === "none" ||
+          lower === "não informado"
+        ) {
+          return false;
+        }
+        const upper = nome.toUpperCase();
+        return !upper.includes("GELADO") && !upper.includes("GEL") && !upper.includes("TESTE") && !upper.includes("DEMO");
       })
       .sort((a, b) => Number(b.toneladas) - Number(a.toneladas));
   }, [frentes]);
