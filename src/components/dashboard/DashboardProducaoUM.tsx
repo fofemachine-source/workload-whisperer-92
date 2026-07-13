@@ -807,7 +807,7 @@ export default function DashboardProducaoUM() {
             </div>
           )}
         </Panel>
-        <Panel title="% DISPONIBILIDADE FÍSICA POR FROTA" className="col-span-12 lg:col-span-6 h-[280px] animated-card">
+        <Panel title="% DISPONIBILIDADE FÍSICA POR FROTA" className="col-span-12 lg:col-span-6 h-[340px] animated-card">
           <div className="flex flex-col h-full justify-evenly px-2">
             {frotaStats.map((item) => (
               <div key={item.name} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
@@ -838,7 +838,7 @@ export default function DashboardProducaoUM() {
           </div>
         </Panel>
 
-        <Panel title="UTILIZAÇÃO POR FROTA" className="col-span-12 lg:col-span-6 h-[280px] animated-card">
+        <Panel title="UTILIZAÇÃO POR FROTA" className="col-span-12 lg:col-span-6 h-[340px] animated-card">
           <div className="flex flex-col h-full justify-evenly px-2">
             {frotaStats.map((item) => (
               <div key={item.name} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
