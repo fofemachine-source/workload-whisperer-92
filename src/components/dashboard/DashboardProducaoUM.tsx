@@ -812,16 +812,16 @@ export default function DashboardProducaoUM() {
             {frotaStats.map((item) => (
               <div key={item.name} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
                 <div className="flex items-center gap-3 w-1/2">
-                  <div className="w-[28px] flex items-center justify-center flex-shrink-0">
+                  <div className="w-[40px] flex items-center justify-center flex-shrink-0">
                     {item.type === "exc" ? (
-                      <ExcavatorIcon className="w-[36px] h-[26px]" />
+                      <ExcavatorIcon className="w-[44px] h-[34px]" />
                     ) : (
-                      <HaulTruckIcon className="w-[36px] h-[26px]" />
+                      <HaulTruckIcon className="w-[44px] h-[34px]" />
                     )}
                   </div>
                   <div>
-                    <div className="text-[12px] font-bold text-white uppercase tracking-wider">{item.name}</div>
-                    <div className="text-[10px] text-mining-blue/70 font-mono mt-0.5">({item.eq})</div>
+                    <div className="text-[16px] font-bold text-white uppercase tracking-wider">{item.name}</div>
+                    <div className="text-[12px] text-mining-blue/70 font-mono mt-0.5">({item.eq})</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-8 justify-end w-1/2 pr-4">
@@ -829,8 +829,8 @@ export default function DashboardProducaoUM() {
                     <DonutProgress value={item.df} color="#22c55e" showPercent={false} />
                   </div>
                   <div className="text-right w-16">
-                    <div className="text-[10px] text-mining-blue/70 font-bold uppercase">Meta</div>
-                    <div className="text-[14px] font-mono text-white">85.0%</div>
+                    <div className="text-[11px] text-mining-blue/70 font-bold uppercase">Meta</div>
+                    <div className="text-[18px] font-mono text-white">85.0%</div>
                   </div>
                 </div>
               </div>
@@ -843,16 +843,16 @@ export default function DashboardProducaoUM() {
             {frotaStats.map((item) => (
               <div key={item.name} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
                 <div className="flex items-center gap-3 w-1/2">
-                  <div className="w-[28px] flex items-center justify-center flex-shrink-0">
+                  <div className="w-[40px] flex items-center justify-center flex-shrink-0">
                     {item.type === "exc" ? (
-                      <ExcavatorIcon className="w-[36px] h-[26px]" />
+                      <ExcavatorIcon className="w-[44px] h-[34px]" />
                     ) : (
-                      <HaulTruckIcon className="w-[36px] h-[26px]" />
+                      <HaulTruckIcon className="w-[44px] h-[34px]" />
                     )}
                   </div>
                   <div>
-                    <div className="text-[12px] font-bold text-white uppercase tracking-wider">{item.name}</div>
-                    <div className="text-[10px] text-mining-blue/70 font-mono mt-0.5">({item.eq})</div>
+                    <div className="text-[16px] font-bold text-white uppercase tracking-wider">{item.name}</div>
+                    <div className="text-[12px] text-mining-blue/70 font-mono mt-0.5">({item.eq})</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-8 justify-end w-1/2 pr-4">
@@ -860,8 +860,8 @@ export default function DashboardProducaoUM() {
                     <DonutProgress value={item.ut} color={item.ut < 5 ? "#eab308" : (item.ut < 9 ? "#0ea5e9" : "#22c55e")} showPercent={true} />
                   </div>
                   <div className="text-right w-16">
-                    <div className="text-[10px] text-mining-blue/70 font-bold uppercase">Meta</div>
-                    <div className="text-[14px] font-mono text-white">85.0%</div>
+                    <div className="text-[11px] text-mining-blue/70 font-bold uppercase">Meta</div>
+                    <div className="text-[18px] font-mono text-white">85.0%</div>
                   </div>
                 </div>
               </div>
@@ -1257,12 +1257,12 @@ function DonutProgress({ value, color, showPercent }: { value: number; color: st
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (value / 100) * circumference;
   return (
-    <div className="relative w-10 h-10 flex items-center justify-center">
+    <div className="relative w-14 h-14 flex items-center justify-center">
       <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
         <circle cx="18" cy="18" r="16" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="2.5" />
         <circle cx="18" cy="18" r="16" fill="none" stroke={color} strokeWidth="2.5" strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round" />
       </svg>
-      <span className="absolute text-[12px] font-mono font-bold tracking-tighter" style={{ color: showPercent ? '#fff' : color }}>
+      <span className="absolute text-[15px] font-mono font-bold tracking-tighter" style={{ color: showPercent ? '#fff' : color }}>
         {value.toFixed(1)}{showPercent ? '%' : ''}
       </span>
     </div>
