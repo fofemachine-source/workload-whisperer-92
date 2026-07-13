@@ -1257,27 +1257,33 @@ function DonutProgress({ value, color, showPercent }: { value: number; color: st
 
 function ExcavatorIcon({ className = "" }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
-      <path d="M4 14v-3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3" />
-      <path d="M6 10V6h2v4" />
-      <path d="M10 11l4-4 4 2 2 4" />
-      <path d="M19 14c0 1.5 1.5 2 3 2v-4l-3 2z" />
-      <rect x="2" y="14" width="10" height="4" rx="1" />
-      <circle cx="4" cy="16" r="1" />
-      <circle cx="10" cy="16" r="1" />
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+      {/* Esteira */}
+      <rect x="2" y="16" width="10" height="3" rx="1.5" />
+      {/* Cabine e Corpo */}
+      <path d="M3 15v-5a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v5H3z" />
+      <rect x="5" y="10" width="3" height="3" fill="#1e293b" /> {/* Janela vazada */}
+      {/* Braço articulado */}
+      <path d="M8 11h7a1 1 0 0 1 .8.4l4 5-1.6 1.2-3.4-4.2H8v-2.4z" />
+      {/* Caçamba */}
+      <path d="M17.5 16.5l2.5-1.5 2 2.5a2 2 0 0 1-2.5 2.5l-2-3.5z" />
     </svg>
   );
 }
 
 function HaulTruckIcon({ className = "" }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
-      <path d="M2 13h18" />
-      <path d="M2 11L4 4h12l2 7" />
-      <path d="M15 13v-3h3v3" />
-      <path d="M18 11h2l1 2v2" />
-      <circle cx="6" cy="15" r="3" />
-      <circle cx="16" cy="15" r="3" />
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+      {/* Rodas */}
+      <circle cx="6" cy="18" r="2.5" />
+      <circle cx="17" cy="18" r="2.5" />
+      {/* Chassi inferior */}
+      <rect x="3" y="14" width="16" height="2" rx="1" />
+      {/* Báscula (Caçamba do caminhão) */}
+      <path d="M2 13l2-9h12l2 9H2z" />
+      {/* Cabine (Frente) */}
+      <path d="M17 14v-4h3a1 1 0 0 1 1 1v3h-4z" />
+      <rect x="18" y="11" width="2" height="2" fill="#1e293b" /> {/* Janela vazada */}
     </svg>
   );
 }
