@@ -862,9 +862,9 @@ export default function DashboardProducaoUM() {
                 <div className="flex items-center gap-3 w-1/2">
                   <div className="w-[28px] flex items-center justify-center flex-shrink-0">
                     {item.type === "exc" ? (
-                      <ExcavatorIcon className="w-[22px] h-[22px] text-[#F5B400]" />
+                      <ExcavatorIcon className="w-[36px] h-[26px]" />
                     ) : (
-                      <HaulTruckIcon className="w-[22px] h-[22px] text-[#F5B400]" />
+                      <HaulTruckIcon className="w-[36px] h-[26px]" />
                     )}
                   </div>
                   <div>
@@ -893,9 +893,9 @@ export default function DashboardProducaoUM() {
                 <div className="flex items-center gap-3 w-1/2">
                   <div className="w-[28px] flex items-center justify-center flex-shrink-0">
                     {item.type === "exc" ? (
-                      <ExcavatorIcon className="w-[22px] h-[22px] text-[#F5B400]" />
+                      <ExcavatorIcon className="w-[36px] h-[26px]" />
                     ) : (
-                      <HaulTruckIcon className="w-[22px] h-[22px] text-[#F5B400]" />
+                      <HaulTruckIcon className="w-[36px] h-[26px]" />
                     )}
                   </div>
                   <div>
