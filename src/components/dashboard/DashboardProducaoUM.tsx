@@ -18,6 +18,8 @@ import {
 } from "recharts";
 import { DASHBOARD_API_URL, type DashboardApiPayload } from "@/hooks/useDashboardApi";
 import { supabase } from "@/integrations/supabase/client";
+import excavatorNeon from "@/assets/excavator-neon.png";
+import truckNeon from "@/assets/truck-neon.png";
 
 /* ---------- helpers ---------- */
 const frotaStats = [
