@@ -144,6 +144,18 @@
   }
   .animate-excavator-work { animation: excavator-work 2.2s ease-in-out infinite; transform-origin: 30% 85%; }
 
+  @keyframes excavator-dig-right {
+    0%   { transform: rotate(0deg) translateY(0); }
+    25%  { transform: rotate(10deg) translateY(2px); }   /* Cavando pra baixo */
+    50%  { transform: rotate(-8deg) translateY(-2px); }  /* Levantando pra cima */
+    75%  { transform: rotate(-2deg) translateY(-1px); }  /* Balanço sutil */
+    100% { transform: rotate(0deg) translateY(0); }
+  }
+  .animate-excavator-dig-right { 
+    animation: excavator-dig-right 2.4s ease-in-out infinite; 
+    transform-origin: center 85%; 
+  }
+
   @keyframes truck-bounce {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-1.5px); }
