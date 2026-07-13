@@ -73,6 +73,8 @@ const toNum = (v: unknown) => {
   return Number.isFinite(n) ? n : 0;
 };
 
+const isNum = (v: any) => v != null && v !== "" && !Number.isNaN(Number(v));
+
 const fmtHora = (v: unknown): string => {
   if (v === null || v === undefined || v === "") return "—";
   const s = String(v);
@@ -544,7 +546,8 @@ export default function DashboardProducaoUM() {
     const disp = (dashboardData as any)?.disponibilidadePorFrota ?? [];
     const util = (dashboardData as any)?.utilizacaoPorFrota ?? [];
 
-    const getVal = (list: any[], frota: string) => list.find((item: any) => item.frota === frota);
+    const getVal = (list: any, frota: string) => 
+      Array.isArray(list) ? list.find((item: any) => item?.frota === frota) : undefined;
 
     const baseFrotas = [
       { name: "EX1200", type: "exc", defaultEq: "5/5" },
@@ -849,7 +852,7 @@ export default function DashboardProducaoUM() {
                 </div>
                 <div className="flex items-center gap-8 justify-end w-1/2 pr-4">
                   <div className="flex items-center justify-center">
-                    <DonutProgress value={item.df} color={typeof item.df === "number" ? "#22c55e" : "#555"} showPercent={false} />
+                    <DonutProgress value={item.df} color={isNum(item.df) ? "#22c55e" : "#555"} showPercent={false} />
                   </div>
                   <div className="text-right w-16">
                     <div className="text-[11px] text-mining-blue/70 font-bold uppercase">Meta</div>
@@ -880,7 +883,7 @@ export default function DashboardProducaoUM() {
                 </div>
                 <div className="flex items-center gap-8 justify-end w-1/2 pr-4">
                   <div className="flex items-center justify-center">
-                    <DonutProgress value={item.ut} color={typeof item.ut === "number" ? (item.ut < 5 ? "#eab308" : (item.ut < 9 ? "#0ea5e9" : "#22c55e")) : "#555"} showPercent={true} />
+                    <DonutProgress value={item.ut} color={isNum(item.ut) ? (item.ut < 5 ? "#eab308" : (item.ut < 9 ? "#0ea5e9" : "#22c55e")) : "#555"} showPercent={true} />
                   </div>
                   <div className="text-right w-16">
                     <div className="text-[11px] text-mining-blue/70 font-bold uppercase">Meta</div>
@@ -1275,11 +1278,12 @@ function Empty() {
   return <p className="text-[11px] text-muted-foreground font-mono py-8 text-center">Sem dados reais disponíveis</p>;
 }
 
-function DonutProgress({ value, color, showPercent }: { value?: number | null; color: string; showPercent: boolean }) {
+function DonutProgress({ value, color, showPercent }: { value?: any; color: string; showPercent: boolean }) {
   const radius = 16;
   const circumference = 2 * Math.PI * radius;
-  const hasValue = typeof value === "number";
-  const val = hasValue ? value : 0;
+  const numValue = Number(value);
+  const hasValue = value != null && value !== "" && !Number.isNaN(numValue);
+  const val = hasValue ? numValue : 0;
   const offset = circumference - (val / 100) * circumference;
   return (
     <div className="relative w-14 h-14 flex items-center justify-center">
