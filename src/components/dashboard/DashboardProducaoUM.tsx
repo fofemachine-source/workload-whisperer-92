@@ -539,21 +539,7 @@ export default function DashboardProducaoUM() {
 
   const mediaViagens = 0;
 
-  const acompViagens = useMemo(() => {
-    const arr = Array.isArray(dashboardData?.viagensCR) ? dashboardData!.viagensCR! : [];
-    return arr.map((r: any) => ({
-      cr: r.cr ?? r.equipamento ?? null,
-      escavadeira: r.escavadeira ?? null,
-      origem: r.origem ?? null,
-      destino: r.destino ?? null,
-      material: r.material ?? null,
-      quantidade: toNum(r.quantidade ?? r.viagens) || 1,
-      tonelagem: toNum(r.tonelagem ?? r.massa),
-      inicio: r.inicio ?? r.event_start ?? null,
-      fim: r.fim ?? r.event_end ?? null,
-      ciclo: toNum(r.ciclo ?? r.tempo_ciclo),
-    }));
-  }, [dashboardData]);
+
 
   const limparFiltros = () => {
     setDtIni(inicioAno);
@@ -860,89 +846,7 @@ export default function DashboardProducaoUM() {
           </div>
         </Panel>
 
-        <Panel title="Acompanhamento de Viagens (CRs)" className="col-span-12 h-[260px] animated-card">
-          {acompViagens.length === 0 ? (
-            <Empty />
-          ) : (() => {
-            const parseInicio = (v: any): number => {
-              if (!v) return 0;
-              const s = String(v);
-              const d = new Date(s);
-              if (!Number.isNaN(d.getTime())) return d.getTime();
-              const m = s.match(/(\d{2}):(\d{2})/);
-              if (m) return Number(m[1]) * 60 + Number(m[2]);
-              return 0;
-            };
-            const sorted = [...acompViagens].sort((a, b) => {
-              const dt = Number(b.tonelagem || 0) - Number(a.tonelagem || 0);
-              if (dt !== 0) return dt;
-              return parseInicio(b.inicio) - parseInicio(a.inicio);
-            });
-            const perCol = 10;
-            const top = sorted.slice(0, perCol * 2);
-            const cols = [top.slice(0, perCol), top.slice(perCol, perCol * 2)];
-            const renderTable = (rows: typeof acompViagens) => (
-              <div className="h-full overflow-hidden">
-                <table className="w-full table-fixed text-[10px] font-mono">
-                  <colgroup>
-                    <col style={{ width: "9%" }} />
-                    <col style={{ width: "10%" }} />
-                    <col style={{ width: "15%" }} />
-                    <col style={{ width: "15%" }} />
-                    <col style={{ width: "9%" }} />
-                    <col style={{ width: "6%" }} />
-                    <col style={{ width: "10%" }} />
-                    <col style={{ width: "8%" }} />
-                    <col style={{ width: "8%" }} />
-                    <col style={{ width: "10%" }} />
-                  </colgroup>
-                  <thead className="text-mining-blue/70 sticky top-0 bg-[hsl(220_45%_9%)]">
-                    <tr className="border-b border-mining-blue/20">
-                      <Th>CR</Th>
-                      <Th>Escavadeira</Th>
-                      <Th>Origem</Th>
-                      <Th>Destino</Th>
-                      <Th>Material</Th>
-                      <Th className="text-right">Qtd</Th>
-                      <Th className="text-right">Tonelagem</Th>
-                      <Th>Início</Th>
-                      <Th>Fim</Th>
-                      <Th className="text-right">Ciclo (min)</Th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {rows.map((v, i) => (
-                      <motion.tr
-                        key={`${String(v.cr ?? "cr")}-${String(v.inicio ?? "")}-${String(v.fim ?? "")}-${i}`}
-                        initial={{ opacity: 0, y: 6 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.3, ease: "easeOut", delay: Math.min(i * 0.03, 0.6) }}
-                        className="border-b border-white/5 hover:bg-white/[0.03]"
-                      >
-                        <Td>{String(v.cr ?? "—")}</Td>
-                        <Td>{String(v.escavadeira ?? "—")}</Td>
-                        <Td>{String(v.origem ?? "—")}</Td>
-                        <Td>{String(v.destino ?? "—")}</Td>
-                        <Td>{String(v.material ?? "—")}</Td>
-                        <Td className="text-right text-mining-blue">{fmt(v.quantidade)}</Td>
-                        <Td className="text-right text-mining-green">{fmt(v.tonelagem, 2)}</Td>
-                        <Td>{fmtHora(v.inicio)}</Td>
-                        <Td>{fmtHora(v.fim)}</Td>
-                        <Td className="text-right">{fmt(v.ciclo, 2)}</Td>
-                      </motion.tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            );
-            return (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 h-full">
-                {renderTable(cols[0])}
-                {renderTable(cols[1])}
-              </div>
-            );
-          })()}
-        </Panel>
+
 
       </div>
 
