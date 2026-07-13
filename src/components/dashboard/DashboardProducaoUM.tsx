@@ -17,6 +17,7 @@ import {
   Legend,
 } from "recharts";
 import { DASHBOARD_API_URL, type DashboardApiPayload } from "@/hooks/useDashboardApi";
+import { supabase } from "@/integrations/supabase/client";
 
 /* ---------- helpers ---------- */
 const fmt = (n: number, d = 0) =>
@@ -212,7 +213,187 @@ export default function DashboardProducaoUM() {
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       console.error("[DASHBOARD ERRO]", error);
-      setErroApi(message);
+      
+      try {
+        console.log("[DASHBOARD FALLBACK] Carregando dados do Supabase...");
+        
+        const desde30 = new Date();
+        desde30.setDate(desde30.getDate() - 30);
+        const desde2 = new Date();
+        desde2.setDate(desde2.getDate() - 2);
+
+        // 1) Fetch producao_diaria (last 30 days)
+        const { data: diariaRows, error: dErr } = await supabase
+          .from("producao_diaria")
+          .select("*")
+          .gte("data_referencia", desde30.toISOString().slice(0, 10))
+          .order("data_referencia", { ascending: false });
+        if (dErr) throw dErr;
+        
+        // 2) Fetch producao_frente (last 2 days)
+        const { data: frenteRows, error: fErr } = await supabase
+          .from("producao_frente")
+          .select("*")
+          .gte("data_referencia", desde2.toISOString().slice(0, 10))
+          .order("data_referencia", { ascending: false });
+        if (fErr) throw fErr;
+
+        // 3) Fetch producao_equipamento (last 2 days)
+        const { data: equipRows, error: eErr } = await supabase
+          .from("producao_equipamento")
+          .select("*")
+          .gte("data_referencia", desde2.toISOString().slice(0, 10))
+          .order("data_referencia", { ascending: false });
+        if (eErr) throw eErr;
+
+        // 4) Fetch viagens_acompanhamento (last 2 days)
+        const { data: viagensRows, error: vErr } = await (supabase as any)
+          .from("viagens_acompanhamento")
+          .select("*")
+          .gte("data_referencia", desde2.toISOString().slice(0, 10))
+          .order("data_referencia", { ascending: false });
+
+        const latest = diariaRows?.[0];
+
+        // Group by reference date for dailySeries
+        const dailyMap = new Map<string, { real: number; previsto: number }>();
+        (diariaRows ?? []).forEach((row) => {
+          const d = row.data_referencia;
+          const current = dailyMap.get(d) || { real: 0, previsto: 0 };
+          current.real += Number(row.toneladas_total ?? 0);
+          current.previsto = Math.max(current.previsto, Number(row.meta_diaria ?? 0));
+          dailyMap.set(d, current);
+        });
+
+        const producaoDiaria = Array.from(dailyMap.entries())
+          .map(([data, v]) => ({
+            data,
+            real: v.real,
+            previsto: v.previsto,
+          }))
+          .sort((a, b) => a.data.localeCompare(b.data));
+
+        // Group frenteRows by frente for the donut chart (only for latest date/shift)
+        const latestFrenteDate = frenteRows?.[0]?.data_referencia;
+        const latestFrenteTurno = frenteRows?.[0]?.turno;
+        const filteredFrentes = (frenteRows ?? []).filter(
+          (f) => f.data_referencia === latestFrenteDate && f.turno === latestFrenteTurno
+        );
+        const producaoFrente = filteredFrentes.map((f) => ({
+          frente: f.frente,
+          massa: Number(f.toneladas ?? 0),
+        }));
+
+        // Group equipRows by equipamento for the rankingEscavadeiras (only for latest date/shift)
+        const latestEquipDate = equipRows?.[0]?.data_referencia;
+        const latestEquipTurno = equipRows?.[0]?.turno;
+        const filteredEquips = (equipRows ?? []).filter(
+          (e) => e.data_referencia === latestEquipDate && e.turno === latestEquipTurno
+        );
+        const rankingEscavadeiras = filteredEquips.map((e) => ({
+          equipamento: e.equipamento,
+          th: Number(e.producao_hora ?? 0),
+          massa: Number(e.toneladas ?? 0),
+          viagens: 0,
+          material: e.tipo,
+          frente: null,
+          destino: null,
+        }));
+
+        // Detailed trips (viagensCR) and trips per hour (viagensHora)
+        const latestViagensDate = viagensRows?.[0]?.data_referencia;
+        const latestViagensTurno = viagensRows?.[0]?.turno;
+        const filteredViagens = (viagensRows ?? []).filter(
+          (v: any) => v.data_referencia === latestViagensDate && v.turno === latestViagensTurno
+        );
+        
+        const viagensCR = filteredViagens.map((v: any) => ({
+          cr: v.equipamento || v.frota || "CR",
+          escavadeira: null,
+          origem: v.frente_origem,
+          destino: v.frente_destino,
+          material: null,
+          quantidade: Number(v.viagens ?? 1),
+          tonelagem: Number(v.toneladas ?? 0),
+          inicio: null,
+          fim: null,
+          ciclo: Number(v.tempo_ciclo_min ?? 0),
+        }));
+
+        const viagensHora = Array.from({ length: 24 }, (_, i) => ({
+          hora: String(i).padStart(2, "0"),
+          viagens: 0,
+        }));
+        filteredViagens.forEach((v: any) => {
+          if (v.created_at) {
+            const date = new Date(v.created_at);
+            const hour = date.getHours();
+            viagensHora[hour].viagens += Number(v.viagens ?? 1);
+          }
+        });
+
+        const totalViagens = filteredViagens.reduce((sum, v) => sum + Number(v.viagens ?? 0), 0);
+
+        const latestDate = latest?.data_referencia;
+        const todayRows = (diariaRows ?? []).filter((r) => r.data_referencia === latestDate);
+        const producaoDiaTotal = todayRows.reduce((sum, r) => sum + Number(r.toneladas_total ?? 0), 0);
+        const metaDiariaTotal = todayRows.reduce((max, r) => Math.max(max, Number(r.meta_diaria ?? 0)), 0);
+        const producaoMensalTotal = latest?.acumulado_mes ?? 0;
+
+        const thAvg = todayRows.length > 0
+          ? todayRows.reduce((sum, r) => sum + Number(r.producao_hora ?? 0), 0) / todayRows.length
+          : 0;
+
+        const lavAcumulado = todayRows.reduce((sum, r) => sum + Number(r.producao_mina ?? 0), 0);
+        const retAcumulado = todayRows.reduce((sum, r) => sum + Number(r.producao_retaludamento ?? 0), 0);
+        
+        const lavProjetado = todayRows.reduce((sum, r) => sum + Number(r.projecao_turno ?? r.producao_mina ?? 0), 0);
+        const retProjetado = todayRows.reduce((sum, r) => sum + (r.projecao_turno ? (Number(r.projecao_turno) * (retAcumulado / (lavAcumulado + retAcumulado || 1))) : Number(r.producao_retaludamento ?? 0)), 0);
+
+        const cards = {
+          lav: {
+            acumuladoDia: lavAcumulado,
+            projetadoDia: lavProjetado || (lavAcumulado * 1.1),
+          },
+          ret: {
+            acumuladoDia: retAcumulado,
+            projetadoDia: retProjetado || (retAcumulado * 1.1),
+          },
+          producaoDiaria: producaoDiaTotal,
+          producaoMensal: producaoMensalTotal,
+          th: thAvg,
+          viagens: totalViagens,
+        };
+
+        const fallbackPayload = {
+          kpis: {
+            producaoReal: producaoDiaTotal,
+            metaDiaria: metaDiariaTotal,
+            acumuladoMes: producaoMensalTotal,
+            faltaParaMeta: Math.max(0, metaDiariaTotal - producaoDiaTotal),
+            viagens: totalViagens,
+            produtividadeMedia: thAvg,
+            producaoDia: producaoDiaTotal,
+            producaoMensal: producaoMensalTotal,
+            producaoTotalEscavadeirasTH: thAvg,
+          },
+          cards,
+          producaoDiaria,
+          producaoFrente,
+          rankingEscavadeiras,
+          viagensCR,
+          viagensHora,
+          atualizadoEm: latest?.atualizado_em || new Date().toISOString(),
+        } as unknown as DashboardApiPayload;
+
+        setDashboardData(fallbackPayload);
+        setUltimaAtualizacao(fallbackPayload.atualizadoEm || new Date().toISOString());
+        setSegundosAtualizacao(15);
+        setErroApi(null);
+      } catch (fbError) {
+        console.error("[DASHBOARD FALLBACK ERRO]", fbError);
+        setErroApi(message);
+      }
     } finally {
       setLoading(false);
       isFetchingRef.current = false;
