@@ -22,12 +22,6 @@ import excavatorNeon from "@/assets/excavator-neon.png";
 import truckNeon from "@/assets/truck-neon.png";
 
 /* ---------- helpers ---------- */
-const frotaStats = [
-  { name: "EX1200", eq: "5/5", df: 88.0, ut: 4.7, type: "exc" },
-  { name: "EX2500", eq: "3/3", df: 97.5, ut: 8.7, type: "exc" },
-  { name: "CAMINHÕES 785", eq: "25/25", df: 90.9, ut: 14.6, type: "trk" },
-  { name: "CAMINHÕES 730", eq: "15/15", df: 61.9, ut: 8.8, type: "trk" },
-];
 
 const fmt = (n: number, d = 0) =>
   (Number.isFinite(n) ? n : 0).toLocaleString("pt-BR", {
@@ -546,9 +540,38 @@ export default function DashboardProducaoUM() {
     [dailySeries],
   );
 
-  const mediaViagens = 0;
+  const frotasRender = useMemo(() => {
+    const disp = (dashboardData as any)?.disponibilidadePorFrota ?? [];
+    const util = (dashboardData as any)?.utilizacaoPorFrota ?? [];
 
+    const getVal = (list: any[], frota: string) => list.find((item: any) => item.frota === frota);
 
+    const baseFrotas = [
+      { name: "EX1200", type: "exc", defaultEq: "5/5" },
+      { name: "EX2500", type: "exc", defaultEq: "3/3" },
+      { name: "CAMINHÕES 785", type: "trk", defaultEq: "25/25" },
+      { name: "CAMINHÕES 730", type: "trk", defaultEq: "15/15" },
+    ];
+
+    return baseFrotas.map((f) => {
+      const d = getVal(disp, f.name);
+      const u = getVal(util, f.name);
+
+      const dfVal = d?.valor;
+      const utVal = u?.valor;
+
+      const eqStr = d
+        ? `${d.quantidadeComDados ?? 0}/${d.quantidadeConfigurada ?? 0}`
+        : f.defaultEq;
+
+      return {
+        ...f,
+        eq: eqStr,
+        df: dfVal,
+        ut: utVal,
+      };
+    });
+  }, [dashboardData]);
 
   const limparFiltros = () => {
     setDtIni(inicioAno);
@@ -809,7 +832,7 @@ export default function DashboardProducaoUM() {
         </Panel>
         <Panel title="% DISPONIBILIDADE FÍSICA POR FROTA" className="col-span-12 lg:col-span-6 h-[340px] animated-card">
           <div className="flex flex-col h-full justify-evenly px-2">
-            {frotaStats.map((item) => (
+            {frotasRender.map((item) => (
               <div key={item.name} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
                 <div className="flex items-center gap-3 w-1/2">
                   <div className="w-[40px] flex items-center justify-center flex-shrink-0">
@@ -826,7 +849,7 @@ export default function DashboardProducaoUM() {
                 </div>
                 <div className="flex items-center gap-8 justify-end w-1/2 pr-4">
                   <div className="flex items-center justify-center">
-                    <DonutProgress value={item.df} color="#22c55e" showPercent={false} />
+                    <DonutProgress value={item.df} color={typeof item.df === "number" ? "#22c55e" : "#555"} showPercent={false} />
                   </div>
                   <div className="text-right w-16">
                     <div className="text-[11px] text-mining-blue/70 font-bold uppercase">Meta</div>
@@ -840,7 +863,7 @@ export default function DashboardProducaoUM() {
 
         <Panel title="UTILIZAÇÃO POR FROTA" className="col-span-12 lg:col-span-6 h-[340px] animated-card">
           <div className="flex flex-col h-full justify-evenly px-2">
-            {frotaStats.map((item) => (
+            {frotasRender.map((item) => (
               <div key={item.name} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
                 <div className="flex items-center gap-3 w-1/2">
                   <div className="w-[40px] flex items-center justify-center flex-shrink-0">
@@ -857,7 +880,7 @@ export default function DashboardProducaoUM() {
                 </div>
                 <div className="flex items-center gap-8 justify-end w-1/2 pr-4">
                   <div className="flex items-center justify-center">
-                    <DonutProgress value={item.ut} color={item.ut < 5 ? "#eab308" : (item.ut < 9 ? "#0ea5e9" : "#22c55e")} showPercent={true} />
+                    <DonutProgress value={item.ut} color={typeof item.ut === "number" ? (item.ut < 5 ? "#eab308" : (item.ut < 9 ? "#0ea5e9" : "#22c55e")) : "#555"} showPercent={true} />
                   </div>
                   <div className="text-right w-16">
                     <div className="text-[11px] text-mining-blue/70 font-bold uppercase">Meta</div>
@@ -1252,18 +1275,22 @@ function Empty() {
   return <p className="text-[11px] text-muted-foreground font-mono py-8 text-center">Sem dados reais disponíveis</p>;
 }
 
-function DonutProgress({ value, color, showPercent }: { value: number; color: string; showPercent: boolean }) {
+function DonutProgress({ value, color, showPercent }: { value?: number | null; color: string; showPercent: boolean }) {
   const radius = 16;
   const circumference = 2 * Math.PI * radius;
-  const offset = circumference - (value / 100) * circumference;
+  const hasValue = typeof value === "number";
+  const val = hasValue ? value : 0;
+  const offset = circumference - (val / 100) * circumference;
   return (
     <div className="relative w-14 h-14 flex items-center justify-center">
       <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
         <circle cx="18" cy="18" r="16" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="2.5" />
-        <circle cx="18" cy="18" r="16" fill="none" stroke={color} strokeWidth="2.5" strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round" />
+        {hasValue && (
+          <circle cx="18" cy="18" r="16" fill="none" stroke={color} strokeWidth="2.5" strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round" />
+        )}
       </svg>
-      <span className="absolute text-[15px] font-mono font-bold tracking-tighter" style={{ color: showPercent ? '#fff' : color }}>
-        {value.toFixed(1)}{showPercent ? '%' : ''}
+      <span className="absolute text-[15px] font-mono font-bold tracking-tighter" style={{ color: showPercent && hasValue ? '#fff' : color }}>
+        {hasValue ? `${val.toFixed(1)}${showPercent ? '%' : ''}` : '--'}
       </span>
     </div>
   );
