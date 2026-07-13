@@ -1271,55 +1271,22 @@ function DonutProgress({ value, color, showPercent }: { value: number; color: st
 
 function ExcavatorIcon({ className = "" }: { className?: string }) {
   return (
-    <svg
-      viewBox="0 0 32 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.6"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-    >
-      {/* Esteira (track) */}
-      <path d="M4 20 h14 a2 2 0 0 0 0 -4 h-14 a2 2 0 0 0 0 4 z" />
-      <circle cx="6.5" cy="18" r="0.9" />
-      <circle cx="11" cy="18" r="0.9" />
-      <circle cx="15.5" cy="18" r="0.9" />
-      {/* Cabine */}
-      <path d="M9 16 v-5 a1 1 0 0 1 1 -1 h7 a1 1 0 0 1 1 1 v5" />
-      <path d="M11 14 h4" />
-      {/* Braço estendido para a direita */}
-      <path d="M18 11 l6 -3" />
-      <path d="M24 8 l4 5" />
-      {/* Caçamba */}
-      <path d="M28 13 l1 3 l-4 1 z" />
-    </svg>
+    <img
+      src={excavatorNeon}
+      alt="Escavadeira"
+      className={`object-contain ${className}`}
+      style={{ filter: "drop-shadow(0 0 6px rgba(245,180,0,0.75)) drop-shadow(0 0 12px rgba(245,180,0,0.35))" }}
+    />
   );
 }
 
 function HaulTruckIcon({ className = "" }: { className?: string }) {
   return (
-    <svg
-      viewBox="0 0 32 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.6"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-    >
-      {/* Báscula grande inclinada */}
-      <path d="M3 14 L7 4 H21 L24 14 Z" />
-      {/* Chassi */}
-      <path d="M3 14 H26" />
-      {/* Cabine à direita */}
-      <path d="M24 14 v-5 h3 a1 1 0 0 1 1 1 v4" />
-      <path d="M25 12 h2" />
-      {/* Rodas grandes */}
-      <circle cx="9" cy="17" r="3" />
-      <circle cx="9" cy="17" r="1" />
-      <circle cx="22" cy="17" r="3" />
-      <circle cx="22" cy="17" r="1" />
-    </svg>
+    <img
+      src={truckNeon}
+      alt="Caminhão"
+      className={`object-contain ${className}`}
+      style={{ filter: "drop-shadow(0 0 6px rgba(245,180,0,0.75)) drop-shadow(0 0 12px rgba(245,180,0,0.35))" }}
+    />
   );
 }
