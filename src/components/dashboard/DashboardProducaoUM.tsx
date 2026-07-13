@@ -1284,11 +1284,13 @@ function ExcavatorIcon({ className = "" }: { className?: string }) {
 
 function HaulTruckIcon({ className = "" }: { className?: string }) {
   return (
-    <img
-      src={truckNeon}
-      alt="Caminhão"
-      className={`object-contain ${className}`}
-      style={{ filter: "drop-shadow(0 0 6px rgba(245,180,0,0.75)) drop-shadow(0 0 12px rgba(245,180,0,0.35))" }}
-    />
+    <div className={`animate-truck-idle-move flex items-center justify-center ${className}`}>
+      <img
+        src={truckNeon}
+        alt="Caminhão"
+        className="w-full h-full object-contain"
+        style={{ filter: "drop-shadow(0 0 6px rgba(245,180,0,0.75)) drop-shadow(0 0 12px rgba(245,180,0,0.35))" }}
+      />
+    </div>
   );
 }

@@ -168,6 +168,18 @@
   }
   .animate-truck-move { animation: truck-move 1.5s ease-in-out infinite; }
 
+  @keyframes truck-idle-move {
+    0%   { transform: translateY(0) translateX(0); }
+    20%  { transform: translateY(-1.5px) translateX(2px) rotate(1deg); }
+    40%  { transform: translateY(0) translateX(4px) rotate(0deg); }
+    60%  { transform: translateY(-1.5px) translateX(2px) rotate(-1deg); }
+    80%  { transform: translateY(0) translateX(1px) rotate(0deg); }
+    100% { transform: translateY(0) translateX(0); }
+  }
+  .animate-truck-idle-move {
+    animation: truck-idle-move 1.6s ease-in-out infinite;
+  }
+
   @keyframes wheel-spin {
     from { transform: rotate(0deg); }
     to   { transform: rotate(360deg); }
