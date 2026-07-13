@@ -857,8 +857,14 @@ export default function DashboardProducaoUM() {
           <div className="flex flex-col h-full justify-evenly px-2">
             {frotaStats.map((item) => (
               <div key={item.name} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
-                <div className="flex items-center gap-4 w-1/2">
-                  {item.type === "exc" ? <ExcavatorIcon className="w-5 h-5 text-amber-500" /> : <HaulTruckIcon className="w-5 h-5 text-amber-500" />}
+                <div className="flex items-center gap-3 w-1/2">
+                  <div className="w-[28px] flex items-center justify-center flex-shrink-0">
+                    {item.type === "exc" ? (
+                      <ExcavatorIcon className="w-[22px] h-[22px] text-[#F5B400]" />
+                    ) : (
+                      <HaulTruckIcon className="w-[22px] h-[22px] text-[#F5B400]" />
+                    )}
+                  </div>
                   <div>
                     <div className="text-[12px] font-bold text-white uppercase tracking-wider">{item.name}</div>
                     <div className="text-[10px] text-mining-blue/70 font-mono mt-0.5">({item.eq})</div>
@@ -882,8 +888,14 @@ export default function DashboardProducaoUM() {
           <div className="flex flex-col h-full justify-evenly px-2">
             {frotaStats.map((item) => (
               <div key={item.name} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
-                <div className="flex items-center gap-4 w-1/2">
-                  {item.type === "exc" ? <ExcavatorIcon className="w-5 h-5 text-amber-500" /> : <HaulTruckIcon className="w-5 h-5 text-amber-500" />}
+                <div className="flex items-center gap-3 w-1/2">
+                  <div className="w-[28px] flex items-center justify-center flex-shrink-0">
+                    {item.type === "exc" ? (
+                      <ExcavatorIcon className="w-[22px] h-[22px] text-[#F5B400]" />
+                    ) : (
+                      <HaulTruckIcon className="w-[22px] h-[22px] text-[#F5B400]" />
+                    )}
+                  </div>
                   <div>
                     <div className="text-[12px] font-bold text-white uppercase tracking-wider">{item.name}</div>
                     <div className="text-[10px] text-mining-blue/70 font-mono mt-0.5">({item.eq})</div>
@@ -1258,15 +1270,16 @@ function DonutProgress({ value, color, showPercent }: { value: number; color: st
 function ExcavatorIcon({ className = "" }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+      {/* Linha azul sob a esteira (conforme imagem 1) */}
+      <rect x="2" y="19" width="12" height="1" fill="#3b82f6" opacity="0.8" />
       {/* Esteira */}
-      <rect x="2" y="16" width="10" height="3" rx="1.5" />
-      {/* Cabine e Corpo */}
-      <path d="M3 15v-5a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v5H3z" />
-      <rect x="5" y="10" width="3" height="3" fill="#1e293b" /> {/* Janela vazada */}
-      {/* Braço articulado */}
-      <path d="M8 11h7a1 1 0 0 1 .8.4l4 5-1.6 1.2-3.4-4.2H8v-2.4z" />
-      {/* Caçamba */}
-      <path d="M17.5 16.5l2.5-1.5 2 2.5a2 2 0 0 1-2.5 2.5l-2-3.5z" />
+      <rect x="4" y="15" width="10" height="3" rx="1.5" />
+      {/* Corpo virado para a direita */}
+      <path d="M7 14v-4a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v4H7z" />
+      <rect x="10" y="10" width="2" height="2" fill="#1e293b" />
+      {/* Braço voltado para a esquerda */}
+      <path d="M8 10H3a1 1 0 0 0-.8.4l-2 3.5 1.6 1.2 1.4-2.4H7v-2.7z" />
+      <path d="M1 14.5l1.5-2.5 2 2.5a2 2 0 0 0-2.5 2.5l-1-2.5z" />
     </svg>
   );
 }
@@ -1275,15 +1288,18 @@ function HaulTruckIcon({ className = "" }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
       {/* Rodas */}
-      <circle cx="6" cy="18" r="2.5" />
-      <circle cx="17" cy="18" r="2.5" />
+      <circle cx="5" cy="17" r="2.5" />
+      <circle cx="16" cy="17" r="2.5" />
       {/* Chassi inferior */}
-      <rect x="3" y="14" width="16" height="2" rx="1" />
-      {/* Báscula (Caçamba do caminhão) */}
-      <path d="M2 13l2-9h12l2 9H2z" />
-      {/* Cabine (Frente) */}
-      <path d="M17 14v-4h3a1 1 0 0 1 1 1v3h-4z" />
-      <rect x="18" y="11" width="2" height="2" fill="#1e293b" /> {/* Janela vazada */}
+      <rect x="2" y="13" width="16" height="2" rx="1" />
+      {/* Báscula (Traseira alta e inclinada à esquerda) */}
+      <path d="M2 13l2-8h11l1 8H2z" />
+      <path d="M1 5l2 8h-2z" />
+      {/* Cabine (Frente à direita) */}
+      <path d="M16 13v-4h3a1 1 0 0 1 1 1v3h-4z" />
+      <rect x="17" y="10" width="1.5" height="1.5" fill="#1e293b" />
+      {/* Detalhe frontal */}
+      <path d="M20 13h2v-2h-2v2z" />
     </svg>
   );
 }
