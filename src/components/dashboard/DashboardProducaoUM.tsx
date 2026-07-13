@@ -18,7 +18,6 @@ import {
 } from "recharts";
 import { DASHBOARD_API_URL, type DashboardApiPayload } from "@/hooks/useDashboardApi";
 import { supabase } from "@/integrations/supabase/client";
-import { Truck, Pickaxe } from "lucide-react";
 
 /* ---------- helpers ---------- */
 const frotaStats = [
@@ -859,7 +858,7 @@ export default function DashboardProducaoUM() {
             {frotaStats.map((item) => (
               <div key={item.name} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
                 <div className="flex items-center gap-4 w-1/2">
-                  {item.type === "exc" ? <Pickaxe size={20} className="text-amber-500" /> : <Truck size={20} className="text-amber-500" />}
+                  {item.type === "exc" ? <ExcavatorIcon className="w-5 h-5 text-amber-500" /> : <HaulTruckIcon className="w-5 h-5 text-amber-500" />}
                   <div>
                     <div className="text-[12px] font-bold text-white uppercase tracking-wider">{item.name}</div>
                     <div className="text-[10px] text-mining-blue/70 font-mono mt-0.5">({item.eq})</div>
@@ -884,7 +883,7 @@ export default function DashboardProducaoUM() {
             {frotaStats.map((item) => (
               <div key={item.name} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
                 <div className="flex items-center gap-4 w-1/2">
-                  {item.type === "exc" ? <Pickaxe size={20} className="text-amber-500" /> : <Truck size={20} className="text-amber-500" />}
+                  {item.type === "exc" ? <ExcavatorIcon className="w-5 h-5 text-amber-500" /> : <HaulTruckIcon className="w-5 h-5 text-amber-500" />}
                   <div>
                     <div className="text-[12px] font-bold text-white uppercase tracking-wider">{item.name}</div>
                     <div className="text-[10px] text-mining-blue/70 font-mono mt-0.5">({item.eq})</div>
@@ -1253,5 +1252,32 @@ function DonutProgress({ value, color, showPercent }: { value: number; color: st
         {value.toFixed(1)}{showPercent ? '%' : ''}
       </span>
     </div>
+  );
+}
+
+function ExcavatorIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M4 14v-3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3" />
+      <path d="M6 10V6h2v4" />
+      <path d="M10 11l4-4 4 2 2 4" />
+      <path d="M19 14c0 1.5 1.5 2 3 2v-4l-3 2z" />
+      <rect x="2" y="14" width="10" height="4" rx="1" />
+      <circle cx="4" cy="16" r="1" />
+      <circle cx="10" cy="16" r="1" />
+    </svg>
+  );
+}
+
+function HaulTruckIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M2 13h18" />
+      <path d="M2 11L4 4h12l2 7" />
+      <path d="M15 13v-3h3v3" />
+      <path d="M18 11h2l1 2v2" />
+      <circle cx="6" cy="15" r="3" />
+      <circle cx="16" cy="15" r="3" />
+    </svg>
   );
 }
