@@ -720,7 +720,7 @@ export default function DashboardProducaoUM() {
           </div>
         </Panel>
 
-        <Panel title="ESCAVADEIRAS" className="col-span-12 lg:col-span-5 lg:row-span-2 h-[492px] animated-card">
+        <Panel title="ESCAVADEIRAS" className="col-span-12 lg:col-span-5 h-[300px] animated-card">
           {top5Escav.length === 0 ? (
             <Empty />
           ) : (
@@ -807,54 +807,6 @@ export default function DashboardProducaoUM() {
             </div>
           )}
         </Panel>
-        <Panel title="Produtividade (t/h)" className="col-span-12 lg:col-span-4 h-[184px] animated-card">
-          <div className="force-live-animation productivity-line h-full chart-line-neon glow-line neon-chart scan-line">
-            {prodSeries.length === 0 ? (
-              <Empty />
-            ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={prodSeries} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-                  <CartesianGrid stroke="rgba(255,255,255,0.05)" vertical={false} />
-                  <XAxis dataKey="dia" stroke="#7fb2d9" tick={{ fontSize: 10 }} />
-                  <YAxis stroke="#7fb2d9" tick={{ fontSize: 10 }} />
-                  <Tooltip contentStyle={tooltipStyle} />
-                  <Legend wrapperStyle={{ fontSize: 10 }} />
-                  <Line type="monotone" dataKey="Meta" stroke="#f59e0b" dot={false} strokeWidth={2} animationDuration={1200} animationEasing="ease-out" />
-                  <Line type="monotone" dataKey="Previsto" stroke="#38bdf8" dot={false} strokeWidth={2} animationDuration={1200} animationEasing="ease-out" />
-                  <Line type="monotone" dataKey="Real" stroke="#22c55e" dot={false} strokeWidth={2} animationDuration={1200} animationEasing="ease-out" />
-                </LineChart>
-              </ResponsiveContainer>
-            )}
-          </div>
-        </Panel>
-
-        <Panel title="Viagens por Hora" className="col-span-12 lg:col-span-2 h-[184px] animated-card">
-          <div className="force-live-animation hourly-trips daily-bars h-full chart-bar-grow neon-chart pulse-bar scan-line">
-            {viagensPorHora.every((v) => v.Real === 0) ? (
-              <Empty />
-            ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={viagensPorHora} margin={{ top: 8, right: 4, left: 0, bottom: 0 }}>
-                  <CartesianGrid stroke="rgba(255,255,255,0.05)" vertical={false} />
-                  <XAxis dataKey="hora" stroke="#7fb2d9" tick={{ fontSize: 8 }} interval={1} />
-                  <YAxis stroke="#7fb2d9" tick={{ fontSize: 9 }} />
-                  <Tooltip contentStyle={tooltipStyle} />
-                  <Bar dataKey="Real" fill="#22d3ee" radius={[2, 2, 0, 0]} animationDuration={900} animationEasing="ease-out" />
-                </BarChart>
-              </ResponsiveContainer>
-            )}
-          </div>
-        </Panel>
-
-        <Panel className="col-span-12 lg:col-span-1 h-[184px] animated-card">
-          <div className="flex flex-col justify-between h-full py-1 gap-2">
-            <StatBlock label="Produção (9H/13H)" value={<Counter value={producaoDia} />} unit="t" big />
-            <StatBlock label="Próxima Média" value={<Counter value={producaoTotalEscavadeirasTH} />} />
-            <StatBlock label="Viagens" value={<Counter value={viagens} />} />
-            <StatBlock label="VOI 10.000" value={<Counter value={mediaViagens} />} />
-          </div>
-        </Panel>
-
         <Panel title="% DISPONIBILIDADE FÍSICA POR FROTA" className="col-span-12 lg:col-span-6 h-[240px] animated-card">
           <div className="flex flex-col h-full justify-evenly px-2">
             {frotaStats.map((item) => (
@@ -914,6 +866,54 @@ export default function DashboardProducaoUM() {
                 </div>
               </div>
             ))}
+          </div>
+        </Panel>
+
+        <Panel title="Produtividade (t/h)" className="col-span-12 lg:col-span-5 h-[184px] animated-card">
+          <div className="force-live-animation productivity-line h-full chart-line-neon glow-line neon-chart scan-line">
+            {prodSeries.length === 0 ? (
+              <Empty />
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={prodSeries} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+                  <CartesianGrid stroke="rgba(255,255,255,0.05)" vertical={false} />
+                  <XAxis dataKey="dia" stroke="#7fb2d9" tick={{ fontSize: 10 }} />
+                  <YAxis stroke="#7fb2d9" tick={{ fontSize: 10 }} />
+                  <Tooltip contentStyle={tooltipStyle} />
+                  <Legend wrapperStyle={{ fontSize: 10 }} />
+                  <Line type="monotone" dataKey="Meta" stroke="#f59e0b" dot={false} strokeWidth={2} animationDuration={1200} animationEasing="ease-out" />
+                  <Line type="monotone" dataKey="Previsto" stroke="#38bdf8" dot={false} strokeWidth={2} animationDuration={1200} animationEasing="ease-out" />
+                  <Line type="monotone" dataKey="Real" stroke="#22c55e" dot={false} strokeWidth={2} animationDuration={1200} animationEasing="ease-out" />
+                </LineChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        </Panel>
+
+        <Panel title="Viagens por Hora" className="col-span-12 lg:col-span-5 h-[184px] animated-card">
+          <div className="force-live-animation hourly-trips daily-bars h-full chart-bar-grow neon-chart pulse-bar scan-line">
+            {viagensPorHora.every((v) => v.Real === 0) ? (
+              <Empty />
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={viagensPorHora} margin={{ top: 8, right: 4, left: 0, bottom: 0 }}>
+                  <CartesianGrid stroke="rgba(255,255,255,0.05)" vertical={false} />
+                  <XAxis dataKey="hora" stroke="#7fb2d9" tick={{ fontSize: 8 }} interval={1} />
+                  <YAxis stroke="#7fb2d9" tick={{ fontSize: 9 }} />
+                  <Tooltip contentStyle={tooltipStyle} />
+                  <Bar dataKey="Real" fill="#22d3ee" radius={[2, 2, 0, 0]} animationDuration={900} animationEasing="ease-out" />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        </Panel>
+
+        <Panel className="col-span-12 lg:col-span-2 h-[184px] animated-card">
+          <div className="flex flex-col justify-between h-full py-1 gap-2">
+            <StatBlock label="Produção (9H/13H)" value={<Counter value={producaoDia} />} unit="t" big />
+            <StatBlock label="Próxima Média" value={<Counter value={producaoTotalEscavadeirasTH} />} />
+            <StatBlock label="Viagens" value={<Counter value={viagens} />} />
+            <StatBlock label="VOI 10.000" value={<Counter value={mediaViagens} />} />
           </div>
         </Panel>
 
