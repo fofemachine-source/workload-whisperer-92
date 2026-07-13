@@ -828,9 +828,9 @@ export default function DashboardProducaoUM() {
                   <div className="flex items-center justify-center">
                     <DonutProgress value={item.df} color="#22c55e" showPercent={false} />
                   </div>
-                  <div className="text-right w-12">
-                    <div className="text-[8px] text-mining-blue/70 uppercase">Meta</div>
-                    <div className="text-[11px] font-mono text-white">85.0%</div>
+                  <div className="text-right w-16">
+                    <div className="text-[10px] text-mining-blue/70 font-bold uppercase">Meta</div>
+                    <div className="text-[14px] font-mono text-white">85.0%</div>
                   </div>
                 </div>
               </div>
@@ -859,9 +859,9 @@ export default function DashboardProducaoUM() {
                   <div className="flex items-center justify-center">
                     <DonutProgress value={item.ut} color={item.ut < 5 ? "#eab308" : (item.ut < 9 ? "#0ea5e9" : "#22c55e")} showPercent={true} />
                   </div>
-                  <div className="text-right w-12">
-                    <div className="text-[8px] text-mining-blue/70 uppercase">Meta</div>
-                    <div className="text-[11px] font-mono text-white">85.0%</div>
+                  <div className="text-right w-16">
+                    <div className="text-[10px] text-mining-blue/70 font-bold uppercase">Meta</div>
+                    <div className="text-[14px] font-mono text-white">85.0%</div>
                   </div>
                 </div>
               </div>
@@ -1262,7 +1262,7 @@ function DonutProgress({ value, color, showPercent }: { value: number; color: st
         <circle cx="18" cy="18" r="16" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="2.5" />
         <circle cx="18" cy="18" r="16" fill="none" stroke={color} strokeWidth="2.5" strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round" />
       </svg>
-      <span className="absolute text-[9px] font-mono font-bold tracking-tighter" style={{ color: showPercent ? '#fff' : color }}>
+      <span className="absolute text-[12px] font-mono font-bold tracking-tighter" style={{ color: showPercent ? '#fff' : color }}>
         {value.toFixed(1)}{showPercent ? '%' : ''}
       </span>
     </div>
