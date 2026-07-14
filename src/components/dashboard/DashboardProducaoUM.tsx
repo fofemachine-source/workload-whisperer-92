@@ -437,6 +437,7 @@ export default function DashboardProducaoUM() {
   const producaoMensal = Number(cards.producaoMensal ?? 0);
   const producaoTotalEscavadeirasTH = Number(cards.th ?? 0);
   const viagens = Number(cards.viagens ?? 0);
+  const mediaViagens = Number(cards.mediaViagens ?? 0);
 
   const dailySeries = useMemo(
     () =>
