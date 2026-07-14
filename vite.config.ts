@@ -24,9 +24,7 @@ export default defineConfig(({ mode }) => ({
     }),
     mode === "development" && componentTagger(),
   ].filter(Boolean),
-  build: {
-    target: ["es2017", "chrome64", "safari12"],
-  },
+  // build.target removido para o plugin-legacy gerenciar os targets nativamente
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
