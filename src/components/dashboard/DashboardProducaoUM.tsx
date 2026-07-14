@@ -22,6 +22,12 @@ import excavatorNeon from "@/assets/excavator-neon.png";
 import truckNeon from "@/assets/truck-neon.png";
 
 /* ---------- helpers ---------- */
+const frotaStats = [
+  { name: "EX1200", eq: "5/5", df: 88.0, ut: 4.7, type: "exc" },
+  { name: "EX2500", eq: "3/3", df: 97.5, ut: 8.7, type: "exc" },
+  { name: "CAMINHÕES 785", eq: "25/25", df: 90.9, ut: 14.6, type: "trk" },
+  { name: "CAMINHÕES 730", eq: "15/15", df: 61.9, ut: 8.8, type: "trk" },
+];
 
 const fmt = (n: number, d = 0) =>
   (Number.isFinite(n) ? n : 0).toLocaleString("pt-BR", {
@@ -72,8 +78,6 @@ const toNum = (v: unknown) => {
   const n = typeof v === "string" ? parseFloat(v.replace(",", ".")) : Number(v);
   return Number.isFinite(n) ? n : 0;
 };
-
-const isNum = (v: any) => v != null && v !== "" && !Number.isNaN(Number(v));
 
 const fmtHora = (v: unknown): string => {
   if (v === null || v === undefined || v === "") return "—";
@@ -426,43 +430,14 @@ export default function DashboardProducaoUM() {
   }, []);
 
   const data = dashboardData as any;
-  const lavFinal = Number(
-    data?.cards?.lav?.acumuladoDia ?? data?.kpis?.producaoLavDia ?? data?.kpis?.lav ?? 0,
-  );
-  const lavProjetado = Number(
-    data?.cards?.lav?.projetadoDia ?? data?.kpis?.projetadoLavDia ?? data?.kpis?.projetadoLav ?? 0,
-  );
-  const retFinal = Number(
-    data?.cards?.ret?.acumuladoDia ?? data?.kpis?.producaoRetDia ?? data?.kpis?.ret ?? 0,
-  );
-  const retProjetado = Number(
-    data?.cards?.ret?.projetadoDia ?? data?.kpis?.projetadoRetDia ?? data?.kpis?.projetadoRet ?? 0,
-  );
-  const producaoDia = Number(
-    data?.cards?.producaoDiaria ?? data?.kpis?.producaoDia ?? data?.kpis?.producaoReal ?? 0,
-  );
-  const producaoMensal = Number(
-    data?.cards?.producaoMensal ?? data?.kpis?.producaoMensal ?? data?.kpis?.acumuladoMes ?? 0,
-  );
-  const producaoTotalEscavadeirasTH = Number(
-    data?.cards?.th ?? data?.kpis?.producaoTotalEscavadeirasTH ?? data?.kpis?.produtividadeMedia ?? 0,
-  );
-  const viagens = Number(data?.cards?.viagens ?? data?.kpis?.viagens ?? 0);
-  const mediaViagens = Number(data?.cards?.mediaViagens ?? data?.kpis?.mediaViagens ?? 0);
-
-  // Log de confirmação — mapeamento restaurado
-  if (data) {
-    console.log("[DASHBOARD MAPA]", {
-      "cards.lav": data?.cards?.lav,
-      "cards.ret": data?.cards?.ret,
-      "cards.producaoMensal": data?.cards?.producaoMensal,
-      "cards.th": data?.cards?.th,
-      "producaoFrente.length": Array.isArray(data?.producaoFrente) ? data.producaoFrente.length : 0,
-      "rankingEscavadeiras.length": Array.isArray(data?.rankingEscavadeiras) ? data.rankingEscavadeiras.length : 0,
-      "disponibilidadePorFrota": data?.disponibilidadePorFrota,
-      "utilizacaoPorFrota": data?.utilizacaoPorFrota,
-    });
-  }
+  const lavFinal = Number(data?.cards?.lav?.acumuladoDia ?? data?.kpis?.producaoLavDia ?? 0);
+  const lavProjetado = Number(data?.cards?.lav?.projetadoDia ?? data?.kpis?.projetadoLavDia ?? 0);
+  const retFinal = Number(data?.cards?.ret?.acumuladoDia ?? data?.kpis?.producaoRetDia ?? 0);
+  const retProjetado = Number(data?.cards?.ret?.projetadoDia ?? data?.kpis?.projetadoRetDia ?? 0);
+  const producaoDia = Number(data?.cards?.producaoDiaria ?? data?.producaoDiaria ?? 0);
+  const producaoMensal = Number(data?.cards?.producaoMensal ?? data?.kpis?.producaoMensal ?? 0);
+  const producaoTotalEscavadeirasTH = Number(data?.cards?.th ?? data?.kpis?.producaoTotalEscavadeirasTH ?? 0);
+  const viagens = Number(data?.cards?.viagens ?? 0);
 
   const dailySeries = useMemo(
     () =>
@@ -568,56 +543,9 @@ export default function DashboardProducaoUM() {
     [dailySeries],
   );
 
-  const frotasRender = useMemo(() => {
-    const data = dashboardData as any;
-    const disponibilidade = Array.isArray(data?.disponibilidadePorFrota) ? data.disponibilidadePorFrota : [];
-    const utilizacao = Array.isArray(data?.utilizacaoPorFrota) ? data.utilizacaoPorFrota : [];
+  const mediaViagens = 0;
 
-    const dfEX1200 = disponibilidade.find((item: any) => item.frota === "EX1200");
-    const dfEX2500 = disponibilidade.find((item: any) => item.frota === "EX2500");
-    const utEX1200 = utilizacao.find((item: any) => item.frota === "EX1200");
-    const utEX2500 = utilizacao.find((item: any) => item.frota === "EX2500");
 
-    const formatEq = (item: any, defaultVal: string) => {
-      if (!item) return defaultVal;
-      return `${item.quantidadeComDados ?? 0}/${item.quantidadeConfigurada ?? 0}`;
-    };
-
-    return [
-      {
-        name: "EX1200",
-        type: "exc",
-        df: dfEX1200?.valor,
-        ut: utEX1200?.valor,
-        eqDf: formatEq(dfEX1200, "5/5"),
-        eqUt: formatEq(utEX1200, "5/5"),
-      },
-      {
-        name: "EX2500",
-        type: "exc",
-        df: dfEX2500?.valor,
-        ut: utEX2500?.valor,
-        eqDf: formatEq(dfEX2500, "3/3"),
-        eqUt: formatEq(utEX2500, "3/3"),
-      },
-      {
-        name: "CAMINHÕES 785",
-        type: "trk",
-        df: undefined,
-        ut: undefined,
-        eqDf: "25/25",
-        eqUt: "25/25",
-      },
-      {
-        name: "CAMINHÕES 730",
-        type: "trk",
-        df: undefined,
-        ut: undefined,
-        eqDf: "15/15",
-        eqUt: "15/15",
-      },
-    ];
-  }, [dashboardData]);
 
   const limparFiltros = () => {
     setDtIni(inicioAno);
@@ -878,7 +806,7 @@ export default function DashboardProducaoUM() {
         </Panel>
         <Panel title="% DISPONIBILIDADE FÍSICA POR FROTA" className="col-span-12 lg:col-span-6 h-[340px] animated-card">
           <div className="flex flex-col h-full justify-evenly px-2">
-            {frotasRender.map((item) => (
+            {frotaStats.map((item) => (
               <div key={item.name} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
                 <div className="flex items-center gap-3 w-1/2">
                   <div className="w-[40px] flex items-center justify-center flex-shrink-0">
@@ -890,12 +818,12 @@ export default function DashboardProducaoUM() {
                   </div>
                   <div>
                     <div className="text-[16px] font-bold text-white uppercase tracking-wider">{item.name}</div>
-                    <div className="text-[12px] text-mining-blue/70 font-mono mt-0.5">({item.eqDf})</div>
+                    <div className="text-[12px] text-mining-blue/70 font-mono mt-0.5">({item.eq})</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-8 justify-end w-1/2 pr-4">
                   <div className="flex items-center justify-center">
-                    <DonutProgress value={item.df} color={isNum(item.df) ? "#22c55e" : "#555"} showPercent={true} />
+                    <DonutProgress value={item.df} color="#22c55e" showPercent={false} />
                   </div>
                   <div className="text-right w-16">
                     <div className="text-[11px] text-mining-blue/70 font-bold uppercase">Meta</div>
@@ -909,7 +837,7 @@ export default function DashboardProducaoUM() {
 
         <Panel title="UTILIZAÇÃO POR FROTA" className="col-span-12 lg:col-span-6 h-[340px] animated-card">
           <div className="flex flex-col h-full justify-evenly px-2">
-            {frotasRender.map((item) => (
+            {frotaStats.map((item) => (
               <div key={item.name} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
                 <div className="flex items-center gap-3 w-1/2">
                   <div className="w-[40px] flex items-center justify-center flex-shrink-0">
@@ -921,12 +849,12 @@ export default function DashboardProducaoUM() {
                   </div>
                   <div>
                     <div className="text-[16px] font-bold text-white uppercase tracking-wider">{item.name}</div>
-                    <div className="text-[12px] text-mining-blue/70 font-mono mt-0.5">({item.eqUt})</div>
+                    <div className="text-[12px] text-mining-blue/70 font-mono mt-0.5">({item.eq})</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-8 justify-end w-1/2 pr-4">
                   <div className="flex items-center justify-center">
-                    <DonutProgress value={item.ut} color={isNum(item.ut) ? (item.ut < 5 ? "#eab308" : (item.ut < 9 ? "#0ea5e9" : "#22c55e")) : "#555"} showPercent={true} />
+                    <DonutProgress value={item.ut} color={item.ut < 5 ? "#eab308" : (item.ut < 9 ? "#0ea5e9" : "#22c55e")} showPercent={true} />
                   </div>
                   <div className="text-right w-16">
                     <div className="text-[11px] text-mining-blue/70 font-bold uppercase">Meta</div>
@@ -1321,23 +1249,18 @@ function Empty() {
   return <p className="text-[11px] text-muted-foreground font-mono py-8 text-center">Sem dados reais disponíveis</p>;
 }
 
-function DonutProgress({ value, color, showPercent }: { value?: any; color: string; showPercent: boolean }) {
+function DonutProgress({ value, color, showPercent }: { value: number; color: string; showPercent: boolean }) {
   const radius = 16;
   const circumference = 2 * Math.PI * radius;
-  const numValue = Number(value);
-  const hasValue = value != null && value !== "" && !Number.isNaN(numValue);
-  const val = hasValue ? numValue : 0;
-  const offset = circumference - (val / 100) * circumference;
+  const offset = circumference - (value / 100) * circumference;
   return (
     <div className="relative w-14 h-14 flex items-center justify-center">
       <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
         <circle cx="18" cy="18" r="16" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="2.5" />
-        {hasValue && (
-          <circle cx="18" cy="18" r="16" fill="none" stroke={color} strokeWidth="2.5" strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round" />
-        )}
+        <circle cx="18" cy="18" r="16" fill="none" stroke={color} strokeWidth="2.5" strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round" />
       </svg>
-      <span className="absolute text-[15px] font-mono font-bold tracking-tighter" style={{ color: showPercent && hasValue ? '#fff' : color }}>
-        {hasValue ? `${val.toFixed(1)}${showPercent ? '%' : ''}` : '--'}
+      <span className="absolute text-[15px] font-mono font-bold tracking-tighter" style={{ color: showPercent ? '#fff' : color }}>
+        {value.toFixed(1)}{showPercent ? '%' : ''}
       </span>
     </div>
   );
