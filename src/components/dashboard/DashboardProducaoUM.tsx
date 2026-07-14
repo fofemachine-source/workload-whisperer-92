@@ -425,19 +425,16 @@ export default function DashboardProducaoUM() {
     return () => clearInterval(timer);
   }, []);
 
-  // Cards superiores — 100% vindos de data.cards (sem cálculo no frontend)
-  const cards = ((dashboardData as any)?.cards ?? {}) as Record<string, any>;
-  const lavCard = (cards.lav ?? {}) as Record<string, any>;
-  const retCard = (cards.ret ?? {}) as Record<string, any>;
-  const lavFinal = Number(lavCard.acumuladoDia ?? 0);
-  const lavProjetado = Number(lavCard.projetadoDia ?? 0);
-  const retFinal = Number(retCard.acumuladoDia ?? 0);
-  const retProjetado = Number(retCard.projetadoDia ?? 0);
-  const producaoDia = Number(cards.producaoDiaria ?? 0);
-  const producaoMensal = Number(cards.producaoMensal ?? 0);
-  const producaoTotalEscavadeirasTH = Number(cards.th ?? 0);
-  const viagens = Number(cards.viagens ?? 0);
-  const mediaViagens = Number(cards.mediaViagens ?? 0);
+  const data = dashboardData as any;
+  const lavFinal = Number(data?.cards?.lav?.acumuladoDia ?? data?.kpis?.producaoLavDia ?? 0);
+  const lavProjetado = Number(data?.cards?.lav?.projetadoDia ?? data?.kpis?.projetadoLavDia ?? 0);
+  const retFinal = Number(data?.cards?.ret?.acumuladoDia ?? data?.kpis?.producaoRetDia ?? 0);
+  const retProjetado = Number(data?.cards?.ret?.projetadoDia ?? data?.kpis?.projetadoRetDia ?? 0);
+  const producaoDia = Number(data?.cards?.producaoDiaria ?? data?.kpis?.producaoDia ?? 0);
+  const producaoMensal = Number(data?.cards?.producaoMensal ?? data?.kpis?.producaoMensal ?? 0);
+  const producaoTotalEscavadeirasTH = Number(data?.cards?.th ?? data?.kpis?.producaoTotalEscavadeirasTH ?? 0);
+  const viagens = Number(data?.cards?.viagens ?? data?.kpis?.viagens ?? 0);
+  const mediaViagens = Number(data?.cards?.mediaViagens ?? data?.kpis?.mediaViagens ?? 0);
 
   const dailySeries = useMemo(
     () =>
@@ -544,37 +541,54 @@ export default function DashboardProducaoUM() {
   );
 
   const frotasRender = useMemo(() => {
-    const disp = (dashboardData as any)?.disponibilidadePorFrota ?? [];
-    const util = (dashboardData as any)?.utilizacaoPorFrota ?? [];
+    const data = dashboardData as any;
+    const disponibilidade = Array.isArray(data?.disponibilidadePorFrota) ? data.disponibilidadePorFrota : [];
+    const utilizacao = Array.isArray(data?.utilizacaoPorFrota) ? data.utilizacaoPorFrota : [];
 
-    const getVal = (list: any, frota: string) => 
-      Array.isArray(list) ? list.find((item: any) => item?.frota === frota) : undefined;
+    const dfEX1200 = disponibilidade.find((item: any) => item.frota === "EX1200");
+    const dfEX2500 = disponibilidade.find((item: any) => item.frota === "EX2500");
+    const utEX1200 = utilizacao.find((item: any) => item.frota === "EX1200");
+    const utEX2500 = utilizacao.find((item: any) => item.frota === "EX2500");
 
-    const baseFrotas = [
-      { name: "EX1200", type: "exc", defaultEq: "5/5" },
-      { name: "EX2500", type: "exc", defaultEq: "3/3" },
-      { name: "CAMINHÕES 785", type: "trk", defaultEq: "25/25" },
-      { name: "CAMINHÕES 730", type: "trk", defaultEq: "15/15" },
+    const formatEq = (item: any, defaultVal: string) => {
+      if (!item) return defaultVal;
+      return `${item.quantidadeComDados ?? 0}/${item.quantidadeConfigurada ?? 0}`;
+    };
+
+    return [
+      {
+        name: "EX1200",
+        type: "exc",
+        df: dfEX1200?.valor,
+        ut: utEX1200?.valor,
+        eqDf: formatEq(dfEX1200, "5/5"),
+        eqUt: formatEq(utEX1200, "5/5"),
+      },
+      {
+        name: "EX2500",
+        type: "exc",
+        df: dfEX2500?.valor,
+        ut: utEX2500?.valor,
+        eqDf: formatEq(dfEX2500, "3/3"),
+        eqUt: formatEq(utEX2500, "3/3"),
+      },
+      {
+        name: "CAMINHÕES 785",
+        type: "trk",
+        df: undefined,
+        ut: undefined,
+        eqDf: "25/25",
+        eqUt: "25/25",
+      },
+      {
+        name: "CAMINHÕES 730",
+        type: "trk",
+        df: undefined,
+        ut: undefined,
+        eqDf: "15/15",
+        eqUt: "15/15",
+      },
     ];
-
-    return baseFrotas.map((f) => {
-      const d = getVal(disp, f.name);
-      const u = getVal(util, f.name);
-
-      const dfVal = d?.valor;
-      const utVal = u?.valor;
-
-      const eqStr = d
-        ? `${d.quantidadeComDados ?? 0}/${d.quantidadeConfigurada ?? 0}`
-        : f.defaultEq;
-
-      return {
-        ...f,
-        eq: eqStr,
-        df: dfVal,
-        ut: utVal,
-      };
-    });
   }, [dashboardData]);
 
   const limparFiltros = () => {
@@ -848,12 +862,12 @@ export default function DashboardProducaoUM() {
                   </div>
                   <div>
                     <div className="text-[16px] font-bold text-white uppercase tracking-wider">{item.name}</div>
-                    <div className="text-[12px] text-mining-blue/70 font-mono mt-0.5">({item.eq})</div>
+                    <div className="text-[12px] text-mining-blue/70 font-mono mt-0.5">({item.eqDf})</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-8 justify-end w-1/2 pr-4">
                   <div className="flex items-center justify-center">
-                    <DonutProgress value={item.df} color={isNum(item.df) ? "#22c55e" : "#555"} showPercent={false} />
+                    <DonutProgress value={item.df} color={isNum(item.df) ? "#22c55e" : "#555"} showPercent={true} />
                   </div>
                   <div className="text-right w-16">
                     <div className="text-[11px] text-mining-blue/70 font-bold uppercase">Meta</div>
@@ -879,7 +893,7 @@ export default function DashboardProducaoUM() {
                   </div>
                   <div>
                     <div className="text-[16px] font-bold text-white uppercase tracking-wider">{item.name}</div>
-                    <div className="text-[12px] text-mining-blue/70 font-mono mt-0.5">({item.eq})</div>
+                    <div className="text-[12px] text-mining-blue/70 font-mono mt-0.5">({item.eqUt})</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-8 justify-end w-1/2 pr-4">
