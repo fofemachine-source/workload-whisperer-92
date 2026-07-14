@@ -426,15 +426,43 @@ export default function DashboardProducaoUM() {
   }, []);
 
   const data = dashboardData as any;
-  const lavFinal = Number(data?.cards?.lav?.acumuladoDia ?? data?.kpis?.producaoLavDia ?? 0);
-  const lavProjetado = Number(data?.cards?.lav?.projetadoDia ?? data?.kpis?.projetadoLavDia ?? 0);
-  const retFinal = Number(data?.cards?.ret?.acumuladoDia ?? data?.kpis?.producaoRetDia ?? 0);
-  const retProjetado = Number(data?.cards?.ret?.projetadoDia ?? data?.kpis?.projetadoRetDia ?? 0);
-  const producaoDia = Number(data?.cards?.producaoDiaria ?? data?.kpis?.producaoDia ?? 0);
-  const producaoMensal = Number(data?.cards?.producaoMensal ?? data?.kpis?.producaoMensal ?? 0);
-  const producaoTotalEscavadeirasTH = Number(data?.cards?.th ?? data?.kpis?.producaoTotalEscavadeirasTH ?? 0);
+  const lavFinal = Number(
+    data?.cards?.lav?.acumuladoDia ?? data?.kpis?.producaoLavDia ?? data?.kpis?.lav ?? 0,
+  );
+  const lavProjetado = Number(
+    data?.cards?.lav?.projetadoDia ?? data?.kpis?.projetadoLavDia ?? data?.kpis?.projetadoLav ?? 0,
+  );
+  const retFinal = Number(
+    data?.cards?.ret?.acumuladoDia ?? data?.kpis?.producaoRetDia ?? data?.kpis?.ret ?? 0,
+  );
+  const retProjetado = Number(
+    data?.cards?.ret?.projetadoDia ?? data?.kpis?.projetadoRetDia ?? data?.kpis?.projetadoRet ?? 0,
+  );
+  const producaoDia = Number(
+    data?.cards?.producaoDiaria ?? data?.kpis?.producaoDia ?? data?.kpis?.producaoReal ?? 0,
+  );
+  const producaoMensal = Number(
+    data?.cards?.producaoMensal ?? data?.kpis?.producaoMensal ?? data?.kpis?.acumuladoMes ?? 0,
+  );
+  const producaoTotalEscavadeirasTH = Number(
+    data?.cards?.th ?? data?.kpis?.producaoTotalEscavadeirasTH ?? data?.kpis?.produtividadeMedia ?? 0,
+  );
   const viagens = Number(data?.cards?.viagens ?? data?.kpis?.viagens ?? 0);
   const mediaViagens = Number(data?.cards?.mediaViagens ?? data?.kpis?.mediaViagens ?? 0);
+
+  // Log de confirmação — mapeamento restaurado
+  if (data) {
+    console.log("[DASHBOARD MAPA]", {
+      "cards.lav": data?.cards?.lav,
+      "cards.ret": data?.cards?.ret,
+      "cards.producaoMensal": data?.cards?.producaoMensal,
+      "cards.th": data?.cards?.th,
+      "producaoFrente.length": Array.isArray(data?.producaoFrente) ? data.producaoFrente.length : 0,
+      "rankingEscavadeiras.length": Array.isArray(data?.rankingEscavadeiras) ? data.rankingEscavadeiras.length : 0,
+      "disponibilidadePorFrota": data?.disponibilidadePorFrota,
+      "utilizacaoPorFrota": data?.utilizacaoPorFrota,
+    });
+  }
 
   const dailySeries = useMemo(
     () =>
