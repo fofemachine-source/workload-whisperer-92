@@ -477,7 +477,8 @@ export default function DashboardProducaoUM() {
           upper.includes("GELADO") ||
           upper.includes("GEL") ||
           upper.includes("TESTE") ||
-          upper.includes("DEMO")
+          upper.includes("DEMO") ||
+          upper.includes("OUTROS")
         ) {
           return false;
         }
@@ -621,7 +622,7 @@ export default function DashboardProducaoUM() {
             return (
               <div className="h-full flex items-center gap-3">
                 <div className="w-[58%] h-full relative">
-                  <ResponsiveContainer width="100%" height="100%">
+                  <ResponsiveContainer width="100%" height="100%" className="chart-pie-spin">
                     <PieChart>
                       <defs>
                         <filter id="frenteNeonGlow" x="-50%" y="-50%" width="200%" height="200%">
