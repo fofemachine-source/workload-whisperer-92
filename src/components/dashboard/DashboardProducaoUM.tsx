@@ -1170,27 +1170,27 @@ function LavRetKpi({
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
-      className={`kpi-card kpi-pulse-glow relative overflow-hidden rounded-lg border ${TONE_BORDER[tone]} bg-[hsl(220_45%_7%/0.9)] px-4 py-3`}
+      className={`kpi-card kpi-pulse-glow relative overflow-hidden rounded-lg border ${TONE_BORDER[tone]} bg-[hsl(220_45%_7%/0.9)] px-4 py-1.5`}
     >
-      <p className={`font-mono-mining text-[13px] font-black tracking-wider ${TONE_TEXT[tone]}`}>{label}</p>
-      <div className={`mt-1 h-px w-full ${TONE_GLOW[tone]} opacity-40`} />
+      <p className={`font-mono-mining text-base font-bold tracking-wider ${TONE_TEXT[tone]}`}>{label}</p>
+      <div className={`mt-0.5 h-px w-full ${TONE_GLOW[tone]} opacity-40`} />
 
-      <div className="mt-2 flex items-center justify-between gap-2">
-        <p className={`font-mono-mining text-[10px] uppercase tracking-widest font-bold leading-tight ${TONE_TEXT[tone]} opacity-90`}>
+      <div className="mt-1.5 flex items-center justify-between gap-2">
+        <p className={`font-mono-mining text-xs uppercase tracking-widest font-semibold leading-tight ${TONE_TEXT[tone]} opacity-90`}>
           Acumulado<br />Dia:
         </p>
-        <p className={`font-mono-mining text-xl md:text-2xl font-black tabular-nums ${TONE_TEXT[acumuladoTone]}`}>
+        <p className={`font-mono-mining text-2xl md:text-3xl font-extrabold tabular-nums leading-none ${TONE_TEXT[acumuladoTone]}`}>
           <Counter value={acumulado} />
         </p>
       </div>
 
-      <div className={`my-2 border-t border-dashed ${TONE_BORDER[tone]} opacity-60`} />
+      <div className={`my-1.5 border-t border-dashed ${TONE_BORDER[tone]} opacity-60`} />
 
       <div className="flex items-center justify-between gap-2">
-        <p className={`font-mono-mining text-[10px] uppercase tracking-widest font-bold leading-tight ${TONE_TEXT[tone]} opacity-90`}>
+        <p className={`font-mono-mining text-xs uppercase tracking-widest font-semibold leading-tight ${TONE_TEXT[tone]} opacity-90`}>
           Projetado<br />Dia:
         </p>
-        <p className={`font-mono-mining text-xl md:text-2xl font-black tabular-nums ${TONE_TEXT[projetadoTone]}`}>
+        <p className={`font-mono-mining text-2xl md:text-3xl font-extrabold tabular-nums leading-none ${TONE_TEXT[projetadoTone]}`}>
           <Counter value={projetado} />
         </p>
       </div>
@@ -1219,17 +1219,17 @@ function BigKpi({
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
-      className={`kpi-card kpi-pulse-glow relative overflow-hidden rounded-lg border ${TONE_BORDER[tone]} bg-[hsl(220_45%_7%/0.9)] px-4 py-3 flex flex-col`}
+      className={`kpi-card kpi-pulse-glow relative overflow-hidden rounded-lg border ${TONE_BORDER[tone]} bg-[hsl(220_45%_7%/0.9)] px-4 py-1.5 flex flex-col justify-center`}
     >
-      <p className={`font-mono-mining text-[13px] font-black tracking-wider ${TONE_TEXT[tone]}`}>{label}</p>
+      <p className={`font-mono-mining text-base font-bold tracking-wider ${TONE_TEXT[tone]}`}>{label}</p>
       <div className={`mt-1 h-px w-full ${TONE_GLOW[tone]} opacity-40`} />
 
-      <p className={`mt-3 font-mono-mining text-3xl md:text-4xl font-black leading-none tabular-nums ${TONE_TEXT[tone]}`}>
+      <p className={`mt-2 font-mono-mining text-3xl md:text-4xl font-extrabold leading-none tabular-nums ${TONE_TEXT[tone]}`}>
         <Counter value={value} suffix={suffix} />
       </p>
 
       {showBar && (
-        <div className="mt-3 h-[3px] w-full rounded-full bg-sky-400 shadow-[0_0_10px_hsl(199_100%_60%/0.9)]" />
+        <div className="mt-2 h-[3px] w-full rounded-full bg-sky-400 shadow-[0_0_10px_hsl(199_100%_60%/0.9)]" />
       )}
 
       <span className={`pointer-events-none absolute left-6 right-6 bottom-0 h-[2px] rounded-full ${TONE_GLOW[tone]} opacity-70 blur-[1px]`} />
