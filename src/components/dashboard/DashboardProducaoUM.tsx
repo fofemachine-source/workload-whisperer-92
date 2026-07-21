@@ -521,30 +521,38 @@ export default function DashboardProducaoUM() {
   const totalViagensTop5 = top5Escav.reduce((total, item) => total + Number(item.viagens || 0), 0);
 
   const viagensPorHora = useMemo(() => {
-    const base = Array.from({ length: 24 }, (_, i) => ({
-      hora: String(i).padStart(2, "0"),
-      Real: 0,
-    }));
-    (dashboardData?.viagensHora ?? []).forEach((v) => {
+    const raw = dashboardData?.viagensHora ?? [];
+    if (!Array.isArray(raw)) return [];
+
+    const mapped = raw.map((v: any) => {
       const horaStr = String(v.hora || "").trim();
-      let h = 0;
+      let horaLabel = horaStr;
       
-      if (horaStr.includes("T")) {
-        // Extrai a hora de uma string de data ISO, ex: 2024-01-01T07:00:00Z
-        h = new Date(horaStr).getHours();
-      } else if (horaStr.includes(":")) {
-        // Extrai a hora de uma string de horário, ex: 07:00
-        h = Number(horaStr.split(":")[0]);
+      const timeMatch = horaStr.match(/(\d{2}):\d{2}/);
+      if (timeMatch) {
+        horaLabel = `${timeMatch[1]}:00`;
       } else {
-        // Extrai diretamente se for apenas a hora, ex: 07
-        h = Number(horaStr.slice(0, 2));
+        const simpleMatch = horaStr.match(/^(\d{2})$/);
+        if (simpleMatch) {
+          horaLabel = `${simpleMatch[1]}:00`;
+        }
       }
 
-      if (!isNaN(h) && h >= 0 && h < 24) {
-        base[h].Real += Number(v.viagens ?? 0);
-      }
+      return {
+        hora: horaLabel,
+        horaOriginal: horaStr,
+        Real: Number(v.viagens ?? 0)
+      };
     });
-    return base;
+
+    mapped.sort((a, b) => {
+      const tA = new Date(a.horaOriginal).getTime();
+      const tB = new Date(b.horaOriginal).getTime();
+      if (!isNaN(tA) && !isNaN(tB)) return tA - tB;
+      return a.hora.localeCompare(b.hora);
+    });
+
+    return mapped;
   }, [dashboardData]);
 
   const prodSeries = useMemo(
@@ -923,8 +931,8 @@ export default function DashboardProducaoUM() {
         </Panel>
 
         <Panel title="Viagens por Hora" className="col-span-12 lg:col-span-5 h-[184px] animated-card">
-          <div className="force-live-animation hourly-trips daily-bars h-full chart-bar-grow neon-chart pulse-bar scan-line">
-            {viagensPorHora.every((v) => v.Real === 0) ? (
+          <div className="force-live-animation trips-chart h-full">
+            {viagensPorHora.length === 0 ? (
               <Empty />
             ) : (
               <ResponsiveContainer width="100%" height="100%">
