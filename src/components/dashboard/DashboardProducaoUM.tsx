@@ -61,8 +61,8 @@ const FRENTE_COLORS = [
 
 const colorForFrente = (name: string, idx: number) => {
   const n = String(name || "").trim().toUpperCase();
-  if (n === "LAV") return "#00eaff";
-  if (n === "RET") return "#1687ff";
+  if (n === "LAV") return "#22c55e"; // Verde
+  if (n === "RET") return "#f97316"; // Laranja
   return FRENTE_COLORS[idx % FRENTE_COLORS.length];
 };
 
@@ -640,7 +640,7 @@ export default function DashboardProducaoUM() {
             return (
               <div className="h-full flex items-center gap-3">
                 <div className="w-[58%] h-full relative">
-                  <ResponsiveContainer width="100%" height="100%" className="chart-pie-spin">
+                  <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <defs>
                         <filter id="frenteNeonGlow" x="-50%" y="-50%" width="200%" height="200%">
@@ -657,6 +657,7 @@ export default function DashboardProducaoUM() {
                         </radialGradient>
                       </defs>
                       <Pie
+                        className="animate-[spin_20s_linear_infinite] origin-center"
                         data={frenteAgg}
                         dataKey="value"
                         nameKey="name"
