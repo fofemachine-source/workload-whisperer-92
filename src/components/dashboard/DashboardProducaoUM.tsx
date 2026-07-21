@@ -108,7 +108,7 @@ function Panel({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, ease: "easeOut" }}
-      className={`chart-card dashboard-card bg-[#161b22] border border-[#22c55e]/30 rounded-md shadow-[0_0_15px_-5px_rgba(34,197,94,0.1)] hover:shadow-[0_0_20px_-3px_rgba(34,197,94,0.2)] transition-shadow duration-500 flex flex-col ${className}`}
+      className={`chart-card dashboard-card bg-[#000000] border border-[#22c55e]/30 rounded-md shadow-[0_0_15px_-5px_rgba(34,197,94,0.1)] hover:shadow-[0_0_20px_-3px_rgba(34,197,94,0.2)] transition-shadow duration-500 flex flex-col ${className}`}
     >
       {title && (
         <div className="flex items-center justify-between px-3 pt-2">
@@ -776,7 +776,7 @@ export default function DashboardProducaoUM() {
                     <col style={{ width: "15%" }} />
                     <col style={{ width: "15%" }} />
                   </colgroup>
-                  <thead className="text-[#9ca3af] sticky top-0 bg-[#161b22] z-10">
+                  <thead className="text-[#9ca3af] sticky top-0 bg-[#000000] z-10">
                     <tr className="border-b border-[#22c55e]/25">
                       <Th>Escavadeira</Th>
                       <Th>Material</Th>
@@ -998,7 +998,7 @@ function Kpi({
   borderClass?: string;
 }) {
   return (
-    <div className={`bg-[#161b22] border ${borderClass} rounded-md px-3 py-2 flex items-center`}>
+    <div className={`bg-[#000000] border ${borderClass} rounded-md px-3 py-2 flex items-center`}>
       <div className="min-w-0">
         <p className="text-[9px] uppercase tracking-widest text-[#9ca3af] font-bold truncate">{label}</p>
         <p className={`text-lg md:text-xl font-black leading-tight ${color}`}>{value}</p>
@@ -1147,7 +1147,7 @@ function DualKpi({
 
 function MiniKpi({ label, value, unit }: { label: string; value: string; unit?: string }) {
   return (
-    <div className="bg-[#161b22] border border-[#22c55e]/20 rounded-md p-2 flex flex-col justify-center">
+    <div className="bg-[#000000] border border-[#22c55e]/20 rounded-md p-2 flex flex-col justify-center">
       <p className="text-[8px] uppercase tracking-widest text-[#9ca3af] font-bold leading-tight">{label}</p>
       <p className="text-base font-black text-[#22c55e] leading-tight">{value}</p>
       {unit && <p className="text-[9px] font-mono text-muted-foreground">{unit}</p>}
@@ -1193,7 +1193,7 @@ function LavRetKpi({
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
-      className="kpi-card relative overflow-hidden rounded-lg border border-[#22c55e]/20 bg-[#161b22] px-4 py-1.5"
+      className="kpi-card relative overflow-hidden rounded-lg border border-[#22c55e]/20 bg-[#000000] px-4 py-1.5"
     >
       <p className="font-mono-mining text-base font-bold tracking-wider text-[#22c55e] uppercase">{label}</p>
       <div className="mt-0.5 h-px w-full bg-[#22c55e] opacity-30" />
@@ -1242,7 +1242,7 @@ function BigKpi({
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
-      className="kpi-card relative overflow-hidden rounded-lg border border-[#22c55e]/20 bg-[#161b22] px-4 py-1.5 flex flex-col justify-center"
+      className="kpi-card relative overflow-hidden rounded-lg border border-[#22c55e]/20 bg-[#000000] px-4 py-1.5 flex flex-col justify-center"
     >
       <p className="font-mono-mining text-base font-bold tracking-wider text-[#22c55e] uppercase">{label}</p>
       <div className="mt-1 h-px w-full bg-[#22c55e] opacity-30" />
