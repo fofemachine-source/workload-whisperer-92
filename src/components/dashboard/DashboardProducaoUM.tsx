@@ -520,7 +520,7 @@ export default function DashboardProducaoUM() {
   const totalMassaTop5 = top5Escav.reduce((total, item) => total + Number(item.massa || 0), 0);
   const totalViagensTop5 = top5Escav.reduce((total, item) => total + Number(item.viagens || 0), 0);
 
-  const viagensHoraSeries = useMemo(() => {
+  const viagensPorHora = useMemo(() => {
     const base = Array.from({ length: 24 }, (_, i) => ({
       hora: String(i).padStart(2, "0"),
       Real: 0,
