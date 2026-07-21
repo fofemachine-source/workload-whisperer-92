@@ -108,11 +108,11 @@ function Panel({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, ease: "easeOut" }}
-      className={`chart-card dashboard-card bg-[hsl(220_45%_9%/0.85)] border border-mining-blue/20 rounded-md shadow-[0_0_24px_-10px_hsl(var(--mining-blue)/0.55)] hover:shadow-[0_0_28px_-6px_hsl(var(--mining-blue)/0.55)] transition-shadow duration-500 flex flex-col ${className}`}
+      className={`chart-card dashboard-card bg-[#161b22] border border-[#22c55e]/30 rounded-md shadow-[0_0_15px_-5px_rgba(34,197,94,0.1)] hover:shadow-[0_0_20px_-3px_rgba(34,197,94,0.2)] transition-shadow duration-500 flex flex-col ${className}`}
     >
       {title && (
         <div className="flex items-center justify-between px-3 pt-2">
-          <p className="text-[11px] font-bold tracking-wider text-mining-blue uppercase">{title}</p>
+          <p className="text-[11px] font-bold tracking-wider text-[#22c55e] uppercase">{title}</p>
           {right}
         </div>
       )}
@@ -137,19 +137,19 @@ function FilterField({
 }) {
   return (
     <div className="flex flex-col min-w-[110px]">
-      <span className="text-[9px] tracking-widest text-mining-blue/70 font-bold uppercase">{label}</span>
+      <span className="text-[9px] tracking-widest text-[#9ca3af] font-bold uppercase">{label}</span>
       {type === "date" ? (
         <input
           type="date"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="bg-[hsl(220_40%_12%)] border border-mining-blue/25 rounded px-2 py-1 text-xs font-mono text-foreground focus:outline-none focus:border-mining-blue"
+          className="bg-[hsl(220_40%_12%)] border border-[#22c55e]/25 rounded px-2 py-1 text-xs font-mono text-foreground focus:outline-none focus:border-[#22c55e]"
         />
       ) : (
         <select
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="bg-[hsl(220_40%_12%)] border border-mining-blue/25 rounded px-2 py-1 text-xs font-mono text-foreground focus:outline-none focus:border-mining-blue"
+          className="bg-[hsl(220_40%_12%)] border border-[#22c55e]/25 rounded px-2 py-1 text-xs font-mono text-foreground focus:outline-none focus:border-[#22c55e]"
         >
           <option value="">Todos</option>
           {(options ?? []).map((o) => (
@@ -642,8 +642,8 @@ export default function DashboardProducaoUM() {
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={dailySeries} margin={{ top: 12, right: 8, left: 0, bottom: 0 }}>
                   <CartesianGrid stroke="rgba(255,255,255,0.05)" vertical={false} />
-                  <XAxis dataKey="dia" stroke="#7fb2d9" tick={{ fontSize: 10 }} />
-                  <YAxis stroke="#7fb2d9" tick={{ fontSize: 10 }} />
+                  <XAxis dataKey="dia" stroke="#9ca3af" tick={{ fontSize: 10 }} />
+                  <YAxis stroke="#9ca3af" tick={{ fontSize: 10 }} />
                   <Tooltip contentStyle={tooltipStyle} />
                   <Legend wrapperStyle={{ fontSize: 10 }} />
                   <Bar dataKey="Prevista" fill="#f59e0b" radius={[2, 2, 0, 0]} isAnimationActive={false} />
@@ -776,8 +776,8 @@ export default function DashboardProducaoUM() {
                     <col style={{ width: "15%" }} />
                     <col style={{ width: "15%" }} />
                   </colgroup>
-                  <thead className="text-mining-blue/70 sticky top-0 bg-[hsl(220_45%_9%)] z-10">
-                    <tr className="border-b border-mining-blue/25">
+                  <thead className="text-[#9ca3af] sticky top-0 bg-[#161b22] z-10">
+                    <tr className="border-b border-[#22c55e]/25">
                       <Th>Escavadeira</Th>
                       <Th>Material</Th>
                       <Th>Frente</Th>
@@ -813,7 +813,7 @@ export default function DashboardProducaoUM() {
                         <Td>{esc.material ?? "—"}</Td>
                         <Td>{esc.frente ?? "—"}</Td>
                         <Td>{esc.destino ?? "—"}</Td>
-                        <Td className="text-right text-mining-blue tabular-nums"><Counter value={esc.viagens} /></Td>
+                        <Td className="text-right text-[#22c55e] tabular-nums"><Counter value={esc.viagens} /></Td>
                         <Td className="text-right text-mining-green tabular-nums"><Counter value={esc.massa} /> t</Td>
                         <Td className="text-right text-foreground font-bold tabular-nums"><Counter value={esc.th} decimals={1} /> t/h</Td>
                           </>
@@ -837,10 +837,10 @@ export default function DashboardProducaoUM() {
                   </tbody>
                 </table>
               </div>
-              <div className="border-t border-mining-blue/30 mt-2 pt-2 flex items-center justify-between px-1 text-[11px] font-mono">
+              <div className="border-t border-[#22c55e]/30 mt-2 pt-2 flex items-center justify-between px-1 text-[11px] font-mono">
                 <span className="font-bold uppercase tracking-wider text-foreground">TOTAL</span>
                 <div className="flex items-center gap-6">
-                  <span className="text-muted-foreground">Viagens: <span className="text-mining-blue font-bold">{fmt(totalViagensTop5)}</span></span>
+                  <span className="text-muted-foreground">Viagens: <span className="text-[#22c55e] font-bold">{fmt(totalViagensTop5)}</span></span>
                   <span className="text-muted-foreground">Tonelagem: <span className="text-mining-green font-bold">{fmt(totalMassaTop5)} t</span></span>
                 </div>
               </div>
@@ -861,7 +861,7 @@ export default function DashboardProducaoUM() {
                   </div>
                   <div>
                     <div className="text-xl font-bold text-white uppercase tracking-wider">{item.name}</div>
-                    <div className="text-sm text-mining-blue/70 font-mono mt-1">({item.eq})</div>
+                    <div className="text-sm text-[#9ca3af] font-mono mt-1">({item.eq})</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-8 justify-end w-1/2 pr-2">
@@ -869,7 +869,7 @@ export default function DashboardProducaoUM() {
                     <DonutProgress value={item.df} color={item.df >= 85.0 ? "#22c55e" : "#ef4444"} showPercent={true} />
                   </div>
                   <div className="text-right w-24">
-                    <div className="text-sm text-mining-blue/70 font-bold uppercase mb-1">Meta</div>
+                    <div className="text-sm text-[#9ca3af] font-bold uppercase mb-1">Meta</div>
                     <div className="text-2xl font-bold font-mono text-white">85.0%</div>
                   </div>
                 </div>
@@ -892,7 +892,7 @@ export default function DashboardProducaoUM() {
                   </div>
                   <div>
                     <div className="text-xl font-bold text-white uppercase tracking-wider">{item.name}</div>
-                    <div className="text-sm text-mining-blue/70 font-mono mt-1">({item.eq})</div>
+                    <div className="text-sm text-[#9ca3af] font-mono mt-1">({item.eq})</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-8 justify-end w-1/2 pr-2">
@@ -900,7 +900,7 @@ export default function DashboardProducaoUM() {
                     <DonutProgress value={item.ut} color={item.ut >= 85.0 ? "#22c55e" : "#eab308"} showPercent={true} />
                   </div>
                   <div className="text-right w-24">
-                    <div className="text-sm text-mining-blue/70 font-bold uppercase mb-1">Meta</div>
+                    <div className="text-sm text-[#9ca3af] font-bold uppercase mb-1">Meta</div>
                     <div className="text-2xl font-bold font-mono text-white">85.0%</div>
                   </div>
                 </div>
@@ -917,8 +917,8 @@ export default function DashboardProducaoUM() {
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={prodSeries} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                   <CartesianGrid stroke="rgba(255,255,255,0.05)" vertical={false} />
-                  <XAxis dataKey="dia" stroke="#7fb2d9" tick={{ fontSize: 10 }} />
-                  <YAxis stroke="#7fb2d9" tick={{ fontSize: 10 }} />
+                  <XAxis dataKey="dia" stroke="#9ca3af" tick={{ fontSize: 10 }} />
+                  <YAxis stroke="#9ca3af" tick={{ fontSize: 10 }} />
                   <Tooltip contentStyle={tooltipStyle} />
                   <Legend wrapperStyle={{ fontSize: 10 }} />
                   <Line type="monotone" dataKey="Meta" stroke="#f59e0b" dot={false} strokeWidth={2} animationDuration={1200} animationEasing="ease-out" />
@@ -938,10 +938,10 @@ export default function DashboardProducaoUM() {
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={viagensPorHora} margin={{ top: 8, right: 4, left: 0, bottom: 0 }}>
                   <CartesianGrid stroke="rgba(255,255,255,0.05)" vertical={false} />
-                  <XAxis dataKey="hora" stroke="#7fb2d9" tick={{ fontSize: 8 }} interval={1} />
-                  <YAxis stroke="#7fb2d9" tick={{ fontSize: 9 }} />
+                  <XAxis dataKey="hora" stroke="#9ca3af" tick={{ fontSize: 8 }} interval={1} />
+                  <YAxis stroke="#9ca3af" tick={{ fontSize: 9 }} />
                   <Tooltip contentStyle={tooltipStyle} />
-                  <Bar dataKey="Real" fill="#22d3ee" radius={[2, 2, 0, 0]} animationDuration={900} animationEasing="ease-out" />
+                  <Bar dataKey="Real" fill="#22c55e" radius={[2, 2, 0, 0]} animationDuration={900} animationEasing="ease-out" />
                 </BarChart>
               </ResponsiveContainer>
             )}
@@ -960,13 +960,13 @@ export default function DashboardProducaoUM() {
       </div>
 
       {/* Footer */}
-      <div className="mt-3 flex flex-wrap items-center justify-between gap-2 px-1 text-[10px] font-mono text-mining-blue/70">
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-2 px-1 text-[10px] font-mono text-[#9ca3af]">
         <span className="flex items-center gap-2">
           Fonte: http://192.168.17.15:3001/api/dashboard
         </span>
         <span className="flex items-center gap-4">
           <span>
-            Atualização em: <span className="text-mining-blue font-bold tabular-nums">{segundosAtualizacao}s</span>
+            Atualização em: <span className="text-[#22c55e] font-bold tabular-nums">{segundosAtualizacao}s</span>
           </span>
           <span>
             Última atualização:{" "}
@@ -990,7 +990,7 @@ function Kpi({
   label,
   value,
   color,
-  borderClass = "border-mining-blue/20",
+  borderClass = "border-[#22c55e]/20",
 }: {
   label: string;
   value: string;
@@ -998,9 +998,9 @@ function Kpi({
   borderClass?: string;
 }) {
   return (
-    <div className={`bg-[hsl(220_45%_9%/0.85)] border ${borderClass} rounded-md px-3 py-2 flex items-center`}>
+    <div className={`bg-[#161b22] border ${borderClass} rounded-md px-3 py-2 flex items-center`}>
       <div className="min-w-0">
-        <p className="text-[9px] uppercase tracking-widest text-mining-blue/70 font-bold truncate">{label}</p>
+        <p className="text-[9px] uppercase tracking-widest text-[#9ca3af] font-bold truncate">{label}</p>
         <p className={`text-lg md:text-xl font-black leading-tight ${color}`}>{value}</p>
       </div>
     </div>
@@ -1147,9 +1147,9 @@ function DualKpi({
 
 function MiniKpi({ label, value, unit }: { label: string; value: string; unit?: string }) {
   return (
-    <div className="bg-[hsl(220_45%_9%/0.85)] border border-mining-blue/20 rounded-md p-2 flex flex-col justify-center">
-      <p className="text-[8px] uppercase tracking-widest text-mining-blue/70 font-bold leading-tight">{label}</p>
-      <p className="text-base font-black text-mining-blue leading-tight">{value}</p>
+    <div className="bg-[#161b22] border border-[#22c55e]/20 rounded-md p-2 flex flex-col justify-center">
+      <p className="text-[8px] uppercase tracking-widest text-[#9ca3af] font-bold leading-tight">{label}</p>
+      <p className="text-base font-black text-[#22c55e] leading-tight">{value}</p>
       {unit && <p className="text-[9px] font-mono text-muted-foreground">{unit}</p>}
     </div>
   );
@@ -1158,19 +1158,19 @@ function MiniKpi({ label, value, unit }: { label: string; value: string; unit?: 
 /* ---------- LAV / RET dual line KPI (photo-1 layout) ---------- */
 type KpiTone = "green" | "amber" | "blue";
 const TONE_TEXT: Record<KpiTone, string> = {
-  green: "text-emerald-400 drop-shadow-[0_0_8px_hsl(150_90%_55%/0.6)]",
-  amber: "text-amber-400 drop-shadow-[0_0_8px_hsl(35_100%_55%/0.6)]",
-  blue: "text-sky-400 drop-shadow-[0_0_8px_hsl(199_100%_60%/0.6)]",
+  green: "text-[#22c55e]",
+  amber: "text-[#facc15]",
+  blue: "text-[#38bdf8]",
 };
 const TONE_BORDER: Record<KpiTone, string> = {
-  green: "border-emerald-400/45",
-  amber: "border-amber-400/50",
-  blue: "border-sky-400/45",
+  green: "border-[#22c55e]/30",
+  amber: "border-[#facc15]/30",
+  blue: "border-[#38bdf8]/30",
 };
 const TONE_GLOW: Record<KpiTone, string> = {
-  green: "bg-emerald-400",
-  amber: "bg-amber-400",
-  blue: "bg-sky-400",
+  green: "bg-[#22c55e]",
+  amber: "bg-[#facc15]",
+  blue: "bg-[#38bdf8]",
 };
 
 function LavRetKpi({
@@ -1193,13 +1193,13 @@ function LavRetKpi({
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
-      className={`kpi-card kpi-pulse-glow relative overflow-hidden rounded-lg border ${TONE_BORDER[tone]} bg-[hsl(220_45%_7%/0.9)] px-4 py-1.5`}
+      className="kpi-card relative overflow-hidden rounded-lg border border-[#22c55e]/20 bg-[#161b22] px-4 py-1.5"
     >
-      <p className={`font-mono-mining text-base font-bold tracking-wider ${TONE_TEXT[tone]}`}>{label}</p>
-      <div className={`mt-0.5 h-px w-full ${TONE_GLOW[tone]} opacity-40`} />
+      <p className="font-mono-mining text-base font-bold tracking-wider text-[#22c55e] uppercase">{label}</p>
+      <div className="mt-0.5 h-px w-full bg-[#22c55e] opacity-30" />
 
       <div className="mt-1.5 flex items-center justify-between gap-2">
-        <p className={`font-mono-mining text-xs uppercase tracking-widest font-semibold leading-tight ${TONE_TEXT[tone]} opacity-90`}>
+        <p className="font-mono-mining text-xs uppercase tracking-widest font-semibold leading-tight text-[#9ca3af]">
           Acumulado<br />Dia:
         </p>
         <p className={`font-mono-mining text-2xl md:text-3xl font-extrabold tabular-nums leading-none ${TONE_TEXT[acumuladoTone]}`}>
@@ -1207,10 +1207,10 @@ function LavRetKpi({
         </p>
       </div>
 
-      <div className={`my-1.5 border-t border-dashed ${TONE_BORDER[tone]} opacity-60`} />
+      <div className="my-1.5 border-t border-dashed border-[#22c55e] opacity-20" />
 
       <div className="flex items-center justify-between gap-2">
-        <p className={`font-mono-mining text-xs uppercase tracking-widest font-semibold leading-tight ${TONE_TEXT[tone]} opacity-90`}>
+        <p className="font-mono-mining text-xs uppercase tracking-widest font-semibold leading-tight text-[#9ca3af]">
           Projetado<br />Dia:
         </p>
         <p className={`font-mono-mining text-2xl md:text-3xl font-extrabold tabular-nums leading-none ${TONE_TEXT[projetadoTone]}`}>
@@ -1218,7 +1218,7 @@ function LavRetKpi({
         </p>
       </div>
 
-      <span className={`pointer-events-none absolute left-6 right-6 bottom-0 h-[2px] rounded-full ${TONE_GLOW[tone]} opacity-70 blur-[1px]`} />
+      <span className="pointer-events-none absolute left-6 right-6 bottom-0 h-[2px] rounded-full bg-[#22c55e] opacity-30 blur-[1px]" />
     </motion.div>
   );
 }
@@ -1242,20 +1242,20 @@ function BigKpi({
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
-      className={`kpi-card kpi-pulse-glow relative overflow-hidden rounded-lg border ${TONE_BORDER[tone]} bg-[hsl(220_45%_7%/0.9)] px-4 py-1.5 flex flex-col justify-center`}
+      className="kpi-card relative overflow-hidden rounded-lg border border-[#22c55e]/20 bg-[#161b22] px-4 py-1.5 flex flex-col justify-center"
     >
-      <p className={`font-mono-mining text-base font-bold tracking-wider ${TONE_TEXT[tone]}`}>{label}</p>
-      <div className={`mt-1 h-px w-full ${TONE_GLOW[tone]} opacity-40`} />
+      <p className="font-mono-mining text-base font-bold tracking-wider text-[#22c55e] uppercase">{label}</p>
+      <div className="mt-1 h-px w-full bg-[#22c55e] opacity-30" />
 
       <p className={`mt-2 font-mono-mining text-3xl md:text-4xl font-extrabold leading-none tabular-nums ${TONE_TEXT[tone]}`}>
         <Counter value={value} suffix={suffix} />
       </p>
 
       {showBar && (
-        <div className="mt-2 h-[3px] w-full rounded-full bg-sky-400 shadow-[0_0_10px_hsl(199_100%_60%/0.9)]" />
+        <div className="mt-2 h-[3px] w-full rounded-full bg-[#22c55e]/50 shadow-[0_0_10px_rgba(34,197,94,0.5)]" />
       )}
 
-      <span className={`pointer-events-none absolute left-6 right-6 bottom-0 h-[2px] rounded-full ${TONE_GLOW[tone]} opacity-70 blur-[1px]`} />
+      <span className="pointer-events-none absolute left-6 right-6 bottom-0 h-[2px] rounded-full bg-[#22c55e] opacity-30 blur-[1px]" />
     </motion.div>
   );
 }
@@ -1273,7 +1273,7 @@ function StatBlock({
 }) {
   return (
     <div className="leading-tight">
-      <p className="text-[8px] uppercase tracking-widest text-mining-blue/70 font-bold">{label}</p>
+      <p className="text-[8px] uppercase tracking-widest text-[#9ca3af] font-bold">{label}</p>
       <p className={`${big ? "text-xl" : "text-sm"} font-black text-foreground font-mono tabular-nums`}>
         {value}
       </p>
