@@ -520,14 +520,29 @@ export default function DashboardProducaoUM() {
   const totalMassaTop5 = top5Escav.reduce((total, item) => total + Number(item.massa || 0), 0);
   const totalViagensTop5 = top5Escav.reduce((total, item) => total + Number(item.viagens || 0), 0);
 
-  const viagensPorHora = useMemo(() => {
-    const base = Array.from({ length: 24 }, (_, h) => ({
-      hora: String(h).padStart(2, "0"),
+  const viagensHoraSeries = useMemo(() => {
+    const base = Array.from({ length: 24 }, (_, i) => ({
+      hora: String(i).padStart(2, "0"),
       Real: 0,
     }));
     (dashboardData?.viagensHora ?? []).forEach((v) => {
-      const h = Number(String(v.hora).slice(0, 2));
-      if (h >= 0 && h < 24) base[h].Real = Number(v.viagens ?? 0);
+      const horaStr = String(v.hora || "").trim();
+      let h = 0;
+      
+      if (horaStr.includes("T")) {
+        // Extrai a hora de uma string de data ISO, ex: 2024-01-01T07:00:00Z
+        h = new Date(horaStr).getHours();
+      } else if (horaStr.includes(":")) {
+        // Extrai a hora de uma string de horário, ex: 07:00
+        h = Number(horaStr.split(":")[0]);
+      } else {
+        // Extrai diretamente se for apenas a hora, ex: 07
+        h = Number(horaStr.slice(0, 2));
+      }
+
+      if (!isNaN(h) && h >= 0 && h < 24) {
+        base[h].Real += Number(v.viagens ?? 0);
+      }
     });
     return base;
   }, [dashboardData]);
@@ -886,7 +901,7 @@ export default function DashboardProducaoUM() {
           </div>
         </Panel>
 
-        <Panel title="Produtividade (t/h)" className="col-span-12 lg:col-span-5 h-[184px] animated-card">
+        <Panel title="PRODUÇÃO DIÁRIA (T)" className="col-span-12 lg:col-span-5 h-[184px] animated-card">
           <div className="force-live-animation productivity-line h-full chart-line-neon glow-line neon-chart scan-line">
             {prodSeries.length === 0 ? (
               <Empty />
