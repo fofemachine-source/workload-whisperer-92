@@ -22,12 +22,7 @@ import excavatorNeon from "@/assets/excavator-neon.png";
 import truckNeon from "@/assets/truck-neon.png";
 
 /* ---------- helpers ---------- */
-const frotaStats = [
-  { name: "EX1200", eq: "5/5", df: 88.0, ut: 4.7, type: "exc" },
-  { name: "EX2500", eq: "3/3", df: 97.5, ut: 8.7, type: "exc" },
-  { name: "CAMINHÕES 785", eq: "25/25", df: 90.9, ut: 14.6, type: "trk" },
-  { name: "CAMINHÕES 730", eq: "15/15", df: 61.9, ut: 8.8, type: "trk" },
-];
+
 
 const fmt = (n: number, d = 0) =>
   (Number.isFinite(n) ? n : 0).toLocaleString("pt-BR", {
@@ -429,15 +424,18 @@ export default function DashboardProducaoUM() {
     return () => clearInterval(timer);
   }, []);
 
-  const data = dashboardData as any;
-  const lavFinal = Number(data?.cards?.lav?.acumuladoDia ?? data?.kpis?.producaoLavDia ?? 0);
-  const lavProjetado = Number(data?.cards?.lav?.projetadoDia ?? data?.kpis?.projetadoLavDia ?? 0);
-  const retFinal = Number(data?.cards?.ret?.acumuladoDia ?? data?.kpis?.producaoRetDia ?? 0);
-  const retProjetado = Number(data?.cards?.ret?.projetadoDia ?? data?.kpis?.projetadoRetDia ?? 0);
-  const producaoDia = Number(data?.cards?.producaoDiaria ?? data?.producaoDiaria ?? 0);
-  const producaoMensal = Number(data?.cards?.producaoMensal ?? data?.kpis?.producaoMensal ?? 0);
-  const producaoTotalEscavadeirasTH = Number(data?.cards?.th ?? data?.kpis?.producaoTotalEscavadeirasTH ?? 0);
-  const viagens = Number(data?.cards?.viagens ?? 0);
+  const cards = ((dashboardData as any)?.cards ?? {}) as Record<string, any>;
+  const lavCard = (cards.lav ?? {}) as Record<string, any>;
+  const retCard = (cards.ret ?? {}) as Record<string, any>;
+
+  const lavFinal = Number(lavCard.acumuladoDia ?? 0);
+  const lavProjetado = Number(lavCard.projetadoDia ?? 0);
+  const retFinal = Number(retCard.acumuladoDia ?? 0);
+  const retProjetado = Number(retCard.projetadoDia ?? 0);
+  const producaoDia = Number(cards.producaoDiaria ?? 0);
+  const producaoMensal = Number(cards.producaoMensal ?? 0);
+  const producaoTotalEscavadeirasTH = Number(cards.th ?? 0);
+  const viagens = Number(cards.viagens ?? 0);
 
   const dailySeries = useMemo(
     () =>
@@ -543,6 +541,26 @@ export default function DashboardProducaoUM() {
       })),
     [dailySeries],
   );
+
+  const frotasDfRender = useMemo(() => {
+    const disp = Array.isArray(dashboardData?.disponibilidadePorFrota) ? dashboardData.disponibilidadePorFrota : [];
+    return disp.map((item: any) => ({
+      name: item.frota || "",
+      type: item.frota?.toUpperCase().includes("CAMINHÃO") || item.frota?.toUpperCase().includes("CAMINHOES") || item.frota?.toUpperCase().includes("785") || item.frota?.toUpperCase().includes("730") ? "trk" : "exc",
+      df: Number(item.valor ?? 0),
+      eq: `${item.quantidadeComDados ?? 0}/${item.quantidadeConfigurada ?? 0}`,
+    }));
+  }, [dashboardData]);
+
+  const frotasUtRender = useMemo(() => {
+    const util = Array.isArray(dashboardData?.utilizacaoPorFrota) ? dashboardData.utilizacaoPorFrota : [];
+    return util.map((item: any) => ({
+      name: item.frota || "",
+      type: item.frota?.toUpperCase().includes("CAMINHÃO") || item.frota?.toUpperCase().includes("CAMINHOES") || item.frota?.toUpperCase().includes("785") || item.frota?.toUpperCase().includes("730") ? "trk" : "exc",
+      ut: Number(item.valor ?? 0),
+      eq: `${item.quantidadeComDados ?? 0}/${item.quantidadeConfigurada ?? 0}`,
+    }));
+  }, [dashboardData]);
 
   const mediaViagens = 0;
 
@@ -807,7 +825,7 @@ export default function DashboardProducaoUM() {
         </Panel>
         <Panel title="% DISPONIBILIDADE FÍSICA POR FROTA" className="col-span-12 lg:col-span-6 h-[340px] animated-card">
           <div className="flex flex-col h-full justify-evenly px-2">
-            {frotaStats.map((item) => (
+            {frotasDfRender.map((item) => (
               <div key={item.name} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
                 <div className="flex items-center gap-3 w-1/2">
                   <div className="w-[40px] flex items-center justify-center flex-shrink-0">
@@ -824,7 +842,7 @@ export default function DashboardProducaoUM() {
                 </div>
                 <div className="flex items-center gap-8 justify-end w-1/2 pr-4">
                   <div className="flex items-center justify-center">
-                    <DonutProgress value={item.df} color="#22c55e" showPercent={false} />
+                    <DonutProgress value={item.df} color={item.df >= 85.0 ? "#22c55e" : "#ef4444"} showPercent={true} />
                   </div>
                   <div className="text-right w-16">
                     <div className="text-[11px] text-mining-blue/70 font-bold uppercase">Meta</div>
@@ -838,7 +856,7 @@ export default function DashboardProducaoUM() {
 
         <Panel title="UTILIZAÇÃO POR FROTA" className="col-span-12 lg:col-span-6 h-[340px] animated-card">
           <div className="flex flex-col h-full justify-evenly px-2">
-            {frotaStats.map((item) => (
+            {frotasUtRender.map((item) => (
               <div key={item.name} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
                 <div className="flex items-center gap-3 w-1/2">
                   <div className="w-[40px] flex items-center justify-center flex-shrink-0">
@@ -855,7 +873,7 @@ export default function DashboardProducaoUM() {
                 </div>
                 <div className="flex items-center gap-8 justify-end w-1/2 pr-4">
                   <div className="flex items-center justify-center">
-                    <DonutProgress value={item.ut} color={item.ut < 5 ? "#eab308" : (item.ut < 9 ? "#0ea5e9" : "#22c55e")} showPercent={true} />
+                    <DonutProgress value={item.ut} color={item.ut >= 85.0 ? "#22c55e" : "#eab308"} showPercent={true} />
                   </div>
                   <div className="text-right w-16">
                     <div className="text-[11px] text-mining-blue/70 font-bold uppercase">Meta</div>
