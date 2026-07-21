@@ -823,30 +823,30 @@ export default function DashboardProducaoUM() {
             </div>
           )}
         </Panel>
-        <Panel title="% DISPONIBILIDADE FÍSICA POR FROTA" className="col-span-12 lg:col-span-6 h-[340px] animated-card">
-          <div className="flex flex-col h-full justify-evenly px-2">
+        <Panel title="% DISPONIBILIDADE FÍSICA POR FROTA" className="col-span-12 lg:col-span-6 h-[420px] animated-card">
+          <div className="flex flex-col h-full justify-evenly px-4 py-2">
             {frotasDfRender.map((item) => (
-              <div key={item.name} className="flex items-center justify-between py-1 px-4 border-b border-white/5 last:border-0">
-                <div className="flex items-center gap-4 w-1/2">
-                  <div className="w-[44px] flex items-center justify-center flex-shrink-0">
+              <div key={item.name} className="flex items-center justify-between py-4 border-b border-white/5 last:border-0">
+                <div className="flex items-center gap-5 w-1/2">
+                  <div className="w-[64px] flex items-center justify-center flex-shrink-0">
                     {item.type === "exc" ? (
-                      <ExcavatorIcon className="w-[48px] h-[36px]" />
+                      <ExcavatorIcon className="w-[64px] h-[48px]" />
                     ) : (
-                      <HaulTruckIcon className="w-[48px] h-[36px]" />
+                      <HaulTruckIcon className="w-[64px] h-[48px]" />
                     )}
                   </div>
                   <div>
-                    <div className="text-sm font-bold text-white uppercase tracking-wider">{item.name}</div>
-                    <div className="text-xs text-mining-blue/70 font-mono mt-0.5">({item.eq})</div>
+                    <div className="text-xl font-bold text-white uppercase tracking-wider">{item.name}</div>
+                    <div className="text-sm text-mining-blue/70 font-mono mt-1">({item.eq})</div>
                   </div>
                 </div>
-                <div className="flex items-center gap-6 justify-end w-1/2 pr-2">
+                <div className="flex items-center gap-8 justify-end w-1/2 pr-2">
                   <div className="flex items-center justify-center">
                     <DonutProgress value={item.df} color={item.df >= 85.0 ? "#22c55e" : "#ef4444"} showPercent={true} />
                   </div>
-                  <div className="text-right w-16">
-                    <div className="text-[11px] text-mining-blue/70 font-bold uppercase">Meta</div>
-                    <div className="text-sm font-bold font-mono text-white">85.0%</div>
+                  <div className="text-right w-24">
+                    <div className="text-sm text-mining-blue/70 font-bold uppercase mb-1">Meta</div>
+                    <div className="text-2xl font-bold font-mono text-white">85.0%</div>
                   </div>
                 </div>
               </div>
@@ -854,30 +854,30 @@ export default function DashboardProducaoUM() {
           </div>
         </Panel>
 
-        <Panel title="UTILIZAÇÃO POR FROTA" className="col-span-12 lg:col-span-6 h-[340px] animated-card">
-          <div className="flex flex-col h-full justify-evenly px-2">
+        <Panel title="UTILIZAÇÃO POR FROTA" className="col-span-12 lg:col-span-6 h-[420px] animated-card">
+          <div className="flex flex-col h-full justify-evenly px-4 py-2">
             {frotasUtRender.map((item) => (
-              <div key={item.name} className="flex items-center justify-between py-1 px-4 border-b border-white/5 last:border-0">
-                <div className="flex items-center gap-4 w-1/2">
-                  <div className="w-[44px] flex items-center justify-center flex-shrink-0">
+              <div key={item.name} className="flex items-center justify-between py-4 border-b border-white/5 last:border-0">
+                <div className="flex items-center gap-5 w-1/2">
+                  <div className="w-[64px] flex items-center justify-center flex-shrink-0">
                     {item.type === "exc" ? (
-                      <ExcavatorIcon className="w-[48px] h-[36px]" />
+                      <ExcavatorIcon className="w-[64px] h-[48px]" />
                     ) : (
-                      <HaulTruckIcon className="w-[48px] h-[36px]" />
+                      <HaulTruckIcon className="w-[64px] h-[48px]" />
                     )}
                   </div>
                   <div>
-                    <div className="text-sm font-bold text-white uppercase tracking-wider">{item.name}</div>
-                    <div className="text-xs text-mining-blue/70 font-mono mt-0.5">({item.eq})</div>
+                    <div className="text-xl font-bold text-white uppercase tracking-wider">{item.name}</div>
+                    <div className="text-sm text-mining-blue/70 font-mono mt-1">({item.eq})</div>
                   </div>
                 </div>
-                <div className="flex items-center gap-6 justify-end w-1/2 pr-2">
+                <div className="flex items-center gap-8 justify-end w-1/2 pr-2">
                   <div className="flex items-center justify-center">
                     <DonutProgress value={item.ut} color={item.ut >= 85.0 ? "#22c55e" : "#eab308"} showPercent={true} />
                   </div>
-                  <div className="text-right w-16">
-                    <div className="text-[11px] text-mining-blue/70 font-bold uppercase">Meta</div>
-                    <div className="text-sm font-bold font-mono text-white">85.0%</div>
+                  <div className="text-right w-24">
+                    <div className="text-sm text-mining-blue/70 font-bold uppercase mb-1">Meta</div>
+                    <div className="text-2xl font-bold font-mono text-white">85.0%</div>
                   </div>
                 </div>
               </div>
@@ -1269,16 +1269,16 @@ function Empty() {
 }
 
 function DonutProgress({ value, color, showPercent }: { value: number; color: string; showPercent: boolean }) {
-  const radius = 20;
+  const radius = 34;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (value / 100) * circumference;
   return (
-    <div className="relative w-12 h-12 flex items-center justify-center">
-      <svg className="w-full h-full transform -rotate-90" viewBox="0 0 48 48">
-        <circle cx="24" cy="24" r="20" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="3" />
-        <circle cx="24" cy="24" r="20" fill="none" stroke={color} strokeWidth="3" strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round" />
+    <div className="relative w-20 h-20 flex items-center justify-center">
+      <svg className="w-full h-full transform -rotate-90" viewBox="0 0 80 80">
+        <circle cx="40" cy="40" r="34" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="5" />
+        <circle cx="40" cy="40" r="34" fill="none" stroke={color} strokeWidth="5" strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round" />
       </svg>
-      <span className="absolute text-[13px] font-mono font-black tracking-tighter" style={{ color: showPercent ? '#fff' : color }}>
+      <span className="absolute text-lg font-mono font-black tracking-tighter" style={{ color: showPercent ? '#fff' : color }}>
         {value.toFixed(1)}{showPercent ? '%' : ''}
       </span>
     </div>
