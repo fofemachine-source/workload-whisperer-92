@@ -823,10 +823,10 @@ export default function DashboardProducaoUM() {
             </div>
           )}
         </Panel>
-        <Panel title="% DISPONIBILIDADE FÍSICA POR FROTA" className="col-span-12 lg:col-span-6 h-[420px] animated-card">
-          <div className="flex flex-col h-full justify-evenly px-4 py-2">
+        <Panel title="% DISPONIBILIDADE FÍSICA POR FROTA" className="col-span-12 lg:col-span-6 h-[410px] animated-card">
+          <div className="flex flex-col h-full justify-evenly px-2 py-0">
             {frotasDfRender.map((item) => (
-              <div key={item.name} className="flex items-center justify-between py-4 border-b border-white/5 last:border-0">
+              <div key={item.name} className="flex items-center justify-between py-1 border-b border-white/5 last:border-0">
                 <div className="flex items-center gap-5 w-1/2">
                   <div className="w-[64px] flex items-center justify-center flex-shrink-0">
                     {item.type === "exc" ? (
@@ -854,10 +854,10 @@ export default function DashboardProducaoUM() {
           </div>
         </Panel>
 
-        <Panel title="UTILIZAÇÃO POR FROTA" className="col-span-12 lg:col-span-6 h-[420px] animated-card">
-          <div className="flex flex-col h-full justify-evenly px-4 py-2">
+        <Panel title="UTILIZAÇÃO POR FROTA" className="col-span-12 lg:col-span-6 h-[410px] animated-card">
+          <div className="flex flex-col h-full justify-evenly px-2 py-0">
             {frotasUtRender.map((item) => (
-              <div key={item.name} className="flex items-center justify-between py-4 border-b border-white/5 last:border-0">
+              <div key={item.name} className="flex items-center justify-between py-1 border-b border-white/5 last:border-0">
                 <div className="flex items-center gap-5 w-1/2">
                   <div className="w-[64px] flex items-center justify-center flex-shrink-0">
                     {item.type === "exc" ? (
