@@ -826,27 +826,27 @@ export default function DashboardProducaoUM() {
         <Panel title="% DISPONIBILIDADE FÍSICA POR FROTA" className="col-span-12 lg:col-span-6 h-[340px] animated-card">
           <div className="flex flex-col h-full justify-evenly px-2">
             {frotasDfRender.map((item) => (
-              <div key={item.name} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
-                <div className="flex items-center gap-3 w-1/2">
-                  <div className="w-[40px] flex items-center justify-center flex-shrink-0">
+              <div key={item.name} className="flex items-center justify-between py-3 px-4 border-b border-white/5 last:border-0">
+                <div className="flex items-center gap-4 w-1/2">
+                  <div className="w-[50px] flex items-center justify-center flex-shrink-0">
                     {item.type === "exc" ? (
-                      <ExcavatorIcon className="w-[44px] h-[34px]" />
+                      <ExcavatorIcon className="w-[56px] h-[44px]" />
                     ) : (
-                      <HaulTruckIcon className="w-[44px] h-[34px]" />
+                      <HaulTruckIcon className="w-[56px] h-[44px]" />
                     )}
                   </div>
                   <div>
-                    <div className="text-[16px] font-bold text-white uppercase tracking-wider">{item.name}</div>
-                    <div className="text-[12px] text-mining-blue/70 font-mono mt-0.5">({item.eq})</div>
+                    <div className="text-lg font-bold text-white uppercase tracking-wider">{item.name}</div>
+                    <div className="text-sm text-mining-blue/70 font-mono mt-0.5">({item.eq})</div>
                   </div>
                 </div>
-                <div className="flex items-center gap-8 justify-end w-1/2 pr-4">
+                <div className="flex items-center gap-10 justify-end w-1/2 pr-2">
                   <div className="flex items-center justify-center">
                     <DonutProgress value={item.df} color={item.df >= 85.0 ? "#22c55e" : "#ef4444"} showPercent={true} />
                   </div>
-                  <div className="text-right w-16">
-                    <div className="text-[11px] text-mining-blue/70 font-bold uppercase">Meta</div>
-                    <div className="text-[18px] font-mono text-white">85.0%</div>
+                  <div className="text-right w-20">
+                    <div className="text-sm text-mining-blue/70 font-bold uppercase">Meta</div>
+                    <div className="text-lg font-bold font-mono text-white">85.0%</div>
                   </div>
                 </div>
               </div>
@@ -857,27 +857,27 @@ export default function DashboardProducaoUM() {
         <Panel title="UTILIZAÇÃO POR FROTA" className="col-span-12 lg:col-span-6 h-[340px] animated-card">
           <div className="flex flex-col h-full justify-evenly px-2">
             {frotasUtRender.map((item) => (
-              <div key={item.name} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
-                <div className="flex items-center gap-3 w-1/2">
-                  <div className="w-[40px] flex items-center justify-center flex-shrink-0">
+              <div key={item.name} className="flex items-center justify-between py-3 px-4 border-b border-white/5 last:border-0">
+                <div className="flex items-center gap-4 w-1/2">
+                  <div className="w-[50px] flex items-center justify-center flex-shrink-0">
                     {item.type === "exc" ? (
-                      <ExcavatorIcon className="w-[44px] h-[34px]" />
+                      <ExcavatorIcon className="w-[56px] h-[44px]" />
                     ) : (
-                      <HaulTruckIcon className="w-[44px] h-[34px]" />
+                      <HaulTruckIcon className="w-[56px] h-[44px]" />
                     )}
                   </div>
                   <div>
-                    <div className="text-[16px] font-bold text-white uppercase tracking-wider">{item.name}</div>
-                    <div className="text-[12px] text-mining-blue/70 font-mono mt-0.5">({item.eq})</div>
+                    <div className="text-lg font-bold text-white uppercase tracking-wider">{item.name}</div>
+                    <div className="text-sm text-mining-blue/70 font-mono mt-0.5">({item.eq})</div>
                   </div>
                 </div>
-                <div className="flex items-center gap-8 justify-end w-1/2 pr-4">
+                <div className="flex items-center gap-10 justify-end w-1/2 pr-2">
                   <div className="flex items-center justify-center">
                     <DonutProgress value={item.ut} color={item.ut >= 85.0 ? "#22c55e" : "#eab308"} showPercent={true} />
                   </div>
-                  <div className="text-right w-16">
-                    <div className="text-[11px] text-mining-blue/70 font-bold uppercase">Meta</div>
-                    <div className="text-[18px] font-mono text-white">85.0%</div>
+                  <div className="text-right w-20">
+                    <div className="text-sm text-mining-blue/70 font-bold uppercase">Meta</div>
+                    <div className="text-lg font-bold font-mono text-white">85.0%</div>
                   </div>
                 </div>
               </div>
@@ -1269,16 +1269,16 @@ function Empty() {
 }
 
 function DonutProgress({ value, color, showPercent }: { value: number; color: string; showPercent: boolean }) {
-  const radius = 16;
+  const radius = 28;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (value / 100) * circumference;
   return (
-    <div className="relative w-14 h-14 flex items-center justify-center">
-      <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-        <circle cx="18" cy="18" r="16" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="2.5" />
-        <circle cx="18" cy="18" r="16" fill="none" stroke={color} strokeWidth="2.5" strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round" />
+    <div className="relative w-16 h-16 flex items-center justify-center">
+      <svg className="w-full h-full transform -rotate-90" viewBox="0 0 64 64">
+        <circle cx="32" cy="32" r="28" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="4" />
+        <circle cx="32" cy="32" r="28" fill="none" stroke={color} strokeWidth="4" strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round" />
       </svg>
-      <span className="absolute text-[15px] font-mono font-bold tracking-tighter" style={{ color: showPercent ? '#fff' : color }}>
+      <span className="absolute text-sm font-mono font-black tracking-tighter" style={{ color: showPercent ? '#fff' : color }}>
         {value.toFixed(1)}{showPercent ? '%' : ''}
       </span>
     </div>
