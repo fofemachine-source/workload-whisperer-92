@@ -866,12 +866,12 @@ export default function DashboardProducaoUM() {
                 </div>
                 <div className="flex items-center gap-6">
                   <div className="flex items-center justify-center">
-                    <DonutProgress value={item.df} color={item.df >= 85.0 ? "#22c55e" : "#ef4444"} showPercent={true} />
+                    <DonutProgress value={item.df} color={item.df >= 60.0 ? "#22c55e" : "#ef4444"} showPercent={true} />
                   </div>
                   <div className="h-14 w-px bg-white/10" />
                   <div className="text-center w-20">
                     <div className="text-sm text-[#9ca3af] font-bold uppercase mb-1">Meta</div>
-                    <div className="text-2xl font-bold font-mono text-white">85.0%</div>
+                    <div className="text-2xl font-bold font-mono text-white">60.0%</div>
                   </div>
                 </div>
               </div>
@@ -898,12 +898,12 @@ export default function DashboardProducaoUM() {
                 </div>
                 <div className="flex items-center gap-6">
                   <div className="flex items-center justify-center">
-                    <DonutProgress value={item.ut} color={item.ut >= 85.0 ? "#22c55e" : "#eab308"} showPercent={true} />
+                    <DonutProgress value={item.ut} color={item.ut >= 60.0 ? "#22c55e" : "#eab308"} showPercent={true} />
                   </div>
                   <div className="h-14 w-px bg-white/10" />
                   <div className="text-center w-20">
                     <div className="text-sm text-[#9ca3af] font-bold uppercase mb-1">Meta</div>
-                    <div className="text-2xl font-bold font-mono text-white">85.0%</div>
+                    <div className="text-2xl font-bold font-mono text-white">60.0%</div>
                   </div>
                 </div>
               </div>
