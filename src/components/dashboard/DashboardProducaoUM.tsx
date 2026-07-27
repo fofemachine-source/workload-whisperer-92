@@ -567,22 +567,44 @@ export default function DashboardProducaoUM() {
 
   const frotasDfRender = useMemo(() => {
     const disp = Array.isArray(dashboardData?.disponibilidadePorFrota) ? dashboardData.disponibilidadePorFrota : [];
-    return disp.map((item: any) => ({
-      name: item.frota || "",
-      type: item.frota?.toUpperCase().includes("CAMINHÃO") || item.frota?.toUpperCase().includes("CAMINHOES") || item.frota?.toUpperCase().includes("785") || item.frota?.toUpperCase().includes("730") ? "trk" : "exc",
-      df: Number(item.valor ?? 0),
-      eq: `${item.quantidadeComDados ?? 0}/${item.quantidadeConfigurada ?? 0}`,
-    }));
+    return disp.map((item: any) => {
+      const name = item.frota || "";
+      const nameUpper = name.toUpperCase();
+      const is785 = nameUpper.includes("785");
+      const is730 = nameUpper.includes("730");
+      let total = item.quantidadeConfigurada ?? 0;
+      
+      if (is785) total = 15;
+      if (is730) total = 25;
+
+      return {
+        name,
+        type: nameUpper.includes("CAMINHÃO") || nameUpper.includes("CAMINHOES") || is785 || is730 ? "trk" : "exc",
+        df: Number(item.valor ?? 0),
+        eq: `${item.quantidadeComDados ?? 0}/${total}`,
+      };
+    });
   }, [dashboardData]);
 
   const frotasUtRender = useMemo(() => {
     const util = Array.isArray(dashboardData?.utilizacaoPorFrota) ? dashboardData.utilizacaoPorFrota : [];
-    return util.map((item: any) => ({
-      name: item.frota || "",
-      type: item.frota?.toUpperCase().includes("CAMINHÃO") || item.frota?.toUpperCase().includes("CAMINHOES") || item.frota?.toUpperCase().includes("785") || item.frota?.toUpperCase().includes("730") ? "trk" : "exc",
-      ut: Number(item.valor ?? 0),
-      eq: `${item.quantidadeComDados ?? 0}/${item.quantidadeConfigurada ?? 0}`,
-    }));
+    return util.map((item: any) => {
+      const name = item.frota || "";
+      const nameUpper = name.toUpperCase();
+      const is785 = nameUpper.includes("785");
+      const is730 = nameUpper.includes("730");
+      let total = item.quantidadeConfigurada ?? 0;
+      
+      if (is785) total = 15;
+      if (is730) total = 25;
+
+      return {
+        name,
+        type: nameUpper.includes("CAMINHÃO") || nameUpper.includes("CAMINHOES") || is785 || is730 ? "trk" : "exc",
+        ut: Number(item.valor ?? 0),
+        eq: `${item.quantidadeComDados ?? 0}/${total}`,
+      };
+    });
   }, [dashboardData]);
 
   const mediaViagens = 0;
