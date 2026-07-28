@@ -585,11 +585,22 @@ export default function DashboardProducaoUM() {
       let ativos = item.quantidadeComDados ?? 0;
       if (nameUpper.includes("785") && item730) ativos = item730.quantidadeComDados ?? ativos;
       else if (nameUpper.includes("730") && item785) ativos = item785.quantidadeComDados ?? ativos;
+
+      let metaValue = Number(item.meta);
+      if (isNaN(metaValue) || metaValue === 0) {
+        if (nameUpper.includes("EX1200")) metaValue = 80.0;
+        else if (nameUpper.includes("EX2500")) metaValue = 82.0;
+        else if (nameUpper.includes("785")) metaValue = 85.0;
+        else if (nameUpper.includes("730")) metaValue = 80.0;
+        else metaValue = 60.0;
+      }
+
       return {
         name,
         type: nameUpper.includes("CAMINHÃO") || nameUpper.includes("CAMINHOES") || nameUpper.includes("785") || nameUpper.includes("730") ? "trk" : "exc",
         df: Number(item.valor ?? 0),
         eq: `${ativos}/${total}`,
+        meta: metaValue,
       };
     });
   }, [dashboardData, getFleetTotal]);
@@ -606,11 +617,18 @@ export default function DashboardProducaoUM() {
       let ativos = item.quantidadeComDados ?? 0;
       if (nameUpper.includes("785") && item730) ativos = item730.quantidadeComDados ?? ativos;
       else if (nameUpper.includes("730") && item785) ativos = item785.quantidadeComDados ?? ativos;
+
+      let metaValue = Number(item.meta);
+      if (isNaN(metaValue) || metaValue === 0) {
+        metaValue = 60.0;
+      }
+
       return {
         name,
         type: nameUpper.includes("CAMINHÃO") || nameUpper.includes("CAMINHOES") || nameUpper.includes("785") || nameUpper.includes("730") ? "trk" : "exc",
         ut: Number(item.valor ?? 0),
         eq: `${ativos}/${total}`,
+        meta: metaValue,
       };
     });
   }, [dashboardData, getFleetTotal]);
@@ -896,12 +914,12 @@ export default function DashboardProducaoUM() {
                 </div>
                 <div className="flex items-center gap-6">
                   <div className="flex items-center justify-center">
-                    <DonutProgress value={item.df} color={item.df >= 60.0 ? "#22c55e" : "#ef4444"} showPercent={true} />
+                    <DonutProgress value={item.df} color={item.df >= item.meta ? "#22c55e" : "#ef4444"} showPercent={true} />
                   </div>
                   <div className="h-14 w-px bg-white/10" />
                   <div className="text-center w-20">
                     <div className="text-sm text-[#9ca3af] font-bold uppercase mb-1">Meta</div>
-                    <div className="text-2xl font-bold font-mono text-white">60.0%</div>
+                    <div className="text-2xl font-bold font-mono text-white">{item.meta.toFixed(1)}%</div>
                   </div>
                 </div>
               </div>
@@ -928,12 +946,12 @@ export default function DashboardProducaoUM() {
                 </div>
                 <div className="flex items-center gap-6">
                   <div className="flex items-center justify-center">
-                    <DonutProgress value={item.ut} color={item.ut >= 60.0 ? "#22c55e" : "#eab308"} showPercent={true} />
+                    <DonutProgress value={item.ut} color={item.ut >= item.meta ? "#22c55e" : "#eab308"} showPercent={true} />
                   </div>
                   <div className="h-14 w-px bg-white/10" />
                   <div className="text-center w-20">
                     <div className="text-sm text-[#9ca3af] font-bold uppercase mb-1">Meta</div>
-                    <div className="text-2xl font-bold font-mono text-white">60.0%</div>
+                    <div className="text-2xl font-bold font-mono text-white">{item.meta.toFixed(1)}%</div>
                   </div>
                 </div>
               </div>
