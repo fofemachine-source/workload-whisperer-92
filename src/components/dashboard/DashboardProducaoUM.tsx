@@ -587,14 +587,11 @@ export default function DashboardProducaoUM() {
       if (nameUpper.includes("785") && item730) ativos = item730.quantidadeComDados ?? ativos;
       else if (nameUpper.includes("730") && item785) ativos = item785.quantidadeComDados ?? ativos;
 
-      let metaValue = Number(item.meta);
-      if (isNaN(metaValue) || metaValue === 0) {
-        if (nameUpper.includes("EX1200")) metaValue = 80.0;
-        else if (nameUpper.includes("EX2500")) metaValue = 82.0;
-        else if (nameUpper.includes("785")) metaValue = 85.0;
-        else if (nameUpper.includes("730")) metaValue = 80.0;
-        else metaValue = 60.0;
-      }
+      let metaValue = 60.0;
+      if (nameUpper.includes("EX1200")) metaValue = 80.0;
+      else if (nameUpper.includes("EX2500")) metaValue = 82.0;
+      else if (nameUpper.includes("785")) metaValue = 85.0;
+      else if (nameUpper.includes("730")) metaValue = 80.0;
 
       return {
         name,
