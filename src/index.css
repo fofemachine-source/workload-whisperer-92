@@ -763,18 +763,18 @@ html.tv-mode [class*="Card"]::after {
 }
 
 .animate-drive-slow {
-  animation: drive-road 18s linear infinite;
+  animation: drive-road 36s linear infinite;
   will-change: transform;
 }
 
 .animate-drive-fast {
-  animation: drive-road 12s linear infinite;
+  animation: drive-road 24s linear infinite;
   animation-delay: 5s;
   will-change: transform;
 }
 
 .animate-drive-medium {
-  animation: drive-road 15s linear infinite;
+  animation: drive-road 30s linear infinite;
   animation-delay: 9s;
   will-change: transform;
 }

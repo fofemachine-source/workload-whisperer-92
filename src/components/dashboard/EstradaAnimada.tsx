@@ -2,7 +2,7 @@ import truckImg from "@/assets/truck.png";
 
 export const EstradaAnimada = () => {
   return (
-    <div className="w-full h-14 relative overflow-hidden rounded-xl border border-[hsl(var(--mining-green)/0.25)] bg-[hsl(222_45%_6%/0.8)] backdrop-blur-md my-3">
+    <div className="w-full h-20 relative overflow-hidden rounded-xl border border-[hsl(var(--mining-green)/0.25)] bg-[hsl(222_45%_6%/0.8)] backdrop-blur-md my-3">
       {/* Road surface texture */}
       <div className="absolute inset-0 opacity-20 ops-grid-bg" />
 
@@ -27,7 +27,7 @@ export const EstradaAnimada = () => {
           <img
             src={truckImg}
             alt="Caminhão"
-            className="h-10 w-auto object-contain"
+            className="h-[60px] w-auto object-contain"
             style={{
               filter: "drop-shadow(0 0 6px rgba(234,179,8,0.75)) drop-shadow(0 0 14px rgba(234,179,8,0.45))",
             }}

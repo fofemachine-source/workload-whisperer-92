@@ -1350,7 +1350,7 @@ function ExcavatorIcon({ className = "" }: { className?: string }) {
       <img
         src={excavatorNeon}
         alt="Escavadeira"
-        className="w-full h-full object-contain scale-x-[-1]"
+        className="w-full h-full object-contain"
         style={{ filter: "drop-shadow(0 0 6px rgba(245,180,0,0.75)) drop-shadow(0 0 12px rgba(245,180,0,0.35))" }}
       />
     </div>
