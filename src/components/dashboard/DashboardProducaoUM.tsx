@@ -621,7 +621,7 @@ export default function DashboardProducaoUM() {
 
       let metaValue = Number(item.meta);
       if (isNaN(metaValue) || metaValue === 0) {
-        metaValue = 60.0;
+        metaValue = 85.0;
       }
 
       return {
