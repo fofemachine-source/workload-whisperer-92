@@ -180,6 +180,16 @@
     animation: truck-idle-move 1.6s ease-in-out infinite;
   }
 
+  @keyframes truck-dump {
+    0%, 20% { transform: rotate(0deg); }
+    40%, 60% { transform: rotate(35deg); }
+    80%, 100% { transform: rotate(0deg); }
+  }
+  .animate-truck-dump {
+    animation: truck-dump 4s ease-in-out infinite;
+    transform-origin: 15% 65%;
+  }
+
   @keyframes wheel-spin {
     from { transform: rotate(0deg); }
     to   { transform: rotate(360deg); }
