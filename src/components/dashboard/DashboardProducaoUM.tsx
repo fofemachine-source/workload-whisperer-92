@@ -21,6 +21,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { EstradaAnimada } from "@/components/dashboard/EstradaAnimada";
 import excavatorNeon from "@/assets/excavator.png";
 import truckNeon from "@/assets/truck.png";
+import { CaminhaoBasculante } from "@/components/dashboard/CaminhaoBasculante";
 
 /* ---------- helpers ---------- */
 
@@ -904,7 +905,7 @@ export default function DashboardProducaoUM() {
                     {item.type === "exc" ? (
                       <ExcavatorIcon className="w-[80px] h-[60px]" />
                     ) : (
-                      <HaulTruckIcon className="w-[80px] h-[60px]" />
+                      <CaminhaoBasculante className="w-[100px] h-[80px]" />
                     )}
                   </div>
                   <div>
@@ -936,7 +937,7 @@ export default function DashboardProducaoUM() {
                     {item.type === "exc" ? (
                       <ExcavatorIcon className="w-[80px] h-[60px]" />
                     ) : (
-                      <HaulTruckIcon className="w-[80px] h-[60px]" />
+                      <CaminhaoBasculante className="w-[100px] h-[80px]" />
                     )}
                   </div>
                   <div>
@@ -1375,15 +1376,4 @@ function ExcavatorIcon({ className = "" }: { className?: string }) {
   );
 }
 
-function HaulTruckIcon({ className = "" }: { className?: string }) {
-  return (
-    <div className={`animate-truck-idle-move flex items-center justify-center ${className}`}>
-      <img
-        src={truckNeon}
-        alt="Caminhão"
-        className="w-full h-full object-contain"
-        style={{ filter: "drop-shadow(0 0 6px rgba(245,180,0,0.75)) drop-shadow(0 0 12px rgba(245,180,0,0.35))" }}
-      />
-    </div>
-  );
-}
+
