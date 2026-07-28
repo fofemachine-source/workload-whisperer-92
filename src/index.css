@@ -168,14 +168,16 @@
   }
   .animate-truck-move { animation: truck-move 1.5s ease-in-out infinite; }
 
-  @keyframes truck-dump {
-    0%, 10% { transform: rotate(0deg); }
-    30%, 50% { transform: rotate(-12deg); }
-    70%, 100% { transform: rotate(0deg); }
+  @keyframes truck-idle-move {
+    0%   { transform: translateY(0) translateX(0); }
+    20%  { transform: translateY(-1.5px) translateX(2px) rotate(1deg); }
+    40%  { transform: translateY(0) translateX(4px) rotate(0deg); }
+    60%  { transform: translateY(-1.5px) translateX(2px) rotate(-1deg); }
+    80%  { transform: translateY(0) translateX(1px) rotate(0deg); }
+    100% { transform: translateY(0) translateX(0); }
   }
-  .animate-truck-dump {
-    animation: truck-dump 4s ease-in-out infinite;
-    transform-origin: 20% 90%;
+  .animate-truck-idle-move {
+    animation: truck-idle-move 1.6s ease-in-out infinite;
   }
 
   @keyframes wheel-spin {

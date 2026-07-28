@@ -1359,7 +1359,7 @@ function ExcavatorIcon({ className = "" }: { className?: string }) {
 
 function HaulTruckIcon({ className = "" }: { className?: string }) {
   return (
-    <div className={`animate-truck-dump flex items-center justify-center ${className}`}>
+    <div className={`animate-truck-idle-move flex items-center justify-center ${className}`}>
       <img
         src={truckNeon}
         alt="Caminhão"
