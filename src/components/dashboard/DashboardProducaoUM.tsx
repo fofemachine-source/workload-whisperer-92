@@ -991,8 +991,11 @@ export default function DashboardProducaoUM() {
 
       </div>
 
+      {/* Animated road footer */}
+      <EstradaAnimada />
+
       {/* Footer */}
-      <div className="mt-3 flex flex-wrap items-center justify-between gap-2 px-1 text-[10px] font-mono text-[#9ca3af]">
+      <div className="mt-1 flex flex-wrap items-center justify-between gap-2 px-1 text-[10px] font-mono text-[#9ca3af]">
         <span className="flex items-center gap-2">
           Fonte: http://192.168.17.15:3001/api/dashboard
         </span>
