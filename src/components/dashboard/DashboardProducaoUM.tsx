@@ -18,6 +18,7 @@ import {
 } from "recharts";
 import { DASHBOARD_API_URL, type DashboardApiPayload } from "@/hooks/useDashboardApi";
 import { supabase } from "@/integrations/supabase/client";
+import { EstradaAnimada } from "@/components/dashboard/EstradaAnimada";
 import excavatorNeon from "@/assets/excavator-neon.png";
 import truckNeon from "@/assets/truck-neon.png";
 
