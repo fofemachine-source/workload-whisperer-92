@@ -574,8 +574,8 @@ export default function DashboardProducaoUM() {
       const is730 = nameUpper.includes("730");
       let total = item.quantidadeConfigurada ?? 0;
       
-      if (is785) total = 15;
-      if (is730) total = 25;
+      if (is785) total = 25;
+      if (is730) total = 15;
 
       return {
         name,
@@ -595,8 +595,8 @@ export default function DashboardProducaoUM() {
       const is730 = nameUpper.includes("730");
       let total = item.quantidadeConfigurada ?? 0;
       
-      if (is785) total = 15;
-      if (is730) total = 25;
+      if (is785) total = 25;
+      if (is730) total = 15;
 
       return {
         name,
