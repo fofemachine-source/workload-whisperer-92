@@ -751,6 +751,47 @@ html.tv-mode [class*="Card"]::after {
   }
 }
 
+/* Animated road footer trucks */
+@keyframes drive-road {
+  0%   { transform: translateX(-120px); }
+  100% { transform: translateX(calc(100vw + 120px)); }
+}
+
+@keyframes truck-bounce-suspension {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-2px); }
+}
+
+.animate-drive-slow {
+  animation: drive-road 18s linear infinite;
+  will-change: transform;
+}
+
+.animate-drive-fast {
+  animation: drive-road 12s linear infinite;
+  animation-delay: 5s;
+  will-change: transform;
+}
+
+.animate-drive-medium {
+  animation: drive-road 15s linear infinite;
+  animation-delay: 9s;
+  will-change: transform;
+}
+
+.animate-truck-bounce-slow {
+  animation: truck-bounce-suspension 0.45s ease-in-out infinite;
+}
+
+.animate-truck-bounce-fast {
+  animation: truck-bounce-suspension 0.35s ease-in-out infinite;
+}
+
+.animate-truck-bounce-medium {
+  animation: truck-bounce-suspension 0.4s ease-in-out infinite;
+}
+
+
 .chart-card,
 .dashboard-card,
 .kpi-card {
