@@ -41,7 +41,7 @@ export const EstradaAnimada = () => {
           <img
             src={truckImg}
             alt="Caminhão"
-            className="h-9 w-auto object-contain"
+            className="h-[60px] w-auto object-contain"
             style={{
               filter: "drop-shadow(0 0 6px rgba(234,179,8,0.75)) drop-shadow(0 0 14px rgba(234,179,8,0.45))",
             }}
@@ -55,7 +55,7 @@ export const EstradaAnimada = () => {
           <img
             src={truckImg}
             alt="Caminhão"
-            className="h-9 w-auto object-contain"
+            className="h-[60px] w-auto object-contain"
             style={{
               filter: "drop-shadow(0 0 6px rgba(234,179,8,0.75)) drop-shadow(0 0 14px rgba(234,179,8,0.45))",
             }}
