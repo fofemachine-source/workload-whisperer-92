@@ -565,26 +565,27 @@ export default function DashboardProducaoUM() {
     [dailySeries],
   );
 
+  const getFleetTotal = useCallback((name: string, configuredQty?: number) => {
+    const nameUpper = name.toUpperCase();
+    if (nameUpper.includes("785")) return 25;
+    if (nameUpper.includes("730")) return 15;
+    return configuredQty ?? 0;
+  }, []);
+
   const frotasDfRender = useMemo(() => {
     const disp = Array.isArray(dashboardData?.disponibilidadePorFrota) ? dashboardData.disponibilidadePorFrota : [];
     return disp.map((item: any) => {
       const name = item.frota || "";
       const nameUpper = name.toUpperCase();
-      const is785 = nameUpper.includes("785");
-      const is730 = nameUpper.includes("730");
-      let total = item.quantidadeConfigurada ?? 0;
-      
-      if (is785) total = 25;
-      if (is730) total = 15;
-
+      const total = getFleetTotal(name, item.quantidadeConfigurada);
       return {
         name,
-        type: nameUpper.includes("CAMINHÃO") || nameUpper.includes("CAMINHOES") || is785 || is730 ? "trk" : "exc",
+        type: nameUpper.includes("CAMINHÃO") || nameUpper.includes("CAMINHOES") || nameUpper.includes("785") || nameUpper.includes("730") ? "trk" : "exc",
         df: Number(item.valor ?? 0),
         eq: `${item.quantidadeComDados ?? 0}/${total}`,
       };
     });
-  }, [dashboardData]);
+  }, [dashboardData, getFleetTotal]);
 
   const frotasUtRender = useMemo(() => {
     const util = Array.isArray(dashboardData?.utilizacaoPorFrota) ? dashboardData.utilizacaoPorFrota : [];
