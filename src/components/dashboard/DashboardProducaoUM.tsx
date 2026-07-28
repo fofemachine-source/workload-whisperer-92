@@ -574,30 +574,42 @@ export default function DashboardProducaoUM() {
 
   const frotasDfRender = useMemo(() => {
     const disp = Array.isArray(dashboardData?.disponibilidadePorFrota) ? dashboardData.disponibilidadePorFrota : [];
+    const item785 = disp.find((i: any) => (i.frota || "").toUpperCase().includes("785"));
+    const item730 = disp.find((i: any) => (i.frota || "").toUpperCase().includes("730"));
     return disp.map((item: any) => {
       const name = item.frota || "";
       const nameUpper = name.toUpperCase();
       const total = getFleetTotal(name, item.quantidadeConfigurada);
+      // Inverter valor ativo entre frotas 785 e 730 (correção de mapeamento da API)
+      let ativos = item.quantidadeComDados ?? 0;
+      if (nameUpper.includes("785") && item730) ativos = item730.quantidadeComDados ?? ativos;
+      else if (nameUpper.includes("730") && item785) ativos = item785.quantidadeComDados ?? ativos;
       return {
         name,
         type: nameUpper.includes("CAMINHÃO") || nameUpper.includes("CAMINHOES") || nameUpper.includes("785") || nameUpper.includes("730") ? "trk" : "exc",
         df: Number(item.valor ?? 0),
-        eq: `${item.quantidadeComDados ?? 0}/${total}`,
+        eq: `${ativos}/${total}`,
       };
     });
   }, [dashboardData, getFleetTotal]);
 
   const frotasUtRender = useMemo(() => {
     const util = Array.isArray(dashboardData?.utilizacaoPorFrota) ? dashboardData.utilizacaoPorFrota : [];
+    const item785 = util.find((i: any) => (i.frota || "").toUpperCase().includes("785"));
+    const item730 = util.find((i: any) => (i.frota || "").toUpperCase().includes("730"));
     return util.map((item: any) => {
       const name = item.frota || "";
       const nameUpper = name.toUpperCase();
       const total = getFleetTotal(name, item.quantidadeConfigurada);
+      // Inverter valor ativo entre frotas 785 e 730 (correção de mapeamento da API)
+      let ativos = item.quantidadeComDados ?? 0;
+      if (nameUpper.includes("785") && item730) ativos = item730.quantidadeComDados ?? ativos;
+      else if (nameUpper.includes("730") && item785) ativos = item785.quantidadeComDados ?? ativos;
       return {
         name,
         type: nameUpper.includes("CAMINHÃO") || nameUpper.includes("CAMINHOES") || nameUpper.includes("785") || nameUpper.includes("730") ? "trk" : "exc",
         ut: Number(item.valor ?? 0),
-        eq: `${item.quantidadeComDados ?? 0}/${total}`,
+        eq: `${ativos}/${total}`,
       };
     });
   }, [dashboardData, getFleetTotal]);
