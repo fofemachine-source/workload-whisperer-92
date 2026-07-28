@@ -21,8 +21,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { EstradaAnimada } from "@/components/dashboard/EstradaAnimada";
 import excavatorNeon from "@/assets/excavator.png";
 import truckNeon from "@/assets/truck.png";
-import truckChassi from "@/assets/chassi.png";
-import truckBascula from "@/assets/bascula.png";
 
 /* ---------- helpers ---------- */
 
@@ -1361,20 +1359,12 @@ function ExcavatorIcon({ className = "" }: { className?: string }) {
 
 function HaulTruckIcon({ className = "" }: { className?: string }) {
   return (
-    <div className={`relative flex items-center justify-center ${className}`}>
-      {/* Chassi base */}
+    <div className={`animate-truck-idle-move flex items-center justify-center ${className}`}>
       <img
-        src={truckChassi}
-        alt="Chassi"
-        className="absolute inset-0 w-full h-full object-contain"
-        style={{ filter: "drop-shadow(0 0 6px rgba(245,180,0,0.75))" }}
-      />
-      {/* Bascula animada */}
-      <img
-        src={truckBascula}
-        alt="Báscula"
-        className="absolute inset-0 w-full h-full object-contain animate-truck-dump"
-        style={{ filter: "drop-shadow(0 0 12px rgba(245,180,0,0.35))" }}
+        src={truckNeon}
+        alt="Caminhão"
+        className="w-full h-full object-contain"
+        style={{ filter: "drop-shadow(0 0 6px rgba(245,180,0,0.75)) drop-shadow(0 0 12px rgba(245,180,0,0.35))" }}
       />
     </div>
   );
