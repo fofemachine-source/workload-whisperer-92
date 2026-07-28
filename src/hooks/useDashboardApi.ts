@@ -11,6 +11,16 @@ export interface DashboardApiPayload {
     producaoDia?: number;
     producaoMensal?: number;
     producaoTotalEscavadeirasTH?: number;
+    lav?: number;
+    ret?: number;
+  };
+  cards?: {
+    lav?: { acumuladoDia?: number; projetadoDia?: number };
+    ret?: { acumuladoDia?: number; projetadoDia?: number };
+    mensal?: number;
+    th?: number;
+    viagens?: number;
+    producaoDiaria?: number;
   };
   atualizadoEm?: string;
   producaoDiaria: Array<{ data: string; real: number; previsto?: number }>;
@@ -46,6 +56,18 @@ export interface DashboardApiPayload {
     ciclo?: number;
   }>;
   viagensHora: Array<{ hora: string | number; viagens: number }>;
+  disponibilidadePorFrota?: Array<{
+    frota: string;
+    valor?: number;
+    quantidadeComDados?: number;
+    quantidadeConfigurada?: number;
+  }>;
+  utilizacaoPorFrota?: Array<{
+    frota: string;
+    valor?: number;
+    quantidadeComDados?: number;
+    quantidadeConfigurada?: number;
+  }>;
 }
 
 export const DASHBOARD_API_URL = "http://192.168.17.15:3001/api/dashboard";
