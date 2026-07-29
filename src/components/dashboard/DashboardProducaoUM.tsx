@@ -441,15 +441,23 @@ export default function DashboardProducaoUM() {
   const producaoTotalEscavadeirasTH = Number(cards.th ?? 0);
   const viagens = Number(cards.viagens ?? 0);
 
-  const dailySeries = useMemo(
-    () =>
-      (dashboardData?.producaoDiaria ?? []).map((d) => ({
-        dia: d.data,
+  const dailySeries = useMemo(() => {
+    const todos = dashboardData?.producaoDiaria ?? [];
+    const ultimos7 = todos.length > 7 ? todos.slice(-7) : todos;
+    return ultimos7.map((d) => {
+      let labelDia = d.data;
+      if (d.data && d.data.includes("-")) {
+        const parts = d.data.split("-");
+        if (parts.length === 3) labelDia = `${parts[2]}/${parts[1]}`;
+      }
+      return {
+        dia: labelDia,
+        diaOriginal: d.data,
         Real: Number(d.real ?? 0),
         Prevista: Number(d.previsto ?? 0),
-      })),
-    [dashboardData],
-  );
+      };
+    });
+  }, [dashboardData]);
 
   const mediaDiaria = useMemo(() => {
     const valoresReais = dailySeries.map((d) => d.Real || 0);
@@ -722,8 +730,8 @@ export default function DashboardProducaoUM() {
                   <ReferenceLine 
                     y={mediaDiaria} 
                     stroke="#22c55e" 
-                    strokeWidth={2}
-                    strokeDasharray="4 4"
+                    strokeWidth={3}
+                    strokeDasharray="12 8"
                     style={{ filter: "url(#neonGlowLine)" }}
                   >
                     <Label
