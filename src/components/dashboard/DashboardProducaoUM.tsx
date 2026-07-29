@@ -593,10 +593,12 @@ export default function DashboardProducaoUM() {
       else if (nameUpper.includes("785")) metaValue = 85.0;
       else if (nameUpper.includes("730")) metaValue = 80.0;
 
+      const dfCalc = total > 0 ? (ativos / total) * 100 : 0;
+
       return {
         name,
         type: nameUpper.includes("CAMINHÃO") || nameUpper.includes("CAMINHOES") || nameUpper.includes("785") || nameUpper.includes("730") ? "trk" : "exc",
-        df: Number(item.valor ?? 0),
+        df: dfCalc,
         eq: `${ativos}/${total}`,
         meta: metaValue,
       };
