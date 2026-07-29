@@ -730,9 +730,8 @@ export default function DashboardProducaoUM() {
                   <ReferenceLine 
                     y={mediaDiaria} 
                     stroke="#22c55e" 
-                    strokeWidth={3}
+                    strokeWidth={2}
                     strokeDasharray="12 8"
-                    style={{ filter: "url(#neonGlowLine)" }}
                   >
                     <Label
                       value={rotuloMedia}
@@ -1077,14 +1076,16 @@ export default function DashboardProducaoUM() {
 
 /* ---------- small components ---------- */
 const CustomLabel = (props: any) => {
-  const { x, y, value } = props;
+  const { viewBox, value } = props;
+  const x = (viewBox?.x || 0) + (viewBox?.width || 0);
+  const y = viewBox?.y || 0;
   const boxWidth = 56;
   const boxHeight = 22;
   return (
     <g>
       <rect 
-        x={(x || 0) + 6} 
-        y={(y || 0) - boxHeight / 2} 
+        x={x + 6} 
+        y={y - boxHeight / 2} 
         width={boxWidth} 
         height={boxHeight} 
         fill="rgba(3, 20, 26, 0.9)" 
@@ -1093,8 +1094,8 @@ const CustomLabel = (props: any) => {
         strokeWidth={1}
       />
       <text 
-        x={(x || 0) + 6 + boxWidth / 2} 
-        y={(y || 0) + 1} 
+        x={x + 6 + boxWidth / 2} 
+        y={y + 1} 
         fill="#22c55e" 
         textAnchor="middle" 
         dominantBaseline="middle" 
