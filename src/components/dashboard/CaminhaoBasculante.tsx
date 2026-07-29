@@ -7,7 +7,7 @@ export const CaminhaoBasculante = ({ className = "" }: { className?: string }) =
     <div className={`relative flex items-center justify-center ${className}`}>
       {/* CHASSI E CABINE FIXOS (Recorte da parte de baixo e frente) */}
       <img
-        src={truckNeon}
+        src={`${truckNeon}?v=2`}
         alt="Chassi"
         className="absolute w-full h-full object-contain"
         style={{
@@ -18,7 +18,7 @@ export const CaminhaoBasculante = ({ className = "" }: { className?: string }) =
       
       {/* CAÇAMBA ANIMADA (Recorte da parte de cima e trás) */}
       <motion.img
-        src={truckNeon}
+        src={`${truckNeon}?v=2`}
         alt="Báscula"
         className="absolute w-full h-full object-contain"
         initial={{ rotate: 0 }}
