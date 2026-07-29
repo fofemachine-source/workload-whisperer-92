@@ -15,6 +15,8 @@ import {
   XAxis,
   YAxis,
   Legend,
+  ReferenceLine,
+  Label,
 } from "recharts";
 import { DASHBOARD_API_URL, type DashboardApiPayload } from "@/hooks/useDashboardApi";
 import { supabase } from "@/integrations/supabase/client";
@@ -449,6 +451,21 @@ export default function DashboardProducaoUM() {
     [dashboardData],
   );
 
+  const mediaDiaria = useMemo(() => {
+    const valoresReais = dailySeries.map((d) => d.Real || 0);
+    const soma = valoresReais.reduce((a, b) => a + b, 0);
+    return dailySeries.length ? soma / dailySeries.length : 0;
+  }, [dailySeries]);
+
+  const rotuloMedia = useMemo(() => {
+    const valorEmKt = mediaDiaria / 1000;
+    const valorFormatado = valorEmKt.toLocaleString('pt-BR', {
+      minimumFractionDigits: 1,
+      maximumFractionDigits: 1,
+    });
+    return `${valorFormatado} kt`;
+  }, [mediaDiaria]);
+
   const frenteAgg = useMemo(() => {
     const arr = (dashboardData?.producaoFrente ?? [])
       .map((f) => {
@@ -688,7 +705,12 @@ export default function DashboardProducaoUM() {
               <Empty />
             ) : (
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={dailySeries} margin={{ top: 12, right: 8, left: 0, bottom: 0 }}>
+                <BarChart data={dailySeries} margin={{ top: 12, right: 60, left: 0, bottom: 0 }}>
+                  <defs>
+                    <filter id="neonGlowLine" x="-50%" y="-50%" width="200%" height="200%">
+                      <feDropShadow dx="0" dy="0" stdDeviation="4" floodColor="#22c55e" floodOpacity="0.8"/>
+                    </filter>
+                  </defs>
                   <CartesianGrid stroke="rgba(255,255,255,0.05)" vertical={false} />
                   <XAxis dataKey="dia" stroke="#9ca3af" tick={{ fontSize: 10 }} />
                   <YAxis stroke="#9ca3af" tick={{ fontSize: 10 }} />
@@ -696,6 +718,20 @@ export default function DashboardProducaoUM() {
                   <Legend wrapperStyle={{ fontSize: 10 }} />
                   <Bar dataKey="Prevista" fill="#f59e0b" radius={[2, 2, 0, 0]} isAnimationActive={false} />
                   <Bar dataKey="Real" fill="#22c55e" radius={[2, 2, 0, 0]} isAnimationActive={false} />
+                  
+                  <ReferenceLine 
+                    y={mediaDiaria} 
+                    stroke="#22c55e" 
+                    strokeWidth={2}
+                    strokeDasharray="4 4"
+                    style={{ filter: "url(#neonGlowLine)" }}
+                  >
+                    <Label
+                      value={rotuloMedia}
+                      position="right"
+                      content={(props) => <CustomLabel {...props} />}
+                    />
+                  </ReferenceLine>
                 </BarChart>
               </ResponsiveContainer>
             )}
@@ -1032,6 +1068,38 @@ export default function DashboardProducaoUM() {
 }
 
 /* ---------- small components ---------- */
+const CustomLabel = (props: any) => {
+  const { x, y, value } = props;
+  const boxWidth = 56;
+  const boxHeight = 22;
+  return (
+    <g>
+      <rect 
+        x={(x || 0) + 6} 
+        y={(y || 0) - boxHeight / 2} 
+        width={boxWidth} 
+        height={boxHeight} 
+        fill="rgba(3, 20, 26, 0.9)" 
+        rx={4}
+        stroke="#22c55e"
+        strokeWidth={1}
+      />
+      <text 
+        x={(x || 0) + 6 + boxWidth / 2} 
+        y={(y || 0) + 1} 
+        fill="#22c55e" 
+        textAnchor="middle" 
+        dominantBaseline="middle" 
+        fontSize={11} 
+        fontWeight="bold"
+        style={{ textShadow: "0 0 6px rgba(34,197,94,0.6)" }}
+      >
+        {value}
+      </text>
+    </g>
+  );
+};
+
 const tooltipStyle: React.CSSProperties = {
   background: "hsl(220 50% 6%)",
   border: "1px solid hsl(199 95% 60% / 0.4)",
