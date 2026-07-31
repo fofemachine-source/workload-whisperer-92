@@ -173,12 +173,12 @@ const TkphTick = (props: any) => {
   const { x, y, payload } = props;
   return (
     <g transform={`translate(${x},${y})`}>
-      <text x={0} y={14} fontSize={9} textAnchor="middle" fontWeight="bold">
+      <text x={0} y={16} fontSize={11} textAnchor="middle" fontWeight="bold">
         <tspan fill="#f97316">CR 785 </tspan>
         <tspan fill="#9ca3af">| </tspan>
         <tspan fill="#22c55e">CR 730</tspan>
       </text>
-      <text x={0} y={30} fill="#22d3ee" fontSize={14} textAnchor="middle" fontWeight="bold">{payload.value}</text>
+      <text x={0} y={38} fill="#22d3ee" fontSize={18} textAnchor="middle" fontWeight="bold">{payload.value}</text>
     </g>
   );
 };
@@ -1073,26 +1073,26 @@ export default function DashboardProducaoUM() {
               <Empty />
             ) : (
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={tkphSeries} margin={{ top: 25, right: 8, left: 0, bottom: 25 }} barGap={4}>
+                <BarChart data={tkphSeries} margin={{ top: 25, right: 8, left: 0, bottom: 45 }} barGap={6}>
                   <CartesianGrid stroke="rgba(255,255,255,0.05)" vertical={false} />
                   <XAxis dataKey="dia" stroke="#9ca3af" tick={<TkphTick />} tickLine={false} axisLine={false} />
-                  <YAxis stroke="#9ca3af" tick={{ fontSize: 12, fill: '#38bdf8' }} width={40} />
+                  <YAxis stroke="#9ca3af" tick={{ fontSize: 14, fill: '#38bdf8' }} width={45} />
                   <Tooltip 
                     contentStyle={{ ...tooltipStyle, padding: '8px' }} 
                     cursor={{ fill: 'rgba(255,255,255,0.05)' }}
                   />
                   <Legend 
-                    wrapperStyle={{ fontSize: 12, bottom: -10 }} 
+                    wrapperStyle={{ fontSize: 14, bottom: -5 }} 
                     iconType="circle" 
                     content={(props) => {
                       const { payload } = props;
                       return (
-                        <div className="flex justify-center mt-4">
-                          <div className="flex items-center gap-6 border border-[#22c55e]/20 rounded-full px-6 py-2 bg-[#000000]">
+                        <div className="flex justify-center mt-2">
+                          <div className="flex items-center gap-8 border border-[#22c55e]/20 rounded-full px-8 py-2.5 bg-[#000000]">
                             {payload?.map((entry, index) => (
-                              <div key={`item-${index}`} className="flex items-center gap-2">
-                                <span className="w-4 h-4 rounded-full" style={{ backgroundColor: entry.color }} />
-                                <span className="font-bold text-[14px]" style={{ color: entry.color }}>{entry.value}</span>
+                              <div key={`item-${index}`} className="flex items-center gap-3">
+                                <span className="w-5 h-5 rounded-full" style={{ backgroundColor: entry.color }} />
+                                <span className="font-bold text-[16px]" style={{ color: entry.color }}>{entry.value}</span>
                               </div>
                             ))}
                           </div>
@@ -1100,11 +1100,11 @@ export default function DashboardProducaoUM() {
                       );
                     }}
                   />
-                  <Bar dataKey="CR 785" fill="#f97316" radius={[2, 2, 0, 0]} barSize={18} animationDuration={1000}>
-                    <LabelList dataKey="CR 785" position="top" fill="#f97316" fontSize={11} fontWeight="bold" offset={6} />
+                  <Bar dataKey="CR 785" fill="#f97316" radius={[2, 2, 0, 0]} barSize={22} animationDuration={1000}>
+                    <LabelList dataKey="CR 785" position="top" fill="#f97316" fontSize={13} fontWeight="bold" offset={6} />
                   </Bar>
-                  <Bar dataKey="CR 730" fill="#22c55e" radius={[2, 2, 0, 0]} barSize={18} animationDuration={1000}>
-                    <LabelList dataKey="CR 730" position="top" fill="#22c55e" fontSize={11} fontWeight="bold" offset={6} />
+                  <Bar dataKey="CR 730" fill="#22c55e" radius={[2, 2, 0, 0]} barSize={22} animationDuration={1000}>
+                    <LabelList dataKey="CR 730" position="top" fill="#22c55e" fontSize={13} fontWeight="bold" offset={6} />
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
@@ -1122,10 +1122,10 @@ export default function DashboardProducaoUM() {
               <Empty />
             ) : (
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={viagensPorHora} margin={{ top: 8, right: 4, left: 0, bottom: 0 }}>
+                <BarChart data={viagensPorHora} margin={{ top: 15, right: 4, left: 0, bottom: 0 }}>
                   <CartesianGrid stroke="rgba(255,255,255,0.05)" vertical={false} />
-                  <XAxis dataKey="hora" stroke="#9ca3af" tick={{ fontSize: 8 }} interval={1} />
-                  <YAxis stroke="#9ca3af" tick={{ fontSize: 9 }} />
+                  <XAxis dataKey="hora" stroke="#9ca3af" tick={{ fontSize: 12, fontWeight: 'bold' }} interval={1} />
+                  <YAxis stroke="#9ca3af" tick={{ fontSize: 12, fontWeight: 'bold' }} width={30} />
                   <Tooltip contentStyle={tooltipStyle} />
                   <Bar dataKey="Real" fill="#22c55e" radius={[2, 2, 0, 0]} animationDuration={900} animationEasing="ease-out" />
                 </BarChart>
