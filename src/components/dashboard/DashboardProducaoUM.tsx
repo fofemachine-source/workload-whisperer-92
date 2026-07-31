@@ -171,31 +171,12 @@ function FilterField({
 // Tick customizado para o gráfico de TKPH
 const TkphTick = (props: any) => {
   const { x, y, payload } = props;
-  const originalData = payload.payload;
-  
-  let weekDay = "";
-  if (originalData?.fullDate) {
-    const dateStr = originalData.fullDate.substring(0, 10);
-    let d;
-    if (dateStr.includes('/')) {
-      const [day, month, year] = dateStr.split('/');
-      d = new Date(`${year}-${month}-${day}T12:00:00Z`);
-    } else {
-      d = new Date(`${dateStr}T12:00:00Z`);
-    }
-    const days = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
-    if (!isNaN(d.getTime())) {
-      weekDay = days[d.getUTCDay()];
-    }
-  }
 
   return (
     <g transform={`translate(${x},${y})`}>
-      <text x={-14} y={16} fill="#f97316" fontSize={10} textAnchor="middle" fontWeight="bold">CR 785</text>
-      <text x={14} y={16} fill="#22c55e" fontSize={10} textAnchor="middle" fontWeight="bold">CR 730</text>
-      
-      <text x={0} y={32} fill="#38bdf8" fontSize={16} textAnchor="middle" fontWeight="bold">{payload.value}</text>
-      <text x={0} y={46} fill="#9ca3af" fontSize={10} textAnchor="middle">{weekDay}</text>
+      <text x={-12} y={12} fill="#f97316" fontSize={8} textAnchor="middle" fontWeight="bold">CR 785</text>
+      <text x={12} y={12} fill="#22c55e" fontSize={8} textAnchor="middle" fontWeight="bold">CR 730</text>
+      <text x={0} y={24} fill="#38bdf8" fontSize={12} textAnchor="middle" fontWeight="bold">{payload.value}</text>
     </g>
   );
 };
@@ -1085,36 +1066,36 @@ export default function DashboardProducaoUM() {
           </div>
         </Panel>
 
-        <Panel title="PRODUTIVIDADE TKPH (TON x KM / HORA)" className="col-span-12 lg:col-span-5 h-[240px] animated-card relative">
-          <div className="force-live-animation productivity-bar h-full relative pb-4">
+        <Panel title="PRODUTIVIDADE TKPH (TON x KM / HORA)" className="col-span-12 lg:col-span-5 h-[184px] animated-card relative">
+          <div className="force-live-animation productivity-bar h-full relative">
             {tkphSeries.length === 0 ? (
               <Empty />
             ) : (
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={tkphSeries} margin={{ top: 25, right: 8, left: 0, bottom: 55 }} barGap={6}>
+                <BarChart data={tkphSeries} margin={{ top: 20, right: 8, left: 0, bottom: 35 }} barGap={4}>
                   <CartesianGrid stroke="rgba(255,255,255,0.05)" vertical={false} />
                   <XAxis dataKey="dia" stroke="#9ca3af" tick={<TkphTick />} tickLine={false} axisLine={false} />
-                  <YAxis stroke="#9ca3af" tick={{ fontSize: 14, fill: '#38bdf8' }} width={45} tickCount={4} />
+                  <YAxis stroke="#9ca3af" tick={{ fontSize: 11, fill: '#38bdf8' }} width={35} tickCount={4} />
                   <Tooltip 
                     contentStyle={{ ...tooltipStyle, padding: '8px' }} 
                     cursor={{ fill: 'rgba(255,255,255,0.05)' }}
                   />
                   <Legend 
-                    wrapperStyle={{ fontSize: 14, bottom: -5 }} 
+                    wrapperStyle={{ fontSize: 11, bottom: -5 }} 
                     iconType="circle" 
                     content={(props) => {
                       const { payload } = props;
                       return (
-                        <div className="flex justify-center mt-2">
-                          <div className="flex items-center gap-6 border border-[#22c55e]/30 rounded-full px-8 py-2 bg-[#000000]">
+                        <div className="flex justify-center mt-0">
+                          <div className="flex items-center gap-4 border border-[#22c55e]/30 rounded-full px-5 py-1 bg-[#000000]">
                             {payload?.map((entry, index) => (
-                              <div key={`item-${index}`} className="flex items-center gap-6">
-                                <div className="flex items-center gap-3">
-                                  <span className="w-5 h-5 rounded-full" style={{ backgroundColor: entry.color }} />
-                                  <span className="font-bold text-[16px]" style={{ color: entry.color }}>{entry.value}</span>
+                              <div key={`item-${index}`} className="flex items-center gap-4">
+                                <div className="flex items-center gap-2">
+                                  <span className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }} />
+                                  <span className="font-bold text-[12px]" style={{ color: entry.color }}>{entry.value}</span>
                                 </div>
                                 {index < payload.length - 1 && (
-                                  <span className="text-[#9ca3af] font-light">|</span>
+                                  <span className="text-[#9ca3af] font-light text-xs">|</span>
                                 )}
                               </div>
                             ))}
@@ -1123,23 +1104,23 @@ export default function DashboardProducaoUM() {
                       );
                     }}
                   />
-                  <Bar dataKey="CR 785" fill="#f97316" radius={[2, 2, 0, 0]} barSize={22} animationDuration={1000}>
-                    <LabelList dataKey="CR 785" position="top" fill="#f97316" fontSize={13} fontWeight="bold" offset={6} />
+                  <Bar dataKey="CR 785" fill="#f97316" radius={[2, 2, 0, 0]} barSize={16} animationDuration={1000}>
+                    <LabelList dataKey="CR 785" position="top" fill="#f97316" fontSize={10} fontWeight="bold" offset={4} />
                   </Bar>
-                  <Bar dataKey="CR 730" fill="#22c55e" radius={[2, 2, 0, 0]} barSize={22} animationDuration={1000}>
-                    <LabelList dataKey="CR 730" position="top" fill="#22c55e" fontSize={13} fontWeight="bold" offset={6} />
+                  <Bar dataKey="CR 730" fill="#22c55e" radius={[2, 2, 0, 0]} barSize={16} animationDuration={1000}>
+                    <LabelList dataKey="CR 730" position="top" fill="#22c55e" fontSize={10} fontWeight="bold" offset={4} />
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
             )}
             
             {/* Ícone de Caminhão no canto inferior direito */}
-            <div className="absolute right-2 bottom-2 opacity-80 pointer-events-none">
+            <div className="absolute right-2 bottom-0 opacity-80 pointer-events-none">
               <img src={truckNeon} alt="Truck Icon" className="h-12 object-contain" style={{ filter: "drop-shadow(0 0 5px #22c55e) brightness(1.2)" }} />
             </div>
           </div>
         </Panel>
-        <Panel title="Viagens por Hora" className="col-span-12 lg:col-span-5 h-[240px] animated-card">
+        <Panel title="Viagens por Hora" className="col-span-12 lg:col-span-5 h-[184px] animated-card">
           <div className="force-live-animation trips-chart h-full">
             {viagensPorHora.length === 0 ? (
               <Empty />
@@ -1147,8 +1128,8 @@ export default function DashboardProducaoUM() {
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={viagensPorHora} margin={{ top: 15, right: 4, left: 0, bottom: 0 }}>
                   <CartesianGrid stroke="rgba(255,255,255,0.05)" vertical={false} />
-                  <XAxis dataKey="hora" stroke="#9ca3af" tick={{ fontSize: 12, fontWeight: 'bold' }} interval={1} />
-                  <YAxis stroke="#9ca3af" tick={{ fontSize: 12, fontWeight: 'bold' }} width={30} />
+                  <XAxis dataKey="hora" stroke="#9ca3af" tick={{ fontSize: 10, fontWeight: 'bold' }} interval={1} />
+                  <YAxis stroke="#9ca3af" tick={{ fontSize: 10, fontWeight: 'bold' }} width={30} />
                   <Tooltip contentStyle={tooltipStyle} />
                   <Bar dataKey="Real" fill="#22c55e" radius={[2, 2, 0, 0]} animationDuration={900} animationEasing="ease-out" />
                 </BarChart>
@@ -1156,7 +1137,7 @@ export default function DashboardProducaoUM() {
             )}
           </div>
         </Panel>
-        <Panel className="col-span-12 lg:col-span-2 h-[240px] animated-card">
+        <Panel className="col-span-12 lg:col-span-2 h-[184px] animated-card">
           <div className="flex flex-col justify-between h-full py-1 gap-2">
             <StatBlock label="Produção (9H/13H)" value={<Counter value={producaoDia} />} unit="t" big />
             <StatBlock label="Próxima Média" value={<Counter value={producaoTotalEscavadeirasTH} />} />
