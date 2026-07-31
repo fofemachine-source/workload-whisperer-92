@@ -17,6 +17,7 @@ import {
   Legend,
   ReferenceLine,
   Label,
+  LabelList,
 } from "recharts";
 import { DASHBOARD_API_URL, type DashboardApiPayload } from "@/hooks/useDashboardApi";
 import { supabase } from "@/integrations/supabase/client";
@@ -172,9 +173,10 @@ const TkphTick = (props: any) => {
   const { x, y, payload } = props;
   return (
     <g transform={`translate(${x},${y})`}>
-      <text x={-14} y={12} fill="#f97316" fontSize={8} textAnchor="middle" fontWeight="bold">CR 785</text>
-      <text x={14} y={12} fill="#22c55e" fontSize={8} textAnchor="middle" fontWeight="bold">CR 730</text>
-      <text x={0} y={26} fill="#9ca3af" fontSize={11} textAnchor="middle">{payload.value}</text>
+      <text x={-20} y={12} fill="#f97316" fontSize={8} textAnchor="end" fontWeight="bold">CR 785</text>
+      <text x={0} y={12} fill="#9ca3af" fontSize={8} textAnchor="middle">|</text>
+      <text x={20} y={12} fill="#22c55e" fontSize={8} textAnchor="start" fontWeight="bold">CR 730</text>
+      <text x={0} y={26} fill="#22d3ee" fontSize={12} textAnchor="middle" fontWeight="bold">{payload.value}</text>
     </g>
   );
 };
@@ -1063,25 +1065,53 @@ export default function DashboardProducaoUM() {
           </div>
         </Panel>
 
-        <Panel title="PRODUTIVIDADE TKPH (TON x KM / HORA)" className="col-span-12 lg:col-span-5 h-[184px] animated-card">
-          <div className="force-live-animation productivity-bar h-full">
+        <Panel title="PRODUTIVIDADE TKPH (TON x KM / HORA)" className="col-span-12 lg:col-span-5 h-[220px] animated-card relative">
+          <div className="force-live-animation productivity-bar h-full relative">
             {tkphSeries.length === 0 ? (
               <Empty />
             ) : (
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={tkphSeries} margin={{ top: 8, right: 8, left: 0, bottom: 20 }}>
+                <BarChart data={tkphSeries} margin={{ top: 20, right: 8, left: 0, bottom: 20 }}>
                   <CartesianGrid stroke="rgba(255,255,255,0.05)" vertical={false} />
                   <XAxis dataKey="dia" stroke="#9ca3af" tick={<TkphTick />} tickLine={false} axisLine={false} />
-                  <YAxis stroke="#9ca3af" tick={{ fontSize: 10 }} />
+                  <YAxis stroke="#9ca3af" tick={{ fontSize: 10, fill: '#38bdf8' }} />
                   <Tooltip 
                     contentStyle={{ ...tooltipStyle, padding: '8px' }} 
                     cursor={{ fill: 'rgba(255,255,255,0.05)' }}
                   />
-                  <Bar dataKey="CR 785" fill="#f97316" radius={[2, 2, 0, 0]} barSize={12} animationDuration={1000} />
-                  <Bar dataKey="CR 730" fill="#22c55e" radius={[2, 2, 0, 0]} barSize={12} animationDuration={1000} />
+                  <Legend 
+                    wrapperStyle={{ fontSize: 10, bottom: 0 }} 
+                    iconType="square" 
+                    content={(props) => {
+                      const { payload } = props;
+                      return (
+                        <div className="flex justify-center mt-2">
+                          <div className="flex items-center gap-4 border border-[#22c55e]/20 rounded-lg px-4 py-1.5 bg-[#000000]">
+                            {payload?.map((entry, index) => (
+                              <div key={`item-${index}`} className="flex items-center gap-2">
+                                <span className="w-3 h-3 rounded-sm" style={{ backgroundColor: entry.color }} />
+                                <span className="font-bold" style={{ color: entry.color }}>{entry.value}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    }}
+                  />
+                  <Bar dataKey="CR 785" fill="#f97316" radius={[2, 2, 0, 0]} barSize={14} animationDuration={1000}>
+                    <LabelList dataKey="CR 785" position="top" fill="#f97316" fontSize={10} fontWeight="bold" />
+                  </Bar>
+                  <Bar dataKey="CR 730" fill="#22c55e" radius={[2, 2, 0, 0]} barSize={14} animationDuration={1000}>
+                    <LabelList dataKey="CR 730" position="top" fill="#22c55e" fontSize={10} fontWeight="bold" />
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             )}
+            
+            {/* Ícone de Caminhão no canto inferior direito */}
+            <div className="absolute right-2 bottom-0 opacity-80 pointer-events-none">
+              <img src={truckNeon} alt="Truck Icon" className="h-12 object-contain" style={{ filter: "drop-shadow(0 0 5px #22c55e) brightness(1.2)" }} />
+            </div>
           </div>
         </Panel>
 
