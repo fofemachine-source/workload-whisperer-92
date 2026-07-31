@@ -1138,7 +1138,7 @@ export default function DashboardProducaoUM() {
           </div>
         </Panel>
         <Panel className="col-span-12 lg:col-span-2 h-[184px] animated-card">
-          <div className="flex flex-col justify-between h-full py-1 gap-2">
+          <div className="flex flex-col justify-between h-full py-2 gap-2">
             <StatBlock label="Produção (9H/13H)" value={<Counter value={producaoDia} />} unit="t" big />
             <StatBlock label="Próxima Média" value={<Counter value={producaoTotalEscavadeirasTH} />} />
             <StatBlock label="Viagens" value={<Counter value={viagens} />} />
@@ -1499,11 +1499,11 @@ function StatBlock({
 }) {
   return (
     <div className="leading-tight">
-      <p className="text-[8px] uppercase tracking-widest text-[#9ca3af] font-bold">{label}</p>
-      <p className={`${big ? "text-xl" : "text-sm"} font-black text-foreground font-mono tabular-nums`}>
+      <p className="text-[11px] uppercase tracking-widest text-[#9ca3af] font-bold mb-0.5">{label}</p>
+      <p className={`${big ? "text-3xl" : "text-xl"} font-black text-foreground font-mono tabular-nums tracking-tight`}>
         {value}
+        {unit && <span className="text-xs text-[#9ca3af] ml-2 font-normal uppercase">{unit}</span>}
       </p>
-      {unit && <p className="text-[9px] font-mono text-muted-foreground">{unit}</p>}
     </div>
   );
 }
