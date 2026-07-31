@@ -565,21 +565,28 @@ export default function DashboardProducaoUM() {
       const diarias = dashboardData?.producaoDiaria || [];
       if (diarias.length === 0) return [];
       
-      // Parâmetros simulados para o cálculo de TKPH, já que a API ainda não traz histórico por frota e distância.
-      // Fórmula: (Toneladas * Km_médio) / Horas_operacionais
-      const dist785 = 2.8; // km
-      const dist730 = 2.4; // km
-      const horasOpe = 20; // horas efetivas médias diárias
+      // Parâmetros simulados para o cálculo de TKPH, baseado apenas na ida (aprox 6km)
+      // Fórmula: (Toneladas * Km_ida) / Horas_operacionais_totais_da_frota
+      const distIda785 = 6.0; // km
+      const distIda730 = 5.2; // km
+      
+      // Considerando que a frota toda operou no dia
+      const frota785_ativas = 24;
+      const frota730_ativas = 15;
+      const horasPorTurno = 18; // horas efetivas médias por caminhão no dia
   
       return diarias.map((d) => {
         const baseTon = d.real > 0 ? d.real : 45000;
         
-        // Simulação da divisão de tonelagem entre as frotas (60% para 785, 40% para 730)
-        const ton785 = baseTon * 0.6;
-        const ton730 = baseTon * 0.4;
+        // Simulação da divisão de tonelagem entre as frotas
+        const ton785 = baseTon * 0.62;
+        const ton730 = baseTon * 0.38;
   
-        const tkph785 = Math.round((ton785 * dist785) / horasOpe);
-        const tkph730 = Math.round((ton730 * dist730) / horasOpe);
+        const horasTotais785 = frota785_ativas * horasPorTurno;
+        const horasTotais730 = frota730_ativas * horasPorTurno;
+
+        const tkph785 = Math.round((ton785 * distIda785) / horasTotais785);
+        const tkph730 = Math.round((ton730 * distIda730) / horasTotais730);
   
         return {
           dia: d.data ? (d.data.includes('-') ? d.data.split('-')[2] : d.data.split('/')[0]) : "00",
