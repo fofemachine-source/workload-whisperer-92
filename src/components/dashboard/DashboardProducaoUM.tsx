@@ -163,7 +163,6 @@ function FilterField({
           ))}
         </select>
       )}
-      )}
     </div>
   );
 }
