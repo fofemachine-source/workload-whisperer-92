@@ -163,9 +163,22 @@ function FilterField({
           ))}
         </select>
       )}
+      )}
     </div>
   );
 }
+
+// Tick customizado para o gráfico de TKPH
+const TkphTick = (props: any) => {
+  const { x, y, payload } = props;
+  return (
+    <g transform={`translate(${x},${y})`}>
+      <text x={-14} y={12} fill="#f97316" fontSize={8} textAnchor="middle" fontWeight="bold">CR 785</text>
+      <text x={14} y={12} fill="#22c55e" fontSize={8} textAnchor="middle" fontWeight="bold">CR 730</text>
+      <text x={0} y={26} fill="#9ca3af" fontSize={11} textAnchor="middle">{payload.value}</text>
+    </g>
+  );
+};
 
 /* ---------- main dashboard ---------- */
 export default function DashboardProducaoUM() {
@@ -1057,15 +1070,14 @@ export default function DashboardProducaoUM() {
               <Empty />
             ) : (
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={tkphSeries} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+                <BarChart data={tkphSeries} margin={{ top: 8, right: 8, left: 0, bottom: 20 }}>
                   <CartesianGrid stroke="rgba(255,255,255,0.05)" vertical={false} />
-                  <XAxis dataKey="dia" stroke="#9ca3af" tick={{ fontSize: 10 }} />
+                  <XAxis dataKey="dia" stroke="#9ca3af" tick={<TkphTick />} tickLine={false} axisLine={false} />
                   <YAxis stroke="#9ca3af" tick={{ fontSize: 10 }} />
                   <Tooltip 
                     contentStyle={{ ...tooltipStyle, padding: '8px' }} 
                     cursor={{ fill: 'rgba(255,255,255,0.05)' }}
                   />
-                  <Legend wrapperStyle={{ fontSize: 10 }} iconType="square" />
                   <Bar dataKey="CR 785" fill="#f97316" radius={[2, 2, 0, 0]} barSize={12} animationDuration={1000} />
                   <Bar dataKey="CR 730" fill="#22c55e" radius={[2, 2, 0, 0]} barSize={12} animationDuration={1000} />
                 </BarChart>
