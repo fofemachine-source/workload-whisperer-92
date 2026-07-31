@@ -1116,8 +1116,7 @@ export default function DashboardProducaoUM() {
             </div>
           </div>
         </Panel>
-
-        <Panel title="Viagens por Hora" className="col-span-12 lg:col-span-5 h-[184px] animated-card">
+        <Panel title="Viagens por Hora" className="col-span-12 lg:col-span-5 h-[240px] animated-card">
           <div className="force-live-animation trips-chart h-full">
             {viagensPorHora.length === 0 ? (
               <Empty />
@@ -1134,8 +1133,7 @@ export default function DashboardProducaoUM() {
             )}
           </div>
         </Panel>
-
-        <Panel className="col-span-12 lg:col-span-2 h-[184px] animated-card">
+        <Panel className="col-span-12 lg:col-span-2 h-[240px] animated-card">
           <div className="flex flex-col justify-between h-full py-1 gap-2">
             <StatBlock label="Produção (9H/13H)" value={<Counter value={producaoDia} />} unit="t" big />
             <StatBlock label="Próxima Média" value={<Counter value={producaoTotalEscavadeirasTH} />} />
