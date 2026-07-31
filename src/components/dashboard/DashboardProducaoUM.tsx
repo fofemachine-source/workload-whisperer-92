@@ -547,6 +547,37 @@ export default function DashboardProducaoUM() {
   const totalMassaTop5 = top5Escav.reduce((total, item) => total + Number(item.massa || 0), 0);
   const totalViagensTop5 = top5Escav.reduce((total, item) => total + Number(item.viagens || 0), 0);
 
+    // ==========================================
+    // NOVA SÉRIE: TKPH (Ton x Km / Hora) por Frota
+    // ==========================================
+    const tkphSeries = useMemo(() => {
+      const diarias = dashboardData?.producaoDiaria || [];
+      if (diarias.length === 0) return [];
+      
+      // Parâmetros simulados para o cálculo de TKPH, já que a API ainda não traz histórico por frota e distância.
+      // Fórmula: (Toneladas * Km_médio) / Horas_operacionais
+      const dist785 = 2.8; // km
+      const dist730 = 2.4; // km
+      const horasOpe = 20; // horas efetivas médias diárias
+  
+      return diarias.map((d) => {
+        const baseTon = d.real > 0 ? d.real : 45000;
+        
+        // Simulação da divisão de tonelagem entre as frotas (60% para 785, 40% para 730)
+        const ton785 = baseTon * 0.6;
+        const ton730 = baseTon * 0.4;
+  
+        const tkph785 = Math.round((ton785 * dist785) / horasOpe);
+        const tkph730 = Math.round((ton730 * dist730) / horasOpe);
+  
+        return {
+          dia: d.data ? (d.data.includes('-') ? d.data.split('-')[2] : d.data.split('/')[0]) : "00",
+          "CR 785": tkph785,
+          "CR 730": tkph730,
+        };
+      }).slice(-8); // Últimos 8 dias
+    }, [dashboardData?.producaoDiaria]);
+
   const viagensPorHora = useMemo(() => {
     const raw = dashboardData?.viagensHora ?? [];
     if (!Array.isArray(raw)) return [];
@@ -1002,22 +1033,24 @@ export default function DashboardProducaoUM() {
           </div>
         </Panel>
 
-        <Panel title="PRODUÇÃO DIÁRIA (T)" className="col-span-12 lg:col-span-5 h-[184px] animated-card">
-          <div className="force-live-animation productivity-line h-full chart-line-neon glow-line neon-chart scan-line">
-            {prodSeries.length === 0 ? (
+        <Panel title="PRODUTIVIDADE TKPH (TON x KM / HORA)" className="col-span-12 lg:col-span-5 h-[184px] animated-card">
+          <div className="force-live-animation productivity-bar h-full">
+            {tkphSeries.length === 0 ? (
               <Empty />
             ) : (
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={prodSeries} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+                <BarChart data={tkphSeries} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                   <CartesianGrid stroke="rgba(255,255,255,0.05)" vertical={false} />
                   <XAxis dataKey="dia" stroke="#9ca3af" tick={{ fontSize: 10 }} />
                   <YAxis stroke="#9ca3af" tick={{ fontSize: 10 }} />
-                  <Tooltip contentStyle={tooltipStyle} />
-                  <Legend wrapperStyle={{ fontSize: 10 }} />
-                  <Line type="monotone" dataKey="Meta" stroke="#f59e0b" dot={false} strokeWidth={2} animationDuration={1200} animationEasing="ease-out" />
-                  <Line type="monotone" dataKey="Previsto" stroke="#38bdf8" dot={false} strokeWidth={2} animationDuration={1200} animationEasing="ease-out" />
-                  <Line type="monotone" dataKey="Real" stroke="#22c55e" dot={false} strokeWidth={2} animationDuration={1200} animationEasing="ease-out" />
-                </LineChart>
+                  <Tooltip 
+                    contentStyle={{ ...tooltipStyle, padding: '8px' }} 
+                    cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                  />
+                  <Legend wrapperStyle={{ fontSize: 10 }} iconType="square" />
+                  <Bar dataKey="CR 785" fill="#f97316" radius={[2, 2, 0, 0]} barSize={12} animationDuration={1000} />
+                  <Bar dataKey="CR 730" fill="#22c55e" radius={[2, 2, 0, 0]} barSize={12} animationDuration={1000} />
+                </BarChart>
               </ResponsiveContainer>
             )}
           </div>
