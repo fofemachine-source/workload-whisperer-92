@@ -171,14 +171,31 @@ function FilterField({
 // Tick customizado para o gráfico de TKPH
 const TkphTick = (props: any) => {
   const { x, y, payload } = props;
+  const originalData = payload.payload;
+  
+  let weekDay = "";
+  if (originalData?.fullDate) {
+    const dateStr = originalData.fullDate.substring(0, 10);
+    let d;
+    if (dateStr.includes('/')) {
+      const [day, month, year] = dateStr.split('/');
+      d = new Date(`${year}-${month}-${day}T12:00:00Z`);
+    } else {
+      d = new Date(`${dateStr}T12:00:00Z`);
+    }
+    const days = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
+    if (!isNaN(d.getTime())) {
+      weekDay = days[d.getUTCDay()];
+    }
+  }
+
   return (
     <g transform={`translate(${x},${y})`}>
-      <text x={0} y={16} fontSize={8.5} textAnchor="middle" fontWeight="bold">
-        <tspan fill="#f97316">CR 785 </tspan>
-        <tspan fill="#9ca3af">| </tspan>
-        <tspan fill="#22c55e">CR 730</tspan>
-      </text>
-      <text x={0} y={38} fill="#22d3ee" fontSize={18} textAnchor="middle" fontWeight="bold">{payload.value}</text>
+      <text x={-14} y={16} fill="#f97316" fontSize={10} textAnchor="middle" fontWeight="bold">CR 785</text>
+      <text x={14} y={16} fill="#22c55e" fontSize={10} textAnchor="middle" fontWeight="bold">CR 730</text>
+      
+      <text x={0} y={32} fill="#38bdf8" fontSize={16} textAnchor="middle" fontWeight="bold">{payload.value}</text>
+      <text x={0} y={46} fill="#9ca3af" fontSize={10} textAnchor="middle">{weekDay}</text>
     </g>
   );
 };
@@ -606,6 +623,7 @@ export default function DashboardProducaoUM() {
   
         return {
           dia: d.data ? (d.data.includes('-') ? d.data.split('-')[2] : d.data.split('/')[0]) : "00",
+          fullDate: d.data,
           "CR 785": tkph785,
           "CR 730": tkph730,
         };
@@ -1073,10 +1091,10 @@ export default function DashboardProducaoUM() {
               <Empty />
             ) : (
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={tkphSeries} margin={{ top: 25, right: 8, left: 0, bottom: 45 }} barGap={6}>
+                <BarChart data={tkphSeries} margin={{ top: 25, right: 8, left: 0, bottom: 55 }} barGap={6}>
                   <CartesianGrid stroke="rgba(255,255,255,0.05)" vertical={false} />
                   <XAxis dataKey="dia" stroke="#9ca3af" tick={<TkphTick />} tickLine={false} axisLine={false} />
-                  <YAxis stroke="#9ca3af" tick={{ fontSize: 14, fill: '#38bdf8' }} width={45} />
+                  <YAxis stroke="#9ca3af" tick={{ fontSize: 14, fill: '#38bdf8' }} width={45} tickCount={4} />
                   <Tooltip 
                     contentStyle={{ ...tooltipStyle, padding: '8px' }} 
                     cursor={{ fill: 'rgba(255,255,255,0.05)' }}
@@ -1088,11 +1106,16 @@ export default function DashboardProducaoUM() {
                       const { payload } = props;
                       return (
                         <div className="flex justify-center mt-2">
-                          <div className="flex items-center gap-8 border border-[#22c55e]/20 rounded-full px-8 py-2.5 bg-[#000000]">
+                          <div className="flex items-center gap-6 border border-[#22c55e]/30 rounded-full px-8 py-2 bg-[#000000]">
                             {payload?.map((entry, index) => (
-                              <div key={`item-${index}`} className="flex items-center gap-3">
-                                <span className="w-5 h-5 rounded-full" style={{ backgroundColor: entry.color }} />
-                                <span className="font-bold text-[16px]" style={{ color: entry.color }}>{entry.value}</span>
+                              <div key={`item-${index}`} className="flex items-center gap-6">
+                                <div className="flex items-center gap-3">
+                                  <span className="w-5 h-5 rounded-full" style={{ backgroundColor: entry.color }} />
+                                  <span className="font-bold text-[16px]" style={{ color: entry.color }}>{entry.value}</span>
+                                </div>
+                                {index < payload.length - 1 && (
+                                  <span className="text-[#9ca3af] font-light">|</span>
+                                )}
                               </div>
                             ))}
                           </div>
