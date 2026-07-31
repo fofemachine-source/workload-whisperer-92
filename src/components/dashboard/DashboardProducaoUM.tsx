@@ -174,9 +174,9 @@ const TkphTick = (props: any) => {
 
   return (
     <g transform={`translate(${x},${y})`}>
-      <text x={-20} y={12} fill="#f97316" fontSize={12} textAnchor="middle" fontWeight="bold">CR 785</text>
-      <text x={20} y={12} fill="#22c55e" fontSize={12} textAnchor="middle" fontWeight="bold">CR 730</text>
-      <text x={0} y={26} fill="#ffffff" fontSize={18} textAnchor="middle" fontWeight="bold">{payload.value}</text>
+      <text x={-20} y={10} fill="#f97316" fontSize={11} textAnchor="middle" fontWeight="bold">CR 785</text>
+      <text x={20} y={10} fill="#22c55e" fontSize={11} textAnchor="middle" fontWeight="bold">CR 730</text>
+      <text x={0} y={23} fill="#ffffff" fontSize={16} textAnchor="middle" fontWeight="bold">{payload.value}</text>
     </g>
   );
 };
@@ -1075,7 +1075,7 @@ export default function DashboardProducaoUM() {
               <Empty />
             ) : (
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={tkphSeries} margin={{ top: 20, right: 8, left: 0, bottom: 30 }} barGap={0}>
+                <BarChart data={tkphSeries} margin={{ top: 20, right: 8, left: 0, bottom: 32 }} barGap={0}>
                   <CartesianGrid stroke="rgba(255,255,255,0.05)" vertical={false} />
                   <XAxis dataKey="dia" stroke="#9ca3af" tick={<TkphTick />} tickLine={false} axisLine={false} />
                   <YAxis stroke="#9ca3af" tick={{ fontSize: 16, fill: '#ffffff', fontWeight: 'bold' }} width={45} tickCount={4} domain={[0, 'dataMax']} />
@@ -1094,8 +1094,8 @@ export default function DashboardProducaoUM() {
             )}
             
             {tkphSeries.length > 0 && (
-              <div className="absolute bottom-1 left-0 w-full flex justify-center z-10 pointer-events-none">
-                <div className="flex items-center gap-6 border border-[#22c55e]/30 rounded-full px-6 py-1 bg-[#000000]">
+              <div className="absolute bottom-0 left-0 w-full flex justify-center z-10 pointer-events-none">
+                <div className="flex items-center gap-6 border border-[#22c55e]/30 rounded-full px-6 py-0.5 bg-[#000000]">
                   <div className="flex items-center gap-2">
                     <span className="w-5 h-5 rounded-full bg-[#f97316]" />
                     <span className="font-bold text-[16px] text-[#f97316]">CR 785</span>
