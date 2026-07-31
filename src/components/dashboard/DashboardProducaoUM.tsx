@@ -174,9 +174,9 @@ const TkphTick = (props: any) => {
 
   return (
     <g transform={`translate(${x},${y})`}>
-      <text x={-18} y={16} fill="#f97316" fontSize={12} textAnchor="middle" fontWeight="bold">CR 785</text>
-      <text x={18} y={16} fill="#22c55e" fontSize={12} textAnchor="middle" fontWeight="bold">CR 730</text>
-      <text x={0} y={34} fill="#ffffff" fontSize={18} textAnchor="middle" fontWeight="bold">{payload.value}</text>
+      <text x={-20} y={12} fill="#f97316" fontSize={12} textAnchor="middle" fontWeight="bold">CR 785</text>
+      <text x={20} y={12} fill="#22c55e" fontSize={12} textAnchor="middle" fontWeight="bold">CR 730</text>
+      <text x={0} y={28} fill="#ffffff" fontSize={18} textAnchor="middle" fontWeight="bold">{payload.value}</text>
     </g>
   );
 };
@@ -1075,10 +1075,10 @@ export default function DashboardProducaoUM() {
               <Empty />
             ) : (
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={tkphSeries} margin={{ top: 15, right: 8, left: 0, bottom: 48 }} barGap={2}>
+                <BarChart data={tkphSeries} margin={{ top: 22, right: 8, left: 0, bottom: 38 }} barGap={0}>
                   <CartesianGrid stroke="rgba(255,255,255,0.05)" vertical={false} />
                   <XAxis dataKey="dia" stroke="#9ca3af" tick={<TkphTick />} tickLine={false} axisLine={false} />
-                  <YAxis stroke="#9ca3af" tick={{ fontSize: 16, fill: '#ffffff', fontWeight: 'bold' }} width={45} tickCount={4} />
+                  <YAxis stroke="#9ca3af" tick={{ fontSize: 16, fill: '#ffffff', fontWeight: 'bold' }} width={45} tickCount={4} domain={[0, 'dataMax + 20']} />
                   <Tooltip 
                     contentStyle={{ ...tooltipStyle, padding: '8px' }} 
                     cursor={{ fill: 'rgba(255,255,255,0.05)' }}
@@ -1107,10 +1107,10 @@ export default function DashboardProducaoUM() {
                       );
                     }}
                   />
-                  <Bar dataKey="CR 785" fill="#f97316" radius={[2, 2, 0, 0]} barSize={30} animationDuration={1000}>
+                  <Bar dataKey="CR 785" fill="#f97316" radius={[2, 2, 0, 0]} barSize={40} animationDuration={1000}>
                     <LabelList dataKey="CR 785" position="top" fill="#ffffff" fontSize={15} fontWeight="bold" offset={4} />
                   </Bar>
-                  <Bar dataKey="CR 730" fill="#22c55e" radius={[2, 2, 0, 0]} barSize={30} animationDuration={1000}>
+                  <Bar dataKey="CR 730" fill="#22c55e" radius={[2, 2, 0, 0]} barSize={40} animationDuration={1000}>
                     <LabelList dataKey="CR 730" position="top" fill="#ffffff" fontSize={15} fontWeight="bold" offset={4} />
                   </Bar>
                 </BarChart>
