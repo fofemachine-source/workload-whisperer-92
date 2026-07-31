@@ -526,11 +526,22 @@ export default function DashboardProducaoUM() {
     const ordem = ["EH4026","EH4039","EH4041","EH4047","EH4050","EH4035","EH5003","EH5004","EH5036"];
     const rows = ordem.map((code) => {
       const e = byCode.get(code) ?? {};
+      const massa = Number(e.massa ?? 0);
+      let th = Number(e.th ?? 0);
+
+      // FALLBACK FRONTEND (Temporário): 
+      // Como o backend atualmente está dividindo por 24h, o T/H fica irreal (ex: 222 t/h).
+      // Para exibir o valor correto na interface imediatamente enquanto o servidor não é atualizado,
+      // recalculamos assumindo uma média de 7.5 horas efetivas por turno.
+      if (massa > 0 && (th === 0 || Math.abs(th - (massa / 24)) < 1 || Math.abs(th - (massa / 8)) < 1)) {
+        th = massa / 7.5;
+      }
+
       return {
         equipamento: code,
-        th: Number(e.th ?? 0),
+        th: th,
         viagens: Number(e.viagens ?? 0),
-        massa: Number(e.massa ?? 0),
+        massa: massa,
         material: e.material ?? null,
         frente: e.frente ?? null,
         destino: e.destino ?? null,
