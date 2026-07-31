@@ -173,10 +173,12 @@ const TkphTick = (props: any) => {
   const { x, y, payload } = props;
   return (
     <g transform={`translate(${x},${y})`}>
-      <text x={-12} y={12} fill="#f97316" fontSize={7} textAnchor="end" fontWeight="bold">CR 785</text>
-      <text x={0} y={11} fill="#9ca3af" fontSize={7} textAnchor="middle">|</text>
-      <text x={12} y={12} fill="#22c55e" fontSize={7} textAnchor="start" fontWeight="bold">CR 730</text>
-      <text x={0} y={24} fill="#22d3ee" fontSize={11} textAnchor="middle" fontWeight="bold">{payload.value}</text>
+      <text x={0} y={14} fontSize={9} textAnchor="middle" fontWeight="bold">
+        <tspan fill="#f97316">CR 785 </tspan>
+        <tspan fill="#9ca3af">| </tspan>
+        <tspan fill="#22c55e">CR 730</tspan>
+      </text>
+      <text x={0} y={30} fill="#22d3ee" fontSize={14} textAnchor="middle" fontWeight="bold">{payload.value}</text>
     </g>
   );
 };
@@ -1065,32 +1067,32 @@ export default function DashboardProducaoUM() {
           </div>
         </Panel>
 
-        <Panel title="PRODUTIVIDADE TKPH (TON x KM / HORA)" className="col-span-12 lg:col-span-5 h-[220px] animated-card relative">
-          <div className="force-live-animation productivity-bar h-full relative">
+        <Panel title="PRODUTIVIDADE TKPH (TON x KM / HORA)" className="col-span-12 lg:col-span-5 h-[240px] animated-card relative">
+          <div className="force-live-animation productivity-bar h-full relative pb-4">
             {tkphSeries.length === 0 ? (
               <Empty />
             ) : (
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={tkphSeries} margin={{ top: 20, right: 8, left: 0, bottom: 20 }}>
+                <BarChart data={tkphSeries} margin={{ top: 25, right: 8, left: 0, bottom: 25 }} barGap={4}>
                   <CartesianGrid stroke="rgba(255,255,255,0.05)" vertical={false} />
                   <XAxis dataKey="dia" stroke="#9ca3af" tick={<TkphTick />} tickLine={false} axisLine={false} />
-                  <YAxis stroke="#9ca3af" tick={{ fontSize: 10, fill: '#38bdf8' }} />
+                  <YAxis stroke="#9ca3af" tick={{ fontSize: 12, fill: '#38bdf8' }} width={40} />
                   <Tooltip 
                     contentStyle={{ ...tooltipStyle, padding: '8px' }} 
                     cursor={{ fill: 'rgba(255,255,255,0.05)' }}
                   />
                   <Legend 
-                    wrapperStyle={{ fontSize: 10, bottom: 0 }} 
-                    iconType="square" 
+                    wrapperStyle={{ fontSize: 12, bottom: -10 }} 
+                    iconType="circle" 
                     content={(props) => {
                       const { payload } = props;
                       return (
-                        <div className="flex justify-center mt-2">
-                          <div className="flex items-center gap-4 border border-[#22c55e]/20 rounded-lg px-4 py-1.5 bg-[#000000]">
+                        <div className="flex justify-center mt-4">
+                          <div className="flex items-center gap-6 border border-[#22c55e]/20 rounded-full px-6 py-2 bg-[#000000]">
                             {payload?.map((entry, index) => (
                               <div key={`item-${index}`} className="flex items-center gap-2">
-                                <span className="w-3 h-3 rounded-sm" style={{ backgroundColor: entry.color }} />
-                                <span className="font-bold" style={{ color: entry.color }}>{entry.value}</span>
+                                <span className="w-4 h-4 rounded-full" style={{ backgroundColor: entry.color }} />
+                                <span className="font-bold text-[14px]" style={{ color: entry.color }}>{entry.value}</span>
                               </div>
                             ))}
                           </div>
@@ -1098,18 +1100,18 @@ export default function DashboardProducaoUM() {
                       );
                     }}
                   />
-                  <Bar dataKey="CR 785" fill="#f97316" radius={[2, 2, 0, 0]} barSize={14} animationDuration={1000}>
-                    <LabelList dataKey="CR 785" position="top" fill="#f97316" fontSize={10} fontWeight="bold" />
+                  <Bar dataKey="CR 785" fill="#f97316" radius={[2, 2, 0, 0]} barSize={18} animationDuration={1000}>
+                    <LabelList dataKey="CR 785" position="top" fill="#f97316" fontSize={11} fontWeight="bold" offset={6} />
                   </Bar>
-                  <Bar dataKey="CR 730" fill="#22c55e" radius={[2, 2, 0, 0]} barSize={14} animationDuration={1000}>
-                    <LabelList dataKey="CR 730" position="top" fill="#22c55e" fontSize={10} fontWeight="bold" />
+                  <Bar dataKey="CR 730" fill="#22c55e" radius={[2, 2, 0, 0]} barSize={18} animationDuration={1000}>
+                    <LabelList dataKey="CR 730" position="top" fill="#22c55e" fontSize={11} fontWeight="bold" offset={6} />
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
             )}
             
             {/* Ícone de Caminhão no canto inferior direito */}
-            <div className="absolute right-2 bottom-0 opacity-80 pointer-events-none">
+            <div className="absolute right-2 bottom-2 opacity-80 pointer-events-none">
               <img src={truckNeon} alt="Truck Icon" className="h-12 object-contain" style={{ filter: "drop-shadow(0 0 5px #22c55e) brightness(1.2)" }} />
             </div>
           </div>
