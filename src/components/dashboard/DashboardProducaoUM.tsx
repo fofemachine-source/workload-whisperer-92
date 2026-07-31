@@ -173,7 +173,7 @@ const TkphTick = (props: any) => {
   const { x, y, payload } = props;
   return (
     <g transform={`translate(${x},${y})`}>
-      <text x={0} y={16} fontSize={11} textAnchor="middle" fontWeight="bold">
+      <text x={0} y={16} fontSize={8.5} textAnchor="middle" fontWeight="bold">
         <tspan fill="#f97316">CR 785 </tspan>
         <tspan fill="#9ca3af">| </tspan>
         <tspan fill="#22c55e">CR 730</tspan>
