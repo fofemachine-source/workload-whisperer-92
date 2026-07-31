@@ -174,9 +174,9 @@ const TkphTick = (props: any) => {
 
   return (
     <g transform={`translate(${x},${y})`}>
-      <text x={-14} y={14} fill="#f97316" fontSize={10} textAnchor="middle" fontWeight="bold">CR 785</text>
-      <text x={14} y={14} fill="#22c55e" fontSize={10} textAnchor="middle" fontWeight="bold">CR 730</text>
-      <text x={0} y={28} fill="#38bdf8" fontSize={14} textAnchor="middle" fontWeight="bold">{payload.value}</text>
+      <text x={-18} y={16} fill="#f97316" fontSize={12} textAnchor="middle" fontWeight="bold">CR 785</text>
+      <text x={18} y={16} fill="#22c55e" fontSize={12} textAnchor="middle" fontWeight="bold">CR 730</text>
+      <text x={0} y={34} fill="#ffffff" fontSize={18} textAnchor="middle" fontWeight="bold">{payload.value}</text>
     </g>
   );
 };
@@ -1066,33 +1066,36 @@ export default function DashboardProducaoUM() {
           </div>
         </Panel>
 
-        <Panel title="PRODUTIVIDADE TKPH (TON x KM / HORA)" className="col-span-12 lg:col-span-5 h-[184px] animated-card relative">
-          <div className="force-live-animation productivity-bar h-full relative">
+        <Panel className="col-span-12 lg:col-span-5 h-[184px] animated-card relative overflow-hidden">
+          <div className="absolute top-1 left-0 w-full text-center z-10 pointer-events-none">
+            <h2 className="text-[#22c55e] text-[18px] font-black uppercase tracking-tight">PRODUTIVIDADE TKPH (TON X KM / HORA)</h2>
+          </div>
+          <div className="force-live-animation productivity-bar h-full relative pt-6">
             {tkphSeries.length === 0 ? (
               <Empty />
             ) : (
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={tkphSeries} margin={{ top: 12, right: 8, left: 0, bottom: 42 }} barGap={4}>
+                <BarChart data={tkphSeries} margin={{ top: 15, right: 8, left: 0, bottom: 48 }} barGap={2}>
                   <CartesianGrid stroke="rgba(255,255,255,0.05)" vertical={false} />
                   <XAxis dataKey="dia" stroke="#9ca3af" tick={<TkphTick />} tickLine={false} axisLine={false} />
-                  <YAxis stroke="#9ca3af" tick={{ fontSize: 13, fill: '#38bdf8' }} width={40} tickCount={4} />
+                  <YAxis stroke="#9ca3af" tick={{ fontSize: 16, fill: '#ffffff', fontWeight: 'bold' }} width={45} tickCount={4} />
                   <Tooltip 
                     contentStyle={{ ...tooltipStyle, padding: '8px' }} 
                     cursor={{ fill: 'rgba(255,255,255,0.05)' }}
                   />
                   <Legend 
-                    wrapperStyle={{ fontSize: 13, bottom: -5 }} 
+                    wrapperStyle={{ fontSize: 14, bottom: -5 }} 
                     iconType="circle" 
                     content={(props) => {
                       const { payload } = props;
                       return (
                         <div className="flex justify-center mt-0">
-                          <div className="flex items-center gap-5 border border-[#22c55e]/30 rounded-full px-6 py-1.5 bg-[#000000]">
+                          <div className="flex items-center gap-6 border border-[#22c55e]/30 rounded-full px-6 py-1.5 bg-[#000000]">
                             {payload?.map((entry, index) => (
-                              <div key={`item-${index}`} className="flex items-center gap-5">
+                              <div key={`item-${index}`} className="flex items-center gap-6">
                                 <div className="flex items-center gap-2">
-                                  <span className="w-4 h-4 rounded-full" style={{ backgroundColor: entry.color }} />
-                                  <span className="font-bold text-[14px]" style={{ color: entry.color }}>{entry.value}</span>
+                                  <span className="w-5 h-5 rounded-full" style={{ backgroundColor: entry.color }} />
+                                  <span className="font-bold text-[16px]" style={{ color: entry.color }}>{entry.value}</span>
                                 </div>
                                 {index < payload.length - 1 && (
                                   <span className="text-[#9ca3af] font-light text-sm">|</span>
@@ -1104,11 +1107,11 @@ export default function DashboardProducaoUM() {
                       );
                     }}
                   />
-                  <Bar dataKey="CR 785" fill="#f97316" radius={[2, 2, 0, 0]} barSize={24} animationDuration={1000}>
-                    <LabelList dataKey="CR 785" position="top" fill="#f97316" fontSize={12} fontWeight="bold" offset={4} />
+                  <Bar dataKey="CR 785" fill="#f97316" radius={[2, 2, 0, 0]} barSize={30} animationDuration={1000}>
+                    <LabelList dataKey="CR 785" position="top" fill="#ffffff" fontSize={15} fontWeight="bold" offset={4} />
                   </Bar>
-                  <Bar dataKey="CR 730" fill="#22c55e" radius={[2, 2, 0, 0]} barSize={24} animationDuration={1000}>
-                    <LabelList dataKey="CR 730" position="top" fill="#22c55e" fontSize={12} fontWeight="bold" offset={4} />
+                  <Bar dataKey="CR 730" fill="#22c55e" radius={[2, 2, 0, 0]} barSize={30} animationDuration={1000}>
+                    <LabelList dataKey="CR 730" position="top" fill="#ffffff" fontSize={15} fontWeight="bold" offset={4} />
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
