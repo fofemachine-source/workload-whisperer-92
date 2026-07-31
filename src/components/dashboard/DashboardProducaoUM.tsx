@@ -1067,8 +1067,8 @@ export default function DashboardProducaoUM() {
         </Panel>
 
         <Panel className="col-span-12 lg:col-span-5 h-[184px] animated-card relative overflow-hidden !p-1">
-          <div className="absolute top-1 left-0 w-full text-center z-10 pointer-events-none">
-            <h2 className="text-[#22c55e] text-[18px] font-black uppercase tracking-tight">PRODUTIVIDADE TKPH (TON X KM / HORA)</h2>
+          <div className="absolute top-1 left-3 z-10 pointer-events-none">
+            <h2 className="text-[#22c55e] text-[16px] font-black uppercase tracking-tight">PRODUTIVIDADE TKPH (TON X KM / HORA)</h2>
           </div>
           <div className="force-live-animation productivity-bar h-full relative pt-5">
             {tkphSeries.length === 0 ? (
