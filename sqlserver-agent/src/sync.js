@@ -120,7 +120,10 @@ async function queryAggregateEquipamento(pool, from, to) {
       shovel                       AS equipamento,
       MAX(shovel_equipment_type)   AS tipo,
       SUM(material_tonnage)        AS toneladas,
-      SUM(load_count)              AS cargas
+      SUM(load_count)              AS cargas,
+      -- Calcula horas operacionais usando a diferença entre a primeira e última carga do turno/intervalo
+      -- Adiciona 5 minutos de tolerância caso tenha apenas uma carga.
+      (DATEDIFF(minute, MIN([time]), MAX([time])) + 5) / 60.0 AS horas_efetivas
     FROM dbo.hour_detail_loads
     WHERE [time] BETWEEN @from AND @to
       AND shovel IS NOT NULL
@@ -169,12 +172,16 @@ function buildPayload({ porTurno, porFrente, porEquip }) {
       producao_hora: Number(f.toneladas || 0) / 8,
     }));
 
-    const equipArr = (equipIdx.get(k) || []).map((e) => ({
-      equipamento: String(e.equipamento),
-      tipo: e.tipo ?? null,
-      toneladas: Number(e.toneladas || 0),
-      producao_hora: Number(e.toneladas || 0) / 8,
-    }));
+    const equipArr = (equipIdx.get(k) || []).map((e) => {
+      const ton = Number(e.toneladas || 0);
+      const horas = Number(e.horas_efetivas || 8);
+      return {
+        equipamento: String(e.equipamento),
+        tipo: e.tipo ?? null,
+        toneladas: ton,
+        producao_hora: Number((ton / (horas > 0 ? horas : 1)).toFixed(2)),
+      };
+    });
 
     return {
       data_referencia: dia,
