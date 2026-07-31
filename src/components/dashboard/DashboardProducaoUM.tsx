@@ -176,7 +176,7 @@ const TkphTick = (props: any) => {
     <g transform={`translate(${x},${y})`}>
       <text x={-20} y={12} fill="#f97316" fontSize={12} textAnchor="middle" fontWeight="bold">CR 785</text>
       <text x={20} y={12} fill="#22c55e" fontSize={12} textAnchor="middle" fontWeight="bold">CR 730</text>
-      <text x={0} y={28} fill="#ffffff" fontSize={18} textAnchor="middle" fontWeight="bold">{payload.value}</text>
+      <text x={0} y={26} fill="#ffffff" fontSize={18} textAnchor="middle" fontWeight="bold">{payload.value}</text>
     </g>
   );
 };
@@ -1066,46 +1066,22 @@ export default function DashboardProducaoUM() {
           </div>
         </Panel>
 
-        <Panel className="col-span-12 lg:col-span-5 h-[184px] animated-card relative overflow-hidden">
+        <Panel className="col-span-12 lg:col-span-5 h-[184px] animated-card relative overflow-hidden !p-1">
           <div className="absolute top-1 left-0 w-full text-center z-10 pointer-events-none">
             <h2 className="text-[#22c55e] text-[18px] font-black uppercase tracking-tight">PRODUTIVIDADE TKPH (TON X KM / HORA)</h2>
           </div>
-          <div className="force-live-animation productivity-bar h-full relative pt-6">
+          <div className="force-live-animation productivity-bar h-full relative pt-5">
             {tkphSeries.length === 0 ? (
               <Empty />
             ) : (
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={tkphSeries} margin={{ top: 22, right: 8, left: 0, bottom: 38 }} barGap={0}>
+                <BarChart data={tkphSeries} margin={{ top: 20, right: 8, left: 0, bottom: 30 }} barGap={0}>
                   <CartesianGrid stroke="rgba(255,255,255,0.05)" vertical={false} />
                   <XAxis dataKey="dia" stroke="#9ca3af" tick={<TkphTick />} tickLine={false} axisLine={false} />
-                  <YAxis stroke="#9ca3af" tick={{ fontSize: 16, fill: '#ffffff', fontWeight: 'bold' }} width={45} tickCount={4} domain={[0, 'dataMax + 20']} />
+                  <YAxis stroke="#9ca3af" tick={{ fontSize: 16, fill: '#ffffff', fontWeight: 'bold' }} width={45} tickCount={4} domain={[0, 'dataMax']} />
                   <Tooltip 
                     contentStyle={{ ...tooltipStyle, padding: '8px' }} 
                     cursor={{ fill: 'rgba(255,255,255,0.05)' }}
-                  />
-                  <Legend 
-                    wrapperStyle={{ fontSize: 14, bottom: -5 }} 
-                    iconType="circle" 
-                    content={(props) => {
-                      const { payload } = props;
-                      return (
-                        <div className="flex justify-center mt-0">
-                          <div className="flex items-center gap-6 border border-[#22c55e]/30 rounded-full px-6 py-1.5 bg-[#000000]">
-                            {payload?.map((entry, index) => (
-                              <div key={`item-${index}`} className="flex items-center gap-6">
-                                <div className="flex items-center gap-2">
-                                  <span className="w-5 h-5 rounded-full" style={{ backgroundColor: entry.color }} />
-                                  <span className="font-bold text-[16px]" style={{ color: entry.color }}>{entry.value}</span>
-                                </div>
-                                {index < payload.length - 1 && (
-                                  <span className="text-[#9ca3af] font-light text-sm">|</span>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      );
-                    }}
                   />
                   <Bar dataKey="CR 785" fill="#f97316" radius={[2, 2, 0, 0]} barSize={40} animationDuration={1000}>
                     <LabelList dataKey="CR 785" position="top" fill="#ffffff" fontSize={15} fontWeight="bold" offset={4} />
@@ -1115,6 +1091,22 @@ export default function DashboardProducaoUM() {
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
+            )}
+            
+            {tkphSeries.length > 0 && (
+              <div className="absolute bottom-1 left-0 w-full flex justify-center z-10 pointer-events-none">
+                <div className="flex items-center gap-6 border border-[#22c55e]/30 rounded-full px-6 py-1 bg-[#000000]">
+                  <div className="flex items-center gap-2">
+                    <span className="w-5 h-5 rounded-full bg-[#f97316]" />
+                    <span className="font-bold text-[16px] text-[#f97316]">CR 785</span>
+                  </div>
+                  <span className="text-[#9ca3af] font-light text-sm">|</span>
+                  <div className="flex items-center gap-2">
+                    <span className="w-5 h-5 rounded-full bg-[#22c55e]" />
+                    <span className="font-bold text-[16px] text-[#22c55e]">CR 730</span>
+                  </div>
+                </div>
+              </div>
             )}
             
             {/* Ícone de Caminhão no canto inferior direito */}
