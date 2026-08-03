@@ -500,6 +500,17 @@ export default function DashboardProducaoUM() {
     return valorApi > 0 ? valorApi : prodHoje;
   }, [dashboardData, cards, lavFinal, retFinal]);
 
+  // Identificação dinâmica do mês e ano para exibição no cabeçalho
+  const nomesMeses = useMemo(() => [
+    'JANEIRO', 'FEVEREIRO', 'MARÇO', 'ABRIL', 'MAIO', 'JUNHO', 
+    'JULHO', 'AGOSTO', 'SETEMBRO', 'OUTUBRO', 'NOVEMBRO', 'DEZEMBRO'
+  ], []);
+  const dataAtual = new Date();
+  const mesAtualIdx = dataAtual.getMonth(); // 0 a 11
+  const nomeMesAtual = nomesMeses[mesAtualIdx]; // ex: "AGOSTO"
+  const anoAtual = dataAtual.getFullYear(); // ex: 2026
+  const siglaMesAtual = nomeMesAtual.substring(0, 3); // ex: "AGO"
+
   const dailySeries = useMemo(() => {
     const todos = dashboardData?.producaoDiaria ?? [];
     const ultimos7 = todos.length > 7 ? todos.slice(-7) : todos;
@@ -836,7 +847,8 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
           projetadoTone="amber"
         />
         <BigKpi
-          label="Produção Mensal"
+          label={`Produção Mensal (${nomeMesAtual})`}
+          badge={`${siglaMesAtual}/${anoAtual}`}
           value={producaoMensal}
           suffix=" t"
           tone="green"
@@ -1532,12 +1544,14 @@ function BigKpi({
   suffix = "",
   tone,
   showBar = false,
+  badge,
 }: {
   label: string;
   value: number;
   suffix?: string;
   tone: KpiTone;
   showBar?: boolean;
+  badge?: string;
 }) {
   return (
     <motion.div
@@ -1546,7 +1560,14 @@ function BigKpi({
       transition={{ duration: 0.4, ease: "easeOut" }}
       className="kpi-card relative overflow-hidden rounded-lg border border-[#22c55e]/20 bg-[#000000] px-4 py-1.5 flex flex-col justify-center"
     >
-      <p className="font-mono-mining text-base font-bold tracking-wider text-[#22c55e] uppercase">{label}</p>
+      <div className="flex items-center justify-between gap-2">
+        <p className="font-mono-mining text-base font-bold tracking-wider text-[#22c55e] uppercase">{label}</p>
+        {badge && (
+          <span className="text-[10px] bg-[#22c55e]/20 border border-[#22c55e]/30 text-[#22c55e] px-2 py-0.5 rounded font-mono font-bold tracking-wider">
+            {badge}
+          </span>
+        )}
+      </div>
       <div className="mt-1 h-px w-full bg-[#22c55e] opacity-30" />
 
       <p className={`mt-2 font-mono-mining text-3xl md:text-4xl font-extrabold leading-none tabular-nums ${TONE_TEXT[tone]}`}>
