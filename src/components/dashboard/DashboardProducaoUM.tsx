@@ -1252,12 +1252,14 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
               <Empty />
             ) : (
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={viagensPorHora} margin={{ top: 15, right: 4, left: 0, bottom: 0 }}>
+                <BarChart data={viagensPorHora} margin={{ top: 20, right: 4, left: 0, bottom: 0 }}>
                   <CartesianGrid stroke="rgba(255,255,255,0.05)" vertical={false} />
                   <XAxis dataKey="hora" stroke="#9ca3af" tick={{ fontSize: 10, fontWeight: 'bold' }} interval={1} />
                   <YAxis stroke="#9ca3af" tick={{ fontSize: 10, fontWeight: 'bold' }} width={30} />
                   <Tooltip contentStyle={tooltipStyle} />
-                  <Bar dataKey="Real" fill="#22c55e" radius={[2, 2, 0, 0]} animationDuration={900} animationEasing="ease-out" />
+                  <Bar dataKey="Real" fill="#22c55e" radius={[2, 2, 0, 0]} animationDuration={900} animationEasing="ease-out">
+                    <LabelList dataKey="Real" position="top" fill="#22c55e" fontSize={11} fontWeight="bold" offset={4} formatter={(val: any) => (Number(val) > 0 ? val : '')} />
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             )}
