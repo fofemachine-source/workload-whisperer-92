@@ -451,9 +451,54 @@ export default function DashboardProducaoUM() {
   const retFinal = Number(retCard.acumuladoDia ?? 0);
   const retProjetado = Number(retCard.projetadoDia ?? 0);
   const producaoDia = Number(cards.producaoDiaria ?? 0);
-  const producaoMensal = Number(cards.producaoMensal ?? 0);
   const producaoTotalEscavadeirasTH = Number(cards.th ?? 0);
   const viagens = Number(cards.viagens ?? 0);
+
+  // Cálculo robusto da Produção Mensal para o mês vigente (Mês 8 - Agosto)
+  const producaoMensal = useMemo(() => {
+    const now = new Date();
+    const currentMonthNum = now.getMonth() + 1; // 8
+    const currentMonthStr = String(currentMonthNum).padStart(2, "0"); // "08"
+    const currentYearStr = String(now.getFullYear()); // "2026"
+    const currentMonthKey = `${currentYearStr}-${currentMonthStr}`; // "2026-08"
+
+    const todos = dashboardData?.producaoDiaria ?? [];
+
+    // Filtra dias pertencentes ao mês atual (Mês 8)
+    const diasDoMesAtual = todos.filter((d: any) => {
+      const dataStr = String(d.data || "").trim();
+      if (!dataStr) return false;
+      if (dataStr.includes("-")) {
+        return dataStr.startsWith(currentMonthKey) || dataStr.includes(`-${currentMonthStr}-`);
+      }
+      if (dataStr.includes("/")) {
+        const parts = dataStr.split("/");
+        if (parts.length >= 2) {
+          const mes = parts[1].padStart(2, "0");
+          return mes === currentMonthStr;
+        }
+      }
+      return false;
+    });
+
+    // Se há dias do mês atual na série diária, soma-os
+    if (diasDoMesAtual.length > 0) {
+      return diasDoMesAtual.reduce((acc: number, d: any) => acc + Number(d.real ?? 0), 0);
+    }
+
+    // Se virou o mês e ainda não há histórico anterior consolidado no mês atual,
+    // o acumulado do mês atual é a produção do dia/turno de hoje
+    const prodHoje = Number(cards.producaoDiaria ?? (lavFinal + retFinal));
+    const valorApi = Number(cards.producaoMensal ?? 0);
+
+    // Se o valor retornado pela API for resíduo do mês anterior (ex: ~1 milhão de toneladas de Julho),
+    // descartamos o resíduo do mês anterior e iniciamos com a produção do mês 8 (prodHoje)
+    if (valorApi > Math.max(prodHoje * 5, 200000) && diasDoMesAtual.length === 0) {
+      return prodHoje;
+    }
+
+    return valorApi > 0 ? valorApi : prodHoje;
+  }, [dashboardData, cards, lavFinal, retFinal]);
 
   const dailySeries = useMemo(() => {
     const todos = dashboardData?.producaoDiaria ?? [];
