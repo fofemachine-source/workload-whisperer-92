@@ -701,6 +701,48 @@ export default function DashboardProducaoUM() {
     [dailySeries],
   );
 
+// Metas mensais oficiais (Willian 2026) para virada automática de mês
+const METAS_MENSAIS_2026: Record<number, {
+  ex2500: { ut: number; df: number };
+  ex1200: { ut: number; df: number };
+  c730: { ut: number; df: number };
+  c785: { ut: number; df: number };
+}> = {
+  1:  { ex2500: { ut: 68, df: 82 }, ex1200: { ut: 68, df: 80 }, c730: { ut: 68, df: 80 }, c785: { ut: 62, df: 85 } },
+  2:  { ex2500: { ut: 68, df: 82 }, ex1200: { ut: 68, df: 80 }, c730: { ut: 68, df: 80 }, c785: { ut: 62, df: 85 } },
+  3:  { ex2500: { ut: 68, df: 82 }, ex1200: { ut: 68, df: 80 }, c730: { ut: 68, df: 80 }, c785: { ut: 62, df: 85 } },
+  4:  { ex2500: { ut: 68, df: 82 }, ex1200: { ut: 68, df: 80 }, c730: { ut: 68, df: 80 }, c785: { ut: 62, df: 85 } },
+  5:  { ex2500: { ut: 68, df: 82 }, ex1200: { ut: 68, df: 80 }, c730: { ut: 68, df: 80 }, c785: { ut: 62, df: 85 } },
+  6:  { ex2500: { ut: 68, df: 82 }, ex1200: { ut: 68, df: 80 }, c730: { ut: 68, df: 80 }, c785: { ut: 62, df: 85 } },
+  7:  { ex2500: { ut: 68, df: 82 }, ex1200: { ut: 68, df: 80 }, c730: { ut: 68, df: 80 }, c785: { ut: 62, df: 85 } }, // Julho
+  8:  { ex2500: { ut: 69, df: 82 }, ex1200: { ut: 77, df: 80 }, c730: { ut: 69, df: 80 }, c785: { ut: 70, df: 85 } }, // Agosto
+  9:  { ex2500: { ut: 64, df: 82 }, ex1200: { ut: 74, df: 80 }, c730: { ut: 61, df: 80 }, c785: { ut: 67, df: 85 } }, // Setembro
+  10: { ex2500: { ut: 64, df: 82 }, ex1200: { ut: 74, df: 80 }, c730: { ut: 62, df: 80 }, c785: { ut: 68, df: 85 } }, // Outubro
+  11: { ex2500: { ut: 58, df: 82 }, ex1200: { ut: 43, df: 80 }, c730: { ut: 57, df: 80 }, c785: { ut: 39, df: 85 } }, // Novembro
+  12: { ex2500: { ut: 47, df: 82 }, ex1200: { ut: 55, df: 80 }, c730: { ut: 45, df: 80 }, c785: { ut: 55, df: 85 } }, // Dezembro
+};
+
+function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): number {
+  const m = month || (new Date().getMonth() + 1);
+  const metasMes = METAS_MENSAIS_2026[m] || METAS_MENSAIS_2026[8];
+  const nameUpper = fleetName.toUpperCase();
+
+  if (nameUpper.includes("EX2500") || nameUpper.includes("EX-2500")) {
+    return tipo === "df" ? metasMes.ex2500.df : metasMes.ex2500.ut;
+  }
+  if (nameUpper.includes("EX1200") || nameUpper.includes("EX-1200")) {
+    return tipo === "df" ? metasMes.ex1200.df : metasMes.ex1200.ut;
+  }
+  if (nameUpper.includes("785") || nameUpper.includes("HD785")) {
+    return tipo === "df" ? metasMes.c785.df : metasMes.c785.ut;
+  }
+  if (nameUpper.includes("730") || nameUpper.includes("KOMATSU 730")) {
+    return tipo === "df" ? metasMes.c730.df : metasMes.c730.ut;
+  }
+
+  return tipo === "df" ? 80.0 : 65.0;
+}
+
   const getFleetTotal = useCallback((name: string, configuredQty?: number) => {
     const nameUpper = name.toUpperCase();
     if (nameUpper.includes("785")) return 25;
@@ -721,12 +763,8 @@ export default function DashboardProducaoUM() {
       if (nameUpper.includes("785") && item730) ativos = item730.quantidadeComDados ?? ativos;
       else if (nameUpper.includes("730") && item785) ativos = item785.quantidadeComDados ?? ativos;
 
-      let metaValue = 60.0;
-      if (nameUpper.includes("EX1200")) metaValue = 80.0;
-      else if (nameUpper.includes("EX2500")) metaValue = 82.0;
-      else if (nameUpper.includes("785")) metaValue = 85.0;
-      else if (nameUpper.includes("730")) metaValue = 80.0;
-
+      // Meta dinâmica automática por virada de mês (Excel Willian 2026)
+      const metaValue = getMetaFrotaMes(name, "df");
       const dfCalc = total > 0 ? (ativos / total) * 100 : 0;
 
       return {
@@ -752,10 +790,8 @@ export default function DashboardProducaoUM() {
       if (nameUpper.includes("785") && item730) ativos = item730.quantidadeComDados ?? ativos;
       else if (nameUpper.includes("730") && item785) ativos = item785.quantidadeComDados ?? ativos;
 
-      let metaValue = Number(item.meta);
-      if (isNaN(metaValue) || metaValue === 0) {
-        metaValue = 85.0;
-      }
+      // Meta dinâmica automática por virada de mês (Excel Willian 2026)
+      const metaValue = getMetaFrotaMes(name, "ut");
 
       return {
         name,
