@@ -911,7 +911,7 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
                 <BarChart data={dailySeries} margin={{ top: 12, right: 60, left: 0, bottom: 0 }}>
                   <defs>
                     <filter id="neonGlowLine" x="-50%" y="-50%" width="200%" height="200%">
-                      <feDropShadow dx="0" dy="0" stdDeviation="4" floodColor="#22c55e" floodOpacity="0.8"/>
+                      <feDropShadow dx="0" dy="0" stdDeviation="4" floodColor="#f97316" floodOpacity="0.8"/>
                     </filter>
                   </defs>
                   <CartesianGrid stroke="rgba(255,255,255,0.05)" vertical={false} />
@@ -924,7 +924,7 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
                   
                   <ReferenceLine 
                     y={mediaDiaria} 
-                    stroke="#22c55e" 
+                    stroke="#f97316" 
                     strokeWidth={2}
                     strokeDasharray="12 8"
                   >
@@ -1312,18 +1312,18 @@ const CustomLabel = (props: any) => {
         height={boxHeight} 
         fill="rgba(3, 20, 26, 0.9)" 
         rx={4}
-        stroke="#22c55e"
+        stroke="#f97316"
         strokeWidth={1}
       />
       <text 
         x={x + 6 + boxWidth / 2} 
         y={y + 1} 
-        fill="#22c55e" 
+        fill="#f97316" 
         textAnchor="middle" 
         dominantBaseline="middle" 
         fontSize={11} 
         fontWeight="bold"
-        style={{ textShadow: "0 0 6px rgba(34,197,94,0.6)" }}
+        style={{ textShadow: "0 0 6px rgba(249,115,22,0.6)" }}
       >
         {value}
       </text>
