@@ -442,26 +442,76 @@ export default function DashboardProducaoUM() {
     return () => clearInterval(timer);
   }, []);
 
+  // Identificação dinâmica do mês e ano para virada de chave automática
+  const nomesMeses = useMemo(() => [
+    'JANEIRO', 'FEVEREIRO', 'MARÇO', 'ABRIL', 'MAIO', 'JUNHO', 
+    'JULHO', 'AGOSTO', 'SETEMBRO', 'OUTUBRO', 'NOVEMBRO', 'DEZEMBRO'
+  ], []);
+  const dataAtual = new Date();
+  const mesAtualIdx = dataAtual.getMonth(); // 0 a 11 (ex: 7 para Agosto)
+  const currentMonthNum = mesAtualIdx + 1; // 1 a 12 (ex: 8)
+  const currentMonthStr = String(currentMonthNum).padStart(2, "0"); // "08"
+  const currentYearStr = String(dataAtual.getFullYear()); // "2026"
+  const currentMonthKey = `${currentYearStr}-${currentMonthStr}`; // "2026-08"
+  const nomeMesAtual = nomesMeses[mesAtualIdx]; // ex: "AGOSTO"
+  const anoAtual = dataAtual.getFullYear(); // ex: 2026
+  const siglaMesAtual = nomeMesAtual.substring(0, 3); // ex: "AGO"
+
+  // Validação: os dados de turno/dia da API pertencem ao mês vigente (ex: Mês 8)?
+  // Se forem resíduos do mês anterior (ex: 31/07 com 404 viagens), vira a chave e zera tudo para o novo mês.
+  const dadosPertencemAoMesAtual = useMemo(() => {
+    if (!dashboardData) return false;
+
+    // 1. Verifica data explícita do turno ou cards se existir
+    const dataRef = String((dashboardData as any)?.dataReferencia || (dashboardData as any)?.data || (dashboardData as any)?.cards?.data || "").trim();
+    if (dataRef) {
+      if (dataRef.includes("-")) {
+        return dataRef.startsWith(currentMonthKey) || dataRef.includes(`-${currentMonthStr}-`);
+      }
+      if (dataRef.includes("/")) {
+        const parts = dataRef.split("/");
+        if (parts.length >= 2) return parts[1].padStart(2, "0") === currentMonthStr;
+      }
+    }
+
+    // 2. Verifica se a última data da produção diária é do mês atual
+    const todos = dashboardData?.producaoDiaria ?? [];
+    if (todos.length > 0) {
+      const last = todos[todos.length - 1];
+      const lastData = String(last?.data || "").trim();
+      if (lastData.includes("-")) {
+        return lastData.startsWith(currentMonthKey) || lastData.includes(`-${currentMonthStr}-`);
+      }
+      if (lastData.includes("/")) {
+        const parts = lastData.split("/");
+        if (parts.length >= 2) return parts[1].padStart(2, "0") === currentMonthStr;
+      }
+    }
+
+    // 3. Verifica timestamp de atualização da API
+    const atualizado = String((dashboardData as any)?.atualizadoEm || "").trim();
+    if (atualizado && atualizado.includes("-")) {
+      return atualizado.startsWith(currentMonthKey) || atualizado.includes(`-${currentMonthStr}-`);
+    }
+
+    return false;
+  }, [dashboardData, currentMonthKey, currentMonthStr]);
+
   const cards = ((dashboardData as any)?.cards ?? {}) as Record<string, any>;
   const lavCard = (cards.lav ?? {}) as Record<string, any>;
   const retCard = (cards.ret ?? {}) as Record<string, any>;
 
-  const lavFinal = Number(lavCard.acumuladoDia ?? 0);
-  const lavProjetado = Number(lavCard.projetadoDia ?? 0);
-  const retFinal = Number(retCard.acumuladoDia ?? 0);
-  const retProjetado = Number(retCard.projetadoDia ?? 0);
-  const producaoDia = Number(cards.producaoDiaria ?? 0);
-  const producaoTotalEscavadeirasTH = Number(cards.th ?? 0);
-  const viagens = Number(cards.viagens ?? 0);
+  // Valores zerados se os dados forem resíduo do mês anterior
+  const lavFinal = dadosPertencemAoMesAtual ? Number(lavCard.acumuladoDia ?? 0) : 0;
+  const lavProjetado = dadosPertencemAoMesAtual ? Number(lavCard.projetadoDia ?? 0) : 0;
+  const retFinal = dadosPertencemAoMesAtual ? Number(retCard.acumuladoDia ?? 0) : 0;
+  const retProjetado = dadosPertencemAoMesAtual ? Number(retCard.projetadoDia ?? 0) : 0;
+  const producaoDia = dadosPertencemAoMesAtual ? Number(cards.producaoDiaria ?? 0) : 0;
+  const producaoTotalEscavadeirasTH = dadosPertencemAoMesAtual ? Number(cards.th ?? 0) : 0;
+  const viagens = dadosPertencemAoMesAtual ? Number(cards.viagens ?? 0) : 0;
 
   // Cálculo robusto da Produção Mensal para o mês vigente (Mês 8 - Agosto)
   const producaoMensal = useMemo(() => {
-    const now = new Date();
-    const currentMonthNum = now.getMonth() + 1; // 8
-    const currentMonthStr = String(currentMonthNum).padStart(2, "0"); // "08"
-    const currentYearStr = String(now.getFullYear()); // "2026"
-    const currentMonthKey = `${currentYearStr}-${currentMonthStr}`; // "2026-08"
-
     const todos = dashboardData?.producaoDiaria ?? [];
 
     // Filtra dias pertencentes ao mês atual (Mês 8)
@@ -486,30 +536,18 @@ export default function DashboardProducaoUM() {
       return diasDoMesAtual.reduce((acc: number, d: any) => acc + Number(d.real ?? 0), 0);
     }
 
-    // Se virou o mês e ainda não há histórico anterior consolidado no mês atual,
-    // o acumulado do mês atual é a produção do dia/turno de hoje
-    const prodHoje = Number(cards.producaoDiaria ?? (lavFinal + retFinal));
-    const valorApi = Number(cards.producaoMensal ?? 0);
-
-    // Se o valor retornado pela API for resíduo do mês anterior (ex: ~1 milhão de toneladas de Julho),
-    // descartamos o resíduo do mês anterior e iniciamos com a produção do mês 8 (prodHoje)
-    if (valorApi > Math.max(prodHoje * 5, 200000) && diasDoMesAtual.length === 0) {
-      return prodHoje;
+    // Se os dados da API já pertencem ao mês atual, pega a produção de hoje
+    if (dadosPertencemAoMesAtual) {
+      const prodHoje = Number(cards.producaoDiaria ?? (lavFinal + retFinal));
+      const valorApi = Number(cards.producaoMensal ?? 0);
+      if (valorApi > Math.max(prodHoje * 5, 200000) && diasDoMesAtual.length === 0) {
+        return prodHoje;
+      }
+      return valorApi > 0 ? valorApi : prodHoje;
     }
 
-    return valorApi > 0 ? valorApi : prodHoje;
-  }, [dashboardData, cards, lavFinal, retFinal]);
-
-  // Identificação dinâmica do mês e ano para exibição no cabeçalho
-  const nomesMeses = useMemo(() => [
-    'JANEIRO', 'FEVEREIRO', 'MARÇO', 'ABRIL', 'MAIO', 'JUNHO', 
-    'JULHO', 'AGOSTO', 'SETEMBRO', 'OUTUBRO', 'NOVEMBRO', 'DEZEMBRO'
-  ], []);
-  const dataAtual = new Date();
-  const mesAtualIdx = dataAtual.getMonth(); // 0 a 11
-  const nomeMesAtual = nomesMeses[mesAtualIdx]; // ex: "AGOSTO"
-  const anoAtual = dataAtual.getFullYear(); // ex: 2026
-  const siglaMesAtual = nomeMesAtual.substring(0, 3); // ex: "AGO"
+    return 0;
+  }, [dashboardData, cards, lavFinal, retFinal, currentMonthKey, currentMonthStr, dadosPertencemAoMesAtual]);
 
   const dailySeries = useMemo(() => {
     const todos = dashboardData?.producaoDiaria ?? [];
@@ -545,6 +583,7 @@ export default function DashboardProducaoUM() {
   }, [mediaDiaria]);
 
   const frenteAgg = useMemo(() => {
+    if (!dadosPertencemAoMesAtual) return [];
     const arr = (dashboardData?.producaoFrente ?? [])
       .map((f) => {
         const name = String(f.frente || "").trim();
@@ -583,11 +622,13 @@ export default function DashboardProducaoUM() {
       .sort((a, b) => b.value - a.value);
     const total = arr.reduce((s, r) => s + r.value, 0) || 1;
     return arr.map((r) => ({ ...r, pct: (r.value / total) * 100 }));
-  }, [dashboardData]);
+  }, [dashboardData, dadosPertencemAoMesAtual]);
 
-  // Mostra SEMPRE todas as escavadeiras da whitelist, mesmo com zero.
+  // Mostra SEMPRE todas as escavadeiras da whitelist, zerando se virou o mês
   const top5Escav = useMemo(() => {
-    const rank = Array.isArray(dashboardData?.rankingEscavadeiras) ? dashboardData!.rankingEscavadeiras! : [];
+    const rank = (dadosPertencemAoMesAtual && Array.isArray(dashboardData?.rankingEscavadeiras)) 
+      ? dashboardData!.rankingEscavadeiras! 
+      : [];
     const byCode = new Map<string, any>();
     rank.forEach((e: any) => {
       const code = normEquip(e.equipamento);
@@ -596,13 +637,9 @@ export default function DashboardProducaoUM() {
     const ordem = ["EH4026","EH4039","EH4041","EH4047","EH4050","EH4035","EH5003","EH5004","EH5036"];
     const rows = ordem.map((code) => {
       const e = byCode.get(code) ?? {};
-      const massa = Number(e.massa ?? 0);
-      let th = Number(e.th ?? 0);
+      const massa = dadosPertencemAoMesAtual ? Number(e.massa ?? 0) : 0;
+      let th = dadosPertencemAoMesAtual ? Number(e.th ?? 0) : 0;
 
-      // FALLBACK FRONTEND (Temporário): 
-      // Como o backend atualmente está dividindo por 24h, o T/H fica irreal (ex: 222 t/h).
-      // Para exibir o valor correto na interface imediatamente enquanto o servidor não é atualizado,
-      // recalculamos assumindo uma média de 7.5 horas efetivas por turno.
       if (massa > 0 && (th === 0 || Math.abs(th - (massa / 24)) < 1 || Math.abs(th - (massa / 8)) < 1)) {
         th = massa / 7.5;
       }
@@ -610,11 +647,11 @@ export default function DashboardProducaoUM() {
       return {
         equipamento: code,
         th: th,
-        viagens: Number(e.viagens ?? 0),
+        viagens: dadosPertencemAoMesAtual ? Number(e.viagens ?? 0) : 0,
         massa: massa,
-        material: e.material ?? null,
-        frente: e.frente ?? null,
-        destino: e.destino ?? null,
+        material: dadosPertencemAoMesAtual ? (e.material ?? null) : null,
+        frente: dadosPertencemAoMesAtual ? (e.frente ?? null) : null,
+        destino: dadosPertencemAoMesAtual ? (e.destino ?? null) : null,
       };
     });
     // Operando (com produção) no topo, sem produção no fim
@@ -624,7 +661,7 @@ export default function DashboardProducaoUM() {
       if (aAtiva !== bAtiva) return bAtiva - aAtiva;
       return b.th - a.th;
     });
-  }, [dashboardData]);
+  }, [dashboardData, dadosPertencemAoMesAtual]);
   const totalMassaTop5 = top5Escav.reduce((total, item) => total + Number(item.massa || 0), 0);
   const totalViagensTop5 = top5Escav.reduce((total, item) => total + Number(item.viagens || 0), 0);
 
@@ -668,6 +705,7 @@ export default function DashboardProducaoUM() {
     }, [dashboardData?.producaoDiaria]);
 
   const viagensPorHora = useMemo(() => {
+    if (!dadosPertencemAoMesAtual) return [];
     const raw = dashboardData?.viagensHora ?? [];
     if (!Array.isArray(raw)) return [];
 
@@ -700,7 +738,7 @@ export default function DashboardProducaoUM() {
     });
 
     return mapped;
-  }, [dashboardData]);
+  }, [dashboardData, dadosPertencemAoMesAtual]);
 
   const prodSeries = useMemo(
     () =>
