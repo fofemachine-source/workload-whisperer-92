@@ -881,7 +881,7 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
           acumulado={retFinal}
           projetado={retProjetado}
           tone="amber"
-          acumuladoTone="amber"
+          acumuladoTone="blue"
           projetadoTone="amber"
         />
         <BigKpi
