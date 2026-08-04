@@ -1513,17 +1513,17 @@ function MiniKpi({ label, value, unit }: { label: string; value: string; unit?: 
 type KpiTone = "green" | "amber" | "blue";
 const TONE_TEXT: Record<KpiTone, string> = {
   green: "text-[#22c55e]",
-  amber: "text-[#facc15]",
+  amber: "text-[#f97316]",
   blue: "text-[#38bdf8]",
 };
 const TONE_BORDER: Record<KpiTone, string> = {
   green: "border-[#22c55e]/30",
-  amber: "border-[#facc15]/30",
+  amber: "border-[#f97316]/30",
   blue: "border-[#38bdf8]/30",
 };
 const TONE_GLOW: Record<KpiTone, string> = {
   green: "bg-[#22c55e]",
-  amber: "bg-[#facc15]",
+  amber: "bg-[#f97316]",
   blue: "bg-[#38bdf8]",
 };
 
@@ -1542,15 +1542,21 @@ function LavRetKpi({
   acumuladoTone: KpiTone;
   projetadoTone: KpiTone;
 }) {
+  const isRet = label.toUpperCase() === "RET";
+  const headerTextColor = isRet ? "text-[#f97316]" : "text-[#22c55e]";
+  const headerLineColor = isRet ? "bg-[#f97316]" : "bg-[#22c55e]";
+  const headerBorderColor = isRet ? "border-[#f97316]" : "border-[#22c55e]";
+  const headerGlowColor = isRet ? "bg-[#f97316]" : "bg-[#22c55e]";
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
-      className="kpi-card relative overflow-hidden rounded-lg border border-[#22c55e]/20 bg-[#000000] px-4 py-1.5"
+      className={`kpi-card relative overflow-hidden rounded-lg border ${isRet ? "border-[#f97316]/30" : "border-[#22c55e]/20"} bg-[#000000] px-4 py-1.5`}
     >
-      <p className="font-mono-mining text-base font-bold tracking-wider text-[#22c55e] uppercase">{label}</p>
-      <div className="mt-0.5 h-px w-full bg-[#22c55e] opacity-30" />
+      <p className={`font-mono-mining text-base font-bold tracking-wider ${headerTextColor} uppercase`}>{label}</p>
+      <div className={`mt-0.5 h-px w-full ${headerLineColor} opacity-30`} />
 
       <div className="mt-1.5 flex items-center justify-between gap-2">
         <p className="font-mono-mining text-xs uppercase tracking-widest font-semibold leading-tight text-[#9ca3af]">
@@ -1561,7 +1567,7 @@ function LavRetKpi({
         </p>
       </div>
 
-      <div className="my-1.5 border-t border-dashed border-[#22c55e] opacity-20" />
+      <div className={`my-1.5 border-t border-dashed ${headerBorderColor} opacity-20`} />
 
       <div className="flex items-center justify-between gap-2">
         <p className="font-mono-mining text-xs uppercase tracking-widest font-semibold leading-tight text-[#9ca3af]">
@@ -1572,7 +1578,7 @@ function LavRetKpi({
         </p>
       </div>
 
-      <span className="pointer-events-none absolute left-6 right-6 bottom-0 h-[2px] rounded-full bg-[#22c55e] opacity-30 blur-[1px]" />
+      <span className={`pointer-events-none absolute left-6 right-6 bottom-0 h-[2px] rounded-full ${headerGlowColor} opacity-30 blur-[1px]`} />
     </motion.div>
   );
 }
