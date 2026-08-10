@@ -759,31 +759,28 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
   const getFleetTotal = useCallback((name: string, configuredQty?: number) => {
     const nameUpper = name.toUpperCase();
     if (nameUpper.includes("785")) return 25;
-    if (nameUpper.includes("730")) return 15;
+    if (nameUpper.includes("730")) return configuredQty && configuredQty >= 26 ? configuredQty : 26;
     return configuredQty ?? 0;
   }, []);
 
   const frotasDfRender = useMemo(() => {
     const disp = Array.isArray(dashboardData?.disponibilidadePorFrota) ? dashboardData.disponibilidadePorFrota : [];
-    const item785 = disp.find((i: any) => (i.frota || "").toUpperCase().includes("785"));
-    const item730 = disp.find((i: any) => (i.frota || "").toUpperCase().includes("730"));
     return disp.map((item: any) => {
       const name = item.frota || "";
       const nameUpper = name.toUpperCase();
       const total = getFleetTotal(name, item.quantidadeConfigurada);
-      // Inverter valor ativo entre frotas 785 e 730 (correção de mapeamento da API)
-      let ativos = item.quantidadeComDados ?? 0;
-      if (nameUpper.includes("785") && item730) ativos = item730.quantidadeComDados ?? ativos;
-      else if (nameUpper.includes("730") && item785) ativos = item785.quantidadeComDados ?? ativos;
+      const rawAtivos = item.quantidadeComDados ?? 0;
+      const ativos = total > 0 ? Math.min(total, rawAtivos) : rawAtivos;
 
       // Meta dinâmica automática por virada de mês (Excel Willian 2026)
       const metaValue = getMetaFrotaMes(name, "df");
-      const dfCalc = total > 0 ? (ativos / total) * 100 : 0;
+      const dfVal = Number(item.valor ?? 0);
+      const dfCalc = dfVal > 0 ? dfVal : (total > 0 ? (ativos / total) * 100 : 0);
 
       return {
         name,
         type: nameUpper.includes("CAMINHÃO") || nameUpper.includes("CAMINHOES") || nameUpper.includes("785") || nameUpper.includes("730") ? "trk" : "exc",
-        df: dfCalc,
+        df: Math.min(100, dfCalc),
         eq: `${ativos}/${total}`,
         meta: metaValue,
       };
@@ -792,16 +789,12 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
 
   const frotasUtRender = useMemo(() => {
     const util = Array.isArray(dashboardData?.utilizacaoPorFrota) ? dashboardData.utilizacaoPorFrota : [];
-    const item785 = util.find((i: any) => (i.frota || "").toUpperCase().includes("785"));
-    const item730 = util.find((i: any) => (i.frota || "").toUpperCase().includes("730"));
     return util.map((item: any) => {
       const name = item.frota || "";
       const nameUpper = name.toUpperCase();
       const total = getFleetTotal(name, item.quantidadeConfigurada);
-      // Inverter valor ativo entre frotas 785 e 730 (correção de mapeamento da API)
-      let ativos = item.quantidadeComDados ?? 0;
-      if (nameUpper.includes("785") && item730) ativos = item730.quantidadeComDados ?? ativos;
-      else if (nameUpper.includes("730") && item785) ativos = item785.quantidadeComDados ?? ativos;
+      const rawAtivos = item.quantidadeComDados ?? 0;
+      const ativos = total > 0 ? Math.min(total, rawAtivos) : rawAtivos;
 
       // Meta dinâmica automática por virada de mês (Excel Willian 2026)
       const metaValue = getMetaFrotaMes(name, "ut");
@@ -809,7 +802,7 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
       return {
         name,
         type: nameUpper.includes("CAMINHÃO") || nameUpper.includes("CAMINHOES") || nameUpper.includes("785") || nameUpper.includes("730") ? "trk" : "exc",
-        ut: Number(item.valor ?? 0),
+        ut: Math.min(100, Number(item.valor ?? 0)),
         eq: `${ativos}/${total}`,
         meta: metaValue,
       };
