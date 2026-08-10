@@ -759,7 +759,7 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
   const getFleetTotal = useCallback((name: string, configuredQty?: number) => {
     const nameUpper = name.toUpperCase();
     if (nameUpper.includes("785")) return 25;
-    if (nameUpper.includes("730")) return configuredQty && configuredQty >= 26 ? configuredQty : 26;
+    if (nameUpper.includes("730")) return configuredQty && configuredQty > 0 ? configuredQty : 15;
     return configuredQty ?? 0;
   }, []);
 
