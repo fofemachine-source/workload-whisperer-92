@@ -775,7 +775,7 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
       // Meta dinâmica automática por virada de mês (Excel Willian 2026)
       const metaValue = getMetaFrotaMes(name, "df");
       const dfVal = Number(item.valor ?? 0);
-      const dfCalc = dfVal > 0 ? dfVal : (total > 0 ? (ativos / total) * 100 : 0);
+      let dfCalc = (total > 0 && ativos >= total) || dfVal >= 99.5 ? 100 : (dfVal > 0 ? dfVal : (total > 0 ? (ativos / total) * 100 : 0));
 
       return {
         name,
