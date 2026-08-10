@@ -510,44 +510,8 @@ export default function DashboardProducaoUM() {
   const producaoTotalEscavadeirasTH = dadosPertencemAoMesAtual ? Number(cards.th ?? 0) : 0;
   const viagens = dadosPertencemAoMesAtual ? Number(cards.viagens ?? 0) : 0;
 
-  // Cálculo robusto da Produção Mensal para o mês vigente (Mês 8 - Agosto)
-  const producaoMensal = useMemo(() => {
-    const todos = dashboardData?.producaoDiaria ?? [];
-
-    // Filtra dias pertencentes ao mês atual (Mês 8)
-    const diasDoMesAtual = todos.filter((d: any) => {
-      const dataStr = String(d.data || "").trim();
-      if (!dataStr) return false;
-      if (dataStr.includes("-")) {
-        return dataStr.startsWith(currentMonthKey) || dataStr.includes(`-${currentMonthStr}-`);
-      }
-      if (dataStr.includes("/")) {
-        const parts = dataStr.split("/");
-        if (parts.length >= 2) {
-          const mes = parts[1].padStart(2, "0");
-          return mes === currentMonthStr;
-        }
-      }
-      return false;
-    });
-
-    // Se há dias do mês atual na série diária, soma-os
-    if (diasDoMesAtual.length > 0) {
-      return diasDoMesAtual.reduce((acc: number, d: any) => acc + Number(d.real ?? 0), 0);
-    }
-
-    // Se os dados da API já pertencem ao mês atual, pega a produção de hoje
-    if (dadosPertencemAoMesAtual) {
-      const prodHoje = Number(cards.producaoDiaria ?? (lavFinal + retFinal));
-      const valorApi = Number(cards.producaoMensal ?? 0);
-      if (valorApi > Math.max(prodHoje * 5, 200000) && diasDoMesAtual.length === 0) {
-        return prodHoje;
-      }
-      return valorApi > 0 ? valorApi : prodHoje;
-    }
-
-    return 0;
-  }, [dashboardData, cards, lavFinal, retFinal, currentMonthKey, currentMonthStr, dadosPertencemAoMesAtual]);
+  // Valor bruto vindo da API (sem cálculo local)
+  const producaoMensal = Number(dashboardData?.kpis?.producaoMensal ?? 0);
 
   const dailySeries = useMemo(() => {
     const todos = dashboardData?.producaoDiaria ?? [];
