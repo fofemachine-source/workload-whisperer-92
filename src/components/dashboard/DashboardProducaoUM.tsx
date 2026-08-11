@@ -602,10 +602,26 @@ export default function DashboardProducaoUM() {
     const rows = ordem.map((code) => {
       const e = byCode.get(code) ?? {};
       const massa = dadosPertencemAoMesAtual ? Number(e.massa ?? 0) : 0;
-      let th = dadosPertencemAoMesAtual ? Number(e.th ?? 0) : 0;
+      let th = 0;
 
-      if (massa > 0 && (th === 0 || Math.abs(th - (massa / 24)) < 1 || Math.abs(th - (massa / 8)) < 1)) {
-        th = massa / 7.5;
+      if (dadosPertencemAoMesAtual) {
+        const massaMes = Number(e.massaMes ?? 0);
+        const horasMes = Number(e.horasMes ?? 0);
+        const thMes = Number(e.thMes ?? 0);
+
+        if (massaMes > 0 && horasMes > 0) {
+          th = massaMes / horasMes;
+        } else if (thMes > 0) {
+          th = thMes;
+        } else if (massa > 0) {
+          const rawTh = Number(e.th ?? 0);
+          if (rawTh > 0 && Math.abs(rawTh - (massa / 24)) > 1 && Math.abs(rawTh - (massa / 8)) > 1) {
+            th = rawTh;
+          } else {
+            const horasEfetivas = Number(e.horasEfetivas ?? e.horas ?? 7.5);
+            th = massa / (horasEfetivas > 0 ? horasEfetivas : 7.5);
+          }
+        }
       }
 
       return {
