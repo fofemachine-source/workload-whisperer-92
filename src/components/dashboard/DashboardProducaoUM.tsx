@@ -1108,52 +1108,40 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
 
                       return (
                         <React.Fragment key={esc.equipamento}>
-                          {/* Cabeçalho do grupo: escavadeira, material e frente (uma vez por escavadeira) */}
-                          <motion.tr
-                            initial={{ opacity: 0, y: 6 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.35, ease: "easeOut", delay: index * 0.05 }}
-                            className="border-b border-white/10 bg-emerald-500/[0.06]"
-                          >
-                            <Td>
-                              <span className="flex items-center gap-1.5">
-                                <span className="w-4 h-4 flex items-center justify-center rounded-sm bg-emerald-400 text-background text-[9px] font-black font-sans shadow-[0_0_8px_hsl(142_71%_45%/0.7)] animate-pulse">
-                                  {index + 1}
-                                </span>
-                                <span className="font-black text-emerald-300 text-glow-neon">{esc.equipamento}</span>
-                              </span>
-                            </Td>
-                            <Td title={esc.material ?? undefined}>{esc.material ?? "—"}</Td>
-                            <Td title={esc.frente ?? undefined}>{esc.frente ?? "—"}</Td>
-                            <Td />
-                            <Td />
-                            <Td />
-                            <Td />
-                          </motion.tr>
-
-                          {/* Uma linha para CADA destino desta escavadeira (sem T/H) */}
+                          {/* Uma linha para CADA destino desta escavadeira (todas as colunas na MESMA linha, sem T/H) */}
                           {esc.destinos.map((d, di) => (
                             <motion.tr
                               key={`${esc.equipamento}-dest-${di}`}
-                              initial={{ opacity: 0, x: -4 }}
-                              animate={{ opacity: 1, x: 0 }}
+                              initial={{ opacity: 0, y: 4 }}
+                              animate={{ opacity: 1, y: 0 }}
                               transition={{ duration: 0.25, ease: "easeOut", delay: index * 0.05 + di * 0.03 }}
                               className="border-b border-white/5 hover:bg-white/[0.03]"
                             >
-                              <Td />
-                              <Td />
-                              <Td />
+                              <Td>
+                                {di === 0 ? (
+                                  <span className="flex items-center gap-1.5">
+                                    <span className="w-4 h-4 flex items-center justify-center rounded-sm bg-emerald-400 text-background text-[9px] font-black font-sans shadow-[0_0_8px_hsl(142_71%_45%/0.7)] animate-pulse">
+                                      {index + 1}
+                                    </span>
+                                    <span className="font-black text-emerald-300 text-glow-neon">{esc.equipamento}</span>
+                                  </span>
+                                ) : (
+                                  <span className="pl-5 text-muted-foreground">{esc.equipamento}</span>
+                                )}
+                              </Td>
+                              <Td title={esc.material ?? undefined}>{esc.material ?? "—"}</Td>
+                              <Td title={esc.frente ?? undefined}>{esc.frente ?? "—"}</Td>
                               <Td title={d.destino}>{d.destino || "—"}</Td>
                               <Td className="text-right text-[#22c55e] tabular-nums"><Counter value={d.viagens} /></Td>
                               <Td className="text-right text-mining-green tabular-nums"><Counter value={d.massa} /> t</Td>
-                              <Td />
+                              <Td className="text-right text-muted-foreground">—</Td>
                             </motion.tr>
                           ))}
 
                           {/* Subtotal da escavadeira: único lugar com T/H (totalTh da API) */}
                           <tr className="border-b border-white/10 bg-emerald-500/10 font-bold">
                             <Td colSpan={4} className="uppercase tracking-wider text-emerald-300">
-                              Subtotal {esc.equipamento}
+                              SUBTOTAL {esc.equipamento}
                             </Td>
                             <Td className="text-right text-[#22c55e] tabular-nums">{fmt(esc.viagens)}</Td>
                             <Td className="text-right text-mining-green tabular-nums">{fmt(esc.massa)} t</Td>
