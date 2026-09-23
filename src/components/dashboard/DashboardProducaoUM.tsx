@@ -1108,7 +1108,7 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
 
                       return (
                         <React.Fragment key={esc.equipamento}>
-                          {/* Uma linha para CADA destino desta escavadeira (todas as colunas na MESMA linha, sem T/H) */}
+                          {/* Renderiza apenas as linhas de destino sem linha de subtotal */}
                           {esc.destinos.map((d, di) => (
                             <motion.tr
                               key={`${esc.equipamento}-dest-${di}`}
@@ -1135,16 +1135,6 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
                               <Td className="text-right text-muted-foreground">—</Td>
                             </motion.tr>
                           ))}
-
-                          {/* Subtotal da escavadeira: único lugar com T/H (totalTh da API) */}
-                          <tr className="border-b border-white/10 bg-emerald-500/10 font-bold">
-                            <Td colSpan={4} className="uppercase tracking-wider text-emerald-300">
-                              SUBTOTAL {esc.equipamento}
-                            </Td>
-                            <Td className="text-right text-[#22c55e] tabular-nums">{fmt(esc.viagens)}</Td>
-                            <Td className="text-right text-mining-green tabular-nums">{fmt(esc.massa)} t</Td>
-                            <Td className="text-right text-white tabular-nums">{fmt(esc.th, 1)} t/h</Td>
-                          </tr>
                         </React.Fragment>
                       );
                     })}

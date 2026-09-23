@@ -223,19 +223,6 @@ export default function EscavadeirasTable({
                     </td>
                   </tr>
                 ))}
-
-                {/* Subtotal da escavadeira */}
-                <tr className="border-b border-emerald-500/20 bg-emerald-500/10 font-bold">
-                  <td colSpan={5} className="py-1.5 pl-2 text-emerald-300 uppercase tracking-wider text-[11px]">
-                    SUBTOTAL {grupo.equipamento}
-                  </td>
-                  <td className="py-1.5 pr-3 text-right text-emerald-400">
-                    {formatarNumero(grupo.totalViagens)}
-                  </td>
-                  <td className="py-1.5 pr-1 text-right text-emerald-300">
-                    {formatarNumero(grupo.totalMassa)}
-                  </td>
-                </tr>
               </React.Fragment>
             ))}
 
