@@ -1137,15 +1137,21 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
                       );
                     })}
                   </tbody>
+                  <tfoot className="sticky bottom-0 bg-[#000000] border-t-2 border-[#22c55e]/40 z-10">
+                    <tr>
+                      <Td colSpan={4} className="text-left font-bold uppercase tracking-wider text-white">
+                        
+                      </Td>
+                      <Td className="text-right text-[#22c55e] tabular-nums font-bold text-xs py-1.5">
+                        {fmt(totalViagensTop5)}
+                      </Td>
+                      <Td className="text-right text-mining-green tabular-nums font-bold text-xs py-1.5">
+                        {fmt(totalMassaTop5)} t
+                      </Td>
+                      <Td className="text-right text-muted-foreground py-1.5">—</Td>
+                    </tr>
+                  </tfoot>
                 </table>
-              </div>
-              <div className="border-t border-[#22c55e]/30 mt-2 pt-2 flex items-center justify-between px-1 text-[11px] font-mono">
-                <span className="font-bold uppercase tracking-wider text-foreground">TOTAL</span>
-                <div className="flex items-center gap-6">
-                  <span className="text-muted-foreground">Viagens: <span className="text-[#22c55e] font-bold">{fmt(totalViagensTop5)}</span></span>
-                  <span className="text-muted-foreground">Tonelagem: <span className="text-mining-green font-bold">{fmt(totalMassaTop5)} t</span></span>
-                  <span className="text-muted-foreground">T/H: <span className="text-white font-bold">{fmt(totalThTop5, 1)}</span></span>
-                </div>
               </div>
             </div>
           )}
