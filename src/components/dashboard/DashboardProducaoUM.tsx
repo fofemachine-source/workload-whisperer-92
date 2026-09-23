@@ -1027,13 +1027,12 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
               <div className="flex-1 min-h-0 overflow-hidden">
                 <table className="w-full table-fixed text-[10px] font-mono border-collapse">
                   <colgroup>
-                    <col style={{ width: "16%" }} />
+                    <col style={{ width: "20%" }} />
+                    <col style={{ width: "14%" }} />
+                    <col style={{ width: "19%" }} />
+                    <col style={{ width: "19%" }} />
                     <col style={{ width: "12%" }} />
                     <col style={{ width: "16%" }} />
-                    <col style={{ width: "16%" }} />
-                    <col style={{ width: "10%" }} />
-                    <col style={{ width: "15%" }} />
-                    <col style={{ width: "15%" }} />
                   </colgroup>
                   <thead className="text-[#9ca3af] sticky top-0 bg-[#000000] z-10">
                     <tr className="border-b border-[#22c55e]/25">
@@ -1043,7 +1042,6 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
                       <Th>Destino</Th>
                       <Th className="text-right">Qtd</Th>
                       <Th className="text-right">Tonelagem</Th>
-                      <Th className="text-right">T/H</Th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1074,7 +1072,6 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
                         <Td>{esc.destino ?? "—"}</Td>
                         <Td className="text-right text-[#22c55e] tabular-nums"><Counter value={esc.viagens} /></Td>
                         <Td className="text-right text-mining-green tabular-nums"><Counter value={esc.massa} /> t</Td>
-                        <Td className="text-right text-foreground font-bold tabular-nums"><Counter value={esc.th} decimals={1} /> t/h</Td>
                           </>
                         ) : (
                           <>
@@ -1086,7 +1083,7 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
                                 <span className="font-black text-muted-foreground">{esc.equipamento}</span>
                               </span>
                             </Td>
-                            <Td colSpan={6} className="text-muted-foreground italic text-[10px]">
+                            <Td colSpan={5} className="text-muted-foreground italic text-[10px]">
                               SEM PRODUÇÃO NO DIA
                             </Td>
                           </>
