@@ -140,10 +140,10 @@ export default function EscavadeirasTable({
 
   const total: TotalRanking = hasProps
     ? (totalProp ?? { viagens: 0, tonelagem: 0 })
-    : (apiData?.totalRankingEscavadeiras ?? {
+    : {
         viagens: grupos.reduce((s, g) => s + g.totalViagens, 0),
         tonelagem: grupos.reduce((s, g) => s + g.totalMassa, 0),
-      });
+      };
 
   const isLoading = hasProps ? Boolean(loadingProp) : apiLoading;
   const erro = hasProps ? errorProp : apiError ? "Falha ao carregar dados da API" : null;
