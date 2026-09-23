@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState, useEffect, useRef, memo } from "react";
+import React, { useCallback, useMemo, useState, useEffect, useRef, memo } from "react";
 import { motion } from "framer-motion";
 import { useAnimatedCounter } from "@/hooks/useAnimatedCounter";
 import {
@@ -1696,8 +1696,8 @@ function StatBlock({
 function Th({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return <th className={`text-left font-bold py-1 pr-2 ${className}`}>{children}</th>;
 }
-function Td({ children, className = "", colSpan }: { children: React.ReactNode; className?: string; colSpan?: number }) {
-  return <td colSpan={colSpan} className={`py-1 pr-2 truncate ${className}`}>{children}</td>;
+function Td({ children, className = "", colSpan, title }: { children?: React.ReactNode; className?: string; colSpan?: number; title?: string }) {
+  return <td colSpan={colSpan} title={title} className={`py-1 pr-2 truncate ${className}`}>{children}</td>;
 }
 function Empty() {
   return <p className="text-[11px] text-muted-foreground font-mono py-8 text-center">Sem dados reais disponíveis</p>;
