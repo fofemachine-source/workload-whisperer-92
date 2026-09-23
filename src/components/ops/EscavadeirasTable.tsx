@@ -1,8 +1,7 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useDashboardApi } from "@/hooks/useDashboardApi";
 
 export interface EscavadeiraDetalhe {
-  equipamento: string;
   material?: string;
   frente?: string;
   subarea?: string;
@@ -11,6 +10,21 @@ export interface EscavadeiraDetalhe {
   viagens?: number;
   tonelagem?: number;
   massa?: number;
+  th?: number;
+}
+
+export interface EscavadeiraRanking {
+  equipamento: string;
+  material?: string;
+  frente?: string;
+  subarea?: string;
+  destino?: string;
+  massa?: number;
+  viagens?: number;
+  horasOp?: number;
+  th?: number;
+  totalTh?: number;
+  detalhes?: EscavadeiraDetalhe[];
 }
 
 export interface TotalRanking {
@@ -18,11 +32,12 @@ export interface TotalRanking {
   quantidade?: number;
   tonelagem?: number;
   massa?: number;
+  th?: number;
 }
 
 export interface EscavadeirasTableProps {
   /** Dados das escavadeiras vindos do componente pai */
-  ranking?: EscavadeiraDetalhe[];
+  ranking?: EscavadeiraRanking[];
   /** Totais vindos do componente pai */
   total?: TotalRanking;
   /** Estado de carregamento vindo do pai */
@@ -31,11 +46,86 @@ export interface EscavadeirasTableProps {
   error?: string | null;
 }
 
+interface EscavadeiraDetalheItem {
+  material: string;
+  frente: string;
+  subarea: string;
+  destino: string;
+  viagens: number;
+  massa: number;
+}
+
+interface EscavadeiraGrupo {
+  equipamento: string;
+  totalTh: number;
+  totalViagens: number;
+  totalMassa: number;
+  detalhes: EscavadeiraDetalheItem[];
+}
+
 function formatarNumero(valor: number | undefined | null, decimais = 0): string {
   return Number(valor || 0).toLocaleString("pt-BR", {
     minimumFractionDigits: decimais,
     maximumFractionDigits: decimais,
   });
+}
+
+function agruparEscavadeiras(ranking: EscavadeiraRanking[]): EscavadeiraGrupo[] {
+  const mapa = new Map<string, EscavadeiraGrupo>();
+
+  for (const item of ranking) {
+    const key = item.equipamento || "Outros";
+
+    if (!mapa.has(key)) {
+      mapa.set(key, {
+        equipamento: key,
+        totalTh: item.totalTh ?? item.th ?? 0,
+        totalViagens: 0,
+        totalMassa: 0,
+        detalhes: [],
+      });
+    }
+
+    const grupo = mapa.get(key)!;
+
+    if (item.totalTh && item.totalTh > 0) {
+      grupo.totalTh = item.totalTh;
+    } else if (item.th && item.th > 0 && !grupo.totalTh) {
+      grupo.totalTh = item.th;
+    }
+
+    if (Array.isArray(item.detalhes) && item.detalhes.length > 0) {
+      for (const d of item.detalhes) {
+        const v = Number(d.viagens || d.quantidade || 0);
+        const m = Number(d.massa || d.tonelagem || 0);
+        grupo.totalViagens += v;
+        grupo.totalMassa += m;
+        grupo.detalhes.push({
+          material: d.material || item.material || "—",
+          frente: d.frente || item.frente || "—",
+          subarea: d.subarea || item.subarea || "—",
+          destino: d.destino || item.destino || "—",
+          viagens: v,
+          massa: m,
+        });
+      }
+    } else {
+      const v = Number(item.viagens || item.massa || 0);
+      const m = Number(item.massa || item.tonelagem || 0);
+      grupo.totalViagens += v;
+      grupo.totalMassa += m;
+      grupo.detalhes.push({
+        material: item.material || "—",
+        frente: item.frente || "—",
+        subarea: item.subarea || "—",
+        destino: item.destino || "—",
+        viagens: v,
+        massa: m,
+      });
+    }
+  }
+
+  return Array.from(mapa.values());
 }
 
 export default function EscavadeirasTable({
@@ -48,19 +138,20 @@ export default function EscavadeirasTable({
   
   const { data: apiData, isLoading: apiLoading, isError: apiError } = useDashboardApi();
 
-  // Prioriza o ranking detalhado ou o ranking simples da API
-  const rawRanking: EscavadeiraDetalhe[] = hasProps
+  const rawRanking: EscavadeiraRanking[] = hasProps
     ? (rankingProp ?? [])
-    : ((apiData?.rankingEscavadeirasDetalhado as EscavadeiraDetalhe[]) ?? 
-       (apiData?.rankingEscavadeiras as EscavadeiraDetalhe[]) ?? []);
+    : ((apiData?.rankingEscavadeirasDetalhado as unknown as EscavadeiraRanking[]) ?? 
+       (apiData?.rankingEscavadeiras as unknown as EscavadeiraRanking[]) ?? []);
+
+  const grupos = agruparEscavadeiras(rawRanking);
 
   const totalViagens = hasProps
-    ? (totalProp?.viagens ?? totalProp?.quantidade ?? rawRanking.reduce((s, r) => s + Number(r.viagens || r.quantidade || 0), 0))
-    : (apiData?.totalRankingEscavadeiras?.viagens ?? rawRanking.reduce((s, r) => s + Number(r.viagens || r.quantidade || 0), 0));
+    ? (totalProp?.viagens ?? totalProp?.quantidade ?? grupos.reduce((s, g) => s + g.totalViagens, 0))
+    : (apiData?.totalRankingEscavadeiras?.viagens ?? grupos.reduce((s, g) => s + g.totalViagens, 0));
 
   const totalTonelagem = hasProps
-    ? (totalProp?.tonelagem ?? totalProp?.massa ?? rawRanking.reduce((s, r) => s + Number(r.tonelagem || r.massa || 0), 0))
-    : (apiData?.totalRankingEscavadeiras?.tonelagem ?? rawRanking.reduce((s, r) => s + Number(r.tonelagem || r.massa || 0), 0));
+    ? (totalProp?.tonelagem ?? totalProp?.massa ?? grupos.reduce((s, g) => s + g.totalMassa, 0))
+    : (apiData?.totalRankingEscavadeiras?.tonelagem ?? grupos.reduce((s, g) => s + g.totalMassa, 0));
 
   const isLoading = hasProps ? Boolean(loadingProp) : apiLoading;
   const erro = hasProps ? errorProp : apiError ? "Falha ao carregar dados da API" : null;
@@ -73,7 +164,7 @@ export default function EscavadeirasTable({
     );
   }
 
-  if (isLoading && rawRanking.length === 0) {
+  if (isLoading && grupos.length === 0) {
     return (
       <div className="rounded-xl border border-emerald-500/20 bg-black/60 p-4 text-emerald-400 font-mono text-sm animate-pulse">
         Carregando escavadeiras...
@@ -101,37 +192,54 @@ export default function EscavadeirasTable({
             </tr>
           </thead>
           <tbody>
-            {rawRanking.map((row, index) => {
-              const qtd = Number(row.quantidade ?? row.viagens ?? 0);
-              const ton = Number(row.tonelagem ?? row.massa ?? 0);
+            {grupos.map((grupo, gIndex) => (
+              <React.Fragment key={grupo.equipamento}>
+                {/* Linhas de detalhe por destino (equipamento, material, frente e subárea exibidos apenas no 1º destino) */}
+                {grupo.detalhes.map((det, dIndex) => (
+                  <tr
+                    key={`${grupo.equipamento}-${det.destino}-${dIndex}`}
+                    className="border-b border-emerald-500/5 text-emerald-300 hover:bg-emerald-500/5 transition-colors"
+                  >
+                    <td className="py-1.5 pr-3 text-cyan-400 font-semibold">
+                      {dIndex === 0 ? grupo.equipamento : ""}
+                    </td>
+                    <td className="py-1.5 pr-3 text-emerald-400/80">
+                      {dIndex === 0 ? det.material : ""}
+                    </td>
+                    <td className="py-1.5 pr-3 text-orange-300/80 truncate max-w-[180px]">
+                      {dIndex === 0 ? det.frente : ""}
+                    </td>
+                    <td className="py-1.5 pr-3 text-emerald-400/70 truncate max-w-[180px]">
+                      {dIndex === 0 ? det.subarea : ""}
+                    </td>
+                    <td className="py-1.5 pr-3 text-emerald-400/70 truncate max-w-[180px]">
+                      {det.destino || "—"}
+                    </td>
+                    <td className="py-1.5 pr-3 text-right text-emerald-400">
+                      {formatarNumero(det.viagens)}
+                    </td>
+                    <td className="py-1.5 pr-1 text-right text-emerald-300 font-semibold">
+                      {formatarNumero(det.massa)}
+                    </td>
+                  </tr>
+                ))}
 
-              return (
-                <tr
-                  key={`${row.equipamento}-${row.destino || index}-${index}`}
-                  className="border-b border-emerald-500/5 text-emerald-300 hover:bg-emerald-500/5 transition-colors"
-                >
-                  <td className="py-1.5 pr-3 text-cyan-400 font-semibold">{row.equipamento}</td>
-                  <td className="py-1.5 pr-3 text-emerald-400/80">{row.material || "—"}</td>
-                  <td className="py-1.5 pr-3 text-orange-300/80 truncate max-w-[180px]">
-                    {row.frente || "—"}
-                  </td>
-                  <td className="py-1.5 pr-3 text-emerald-400/70 truncate max-w-[180px]">
-                    {row.subarea || "—"}
-                  </td>
-                  <td className="py-1.5 pr-3 text-emerald-400/70 truncate max-w-[180px]">
-                    {row.destino || "—"}
+                {/* Subtotal da escavadeira */}
+                <tr className="border-b border-emerald-500/20 bg-emerald-500/10 font-bold">
+                  <td colSpan={5} className="py-1.5 pl-2 text-emerald-300 uppercase tracking-wider text-[11px]">
+                    SUBTOTAL {grupo.equipamento}
                   </td>
                   <td className="py-1.5 pr-3 text-right text-emerald-400">
-                    {formatarNumero(qtd)}
+                    {formatarNumero(grupo.totalViagens)}
                   </td>
-                  <td className="py-1.5 pr-1 text-right text-emerald-300 font-semibold">
-                    {formatarNumero(ton)}
+                  <td className="py-1.5 pr-1 text-right text-emerald-300">
+                    {formatarNumero(grupo.totalMassa)}
                   </td>
                 </tr>
-              );
-            })}
+              </React.Fragment>
+            ))}
 
-            {rawRanking.length === 0 && (
+            {grupos.length === 0 && (
               <tr>
                 <td colSpan={7} className="py-3 text-center text-emerald-500/50">
                   Nenhuma escavadeira registrada.

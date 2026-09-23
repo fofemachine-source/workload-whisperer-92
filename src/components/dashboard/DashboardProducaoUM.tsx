@@ -1118,19 +1118,17 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
                               className="border-b border-white/5 hover:bg-white/[0.03]"
                             >
                               <Td>
-                                {di === 0 ? (
+                                {di === 0 && (
                                   <span className="flex items-center gap-1.5">
                                     <span className="w-4 h-4 flex items-center justify-center rounded-sm bg-emerald-400 text-background text-[9px] font-black font-sans shadow-[0_0_8px_hsl(142_71%_45%/0.7)] animate-pulse">
                                       {index + 1}
                                     </span>
                                     <span className="font-black text-emerald-300 text-glow-neon">{esc.equipamento}</span>
                                   </span>
-                                ) : (
-                                  <span className="pl-5 text-muted-foreground">{esc.equipamento}</span>
                                 )}
                               </Td>
-                              <Td title={esc.material ?? undefined}>{esc.material ?? "—"}</Td>
-                              <Td title={esc.frente ?? undefined}>{esc.frente ?? "—"}</Td>
+                              <Td title={di === 0 ? (esc.material ?? undefined) : undefined}>{di === 0 ? (esc.material ?? "—") : ""}</Td>
+                              <Td title={di === 0 ? (esc.frente ?? undefined) : undefined}>{di === 0 ? (esc.frente ?? "—") : ""}</Td>
                               <Td title={d.destino}>{d.destino || "—"}</Td>
                               <Td className="text-right text-[#22c55e] tabular-nums"><Counter value={d.viagens} /></Td>
                               <Td className="text-right text-mining-green tabular-nums"><Counter value={d.massa} /> t</Td>
