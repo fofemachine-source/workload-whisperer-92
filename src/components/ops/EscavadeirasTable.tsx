@@ -201,16 +201,16 @@ export default function EscavadeirasTable({
                     className="border-b border-emerald-500/5 text-emerald-300 hover:bg-emerald-500/5 transition-colors"
                   >
                     <td className="py-1.5 pr-3 text-cyan-400 font-semibold">
-                      {dIndex === 0 ? grupo.equipamento : ""}
+                      {grupo.equipamento}
                     </td>
                     <td className="py-1.5 pr-3 text-emerald-400/80">
-                      {dIndex === 0 ? det.material : ""}
+                      {det.material}
                     </td>
                     <td className="py-1.5 pr-3 text-orange-300/80 truncate max-w-[180px]">
-                      {dIndex === 0 ? det.frente : ""}
+                      {det.frente}
                     </td>
                     <td className="py-1.5 pr-3 text-emerald-400/70 truncate max-w-[180px]">
-                      {dIndex === 0 ? det.subarea : ""}
+                      {det.subarea}
                     </td>
                     <td className="py-1.5 pr-3 text-emerald-400/70 truncate max-w-[180px]">
                       {det.destino || "—"}
