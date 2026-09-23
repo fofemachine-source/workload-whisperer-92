@@ -35,6 +35,12 @@ const fmt = (n: number, d = 0) =>
     maximumFractionDigits: d,
   });
 
+/** Formatação de tonelagem no padrão MineOperate: sem separador de milhar, 3 decimais (ponto), sem 't' */
+const fmtTon = (n: number | undefined | null): string => {
+  const v = Number(n || 0);
+  return (Number.isFinite(v) ? v : 0).toFixed(3);
+};
+
 /** Animated count-up number using requestAnimationFrame (memoized). */
 const Counter = memo(function Counter({
   value,
@@ -1127,7 +1133,7 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
                               <Td title={esc.frente ?? undefined}>{esc.frente ?? "—"}</Td>
                               <Td title={d.destino}>{d.destino || "—"}</Td>
                               <Td className="text-right text-[#22c55e] tabular-nums"><Counter value={d.viagens} /></Td>
-                              <Td className="text-right text-mining-green tabular-nums"><Counter value={d.massa} /> t</Td>
+                              <Td className="text-right text-mining-green tabular-nums">{fmtTon(d.massa)}</Td>
                             </motion.tr>
                           ))}
                         </React.Fragment>
@@ -1143,7 +1149,7 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
                         {fmt(totalViagensTop5)}
                       </Td>
                       <Td className="text-right text-mining-green tabular-nums font-bold text-xs py-1.5">
-                        {fmt(totalMassaTop5)} t
+                        {fmtTon(totalMassaTop5)}
                       </Td>
                     </tr>
                   </tfoot>

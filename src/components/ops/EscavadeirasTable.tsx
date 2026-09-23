@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useDashboardApi } from "@/hooks/useDashboardApi";
 
 export interface EscavadeiraDetalhe {
+  equipamento: string;
   material?: string;
   frente?: string;
   subarea?: string;
@@ -70,6 +71,11 @@ function formatarNumero(valor: number | undefined | null, decimais = 0): string 
   });
 }
 
+/** Formatação padrão MineOperate para tonelagem: sem milhar, 3 decimais fixas (ponto), sem 't' */
+function formatTon(valor: number | undefined | null): string {
+  return Number(valor || 0).toFixed(3);
+}
+
 function agruparEscavadeiras(ranking: EscavadeiraRanking[]): EscavadeiraGrupo[] {
   const mapa = new Map<string, EscavadeiraGrupo>();
 
@@ -110,7 +116,7 @@ function agruparEscavadeiras(ranking: EscavadeiraRanking[]): EscavadeiraGrupo[] 
         });
       }
     } else {
-      const v = Number(item.viagens || item.massa || 0);
+      const v = Number(item.viagens || item.quantidade || 0);
       const m = Number(item.massa || item.tonelagem || 0);
       grupo.totalViagens += v;
       grupo.totalMassa += m;
@@ -192,9 +198,8 @@ export default function EscavadeirasTable({
             </tr>
           </thead>
           <tbody>
-            {grupos.map((grupo, gIndex) => (
+            {grupos.map((grupo) => (
               <React.Fragment key={grupo.equipamento}>
-                {/* Linhas de detalhe por destino (equipamento, material, frente e subárea exibidos apenas no 1º destino) */}
                 {grupo.detalhes.map((det, dIndex) => (
                   <tr
                     key={`${grupo.equipamento}-${det.destino}-${dIndex}`}
@@ -219,7 +224,7 @@ export default function EscavadeirasTable({
                       {formatarNumero(det.viagens)}
                     </td>
                     <td className="py-1.5 pr-1 text-right text-emerald-300 font-semibold">
-                      {formatarNumero(det.massa)}
+                      {formatTon(det.massa)}
                     </td>
                   </tr>
                 ))}
@@ -243,7 +248,7 @@ export default function EscavadeirasTable({
                 {formatarNumero(totalViagens)}
               </td>
               <td className="py-2.5 pr-1 text-right text-emerald-300 font-bold">
-                {formatarNumero(totalTonelagem)}
+                {formatTon(totalTonelagem)}
               </td>
             </tr>
           </tfoot>
