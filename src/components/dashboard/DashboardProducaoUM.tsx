@@ -1170,6 +1170,7 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
                 <div className="flex items-center gap-6">
                   <span className="text-muted-foreground">Viagens: <span className="text-[#22c55e] font-bold">{fmt(totalViagensTop5)}</span></span>
                   <span className="text-muted-foreground">Tonelagem: <span className="text-mining-green font-bold">{fmt(totalMassaTop5)} t</span></span>
+                  <span className="text-muted-foreground">T/H: <span className="text-white font-bold">{fmt(totalThTop5, 1)}</span></span>
                 </div>
               </div>
             </div>
