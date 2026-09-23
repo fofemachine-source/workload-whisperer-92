@@ -43,6 +43,15 @@ export interface DashboardApiPayload {
     tonelagem?: number;
     massa?: number;
   }>;
+  escavadeirasDetalhado?: Array<{
+    equipamento: string;
+    material?: string;
+    frente?: string;
+    destinos?: Array<{ destino: string; massa: number; viagens: number }>;
+    totalMassa?: number;
+    totalViagens?: number;
+    totalTh?: number;
+  }>;
   viagensCR?: Array<{
     cr?: string;
     escavadeira?: string;

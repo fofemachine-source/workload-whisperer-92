@@ -593,45 +593,76 @@ export default function DashboardProducaoUM() {
     const rank = (dadosPertencemAoMesAtual && Array.isArray(dashboardData?.rankingEscavadeiras)) 
       ? dashboardData!.rankingEscavadeiras! 
       : [];
+    const detalhado = (dadosPertencemAoMesAtual && Array.isArray(dashboardData?.escavadeirasDetalhado))
+      ? dashboardData!.escavadeirasDetalhado!
+      : [];
     const byCode = new Map<string, any>();
     rank.forEach((e: any) => {
       const code = normEquip(e.equipamento);
       if (code) byCode.set(code, e);
     });
+    const detByCode = new Map<string, any>();
+    detalhado.forEach((d: any) => {
+      const code = normEquip(d.equipamento);
+      if (code) detByCode.set(code, d);
+    });
     const ordem = ["EH4026","EH4039","EH4041","EH4047","EH4050","EH4035","EH5003","EH5004","EH5036"];
     const rows = ordem.map((code) => {
       const e = byCode.get(code) ?? {};
-      const massa = dadosPertencemAoMesAtual ? Number(e.massa ?? 0) : 0;
+      const det = detByCode.get(code) ?? null;
+
+      // Uma linha por destino vindo de escavadeirasDetalhado
+      const destinos = det && Array.isArray(det.destinos)
+        ? det.destinos.map((x: any) => ({
+            destino: String(x.destino ?? "—"),
+            massa: toNum(x.massa),
+            viagens: toNum(x.viagens),
+          }))
+        : [];
+      const somaMassa = destinos.reduce((s, d) => s + d.massa, 0);
+      const somaViagens = destinos.reduce((s, d) => s + d.viagens, 0);
+
+      const massa = dadosPertencemAoMesAtual
+        ? (det ? (toNum(det.totalMassa) || somaMassa) : toNum(e.massa ?? 0))
+        : 0;
+      const viagens = dadosPertencemAoMesAtual
+        ? (det ? (toNum(det.totalViagens) || somaViagens) : toNum(e.viagens ?? 0))
+        : 0;
+
       let th = 0;
-
       if (dadosPertencemAoMesAtual) {
-        const massaMes = Number(e.massaMes ?? 0);
-        const horasMes = Number(e.horasMes ?? 0);
-        const thMes = Number(e.thMes ?? 0);
+        if (det && toNum(det.totalTh) > 0) {
+          // T/H oficial da API (escavadeirasDetalhado.totalTh)
+          th = toNum(det.totalTh);
+        } else {
+          const massaMes = Number(e.massaMes ?? 0);
+          const horasMes = Number(e.horasMes ?? 0);
+          const thMes = Number(e.thMes ?? 0);
 
-        if (massaMes > 0 && horasMes > 0) {
-          th = massaMes / horasMes;
-        } else if (thMes > 0) {
-          th = thMes;
-        } else if (massa > 0) {
-          const rawTh = Number(e.th ?? 0);
-          if (rawTh > 0 && Math.abs(rawTh - (massa / 24)) > 1 && Math.abs(rawTh - (massa / 8)) > 1) {
-            th = rawTh;
-          } else {
-            const horasEfetivas = Number(e.horasEfetivas ?? e.horas ?? 7.5);
-            th = massa / (horasEfetivas > 0 ? horasEfetivas : 7.5);
+          if (massaMes > 0 && horasMes > 0) {
+            th = massaMes / horasMes;
+          } else if (thMes > 0) {
+            th = thMes;
+          } else if (massa > 0) {
+            const rawTh = Number(e.th ?? 0);
+            if (rawTh > 0 && Math.abs(rawTh - (massa / 24)) > 1 && Math.abs(rawTh - (massa / 8)) > 1) {
+              th = rawTh;
+            } else {
+              const horasEfetivas = Number(e.horasEfetivas ?? e.horas ?? 7.5);
+              th = massa / (horasEfetivas > 0 ? horasEfetivas : 7.5);
+            }
           }
         }
       }
 
       return {
         equipamento: code,
-        th: th,
-        viagens: dadosPertencemAoMesAtual ? Number(e.viagens ?? 0) : 0,
-        massa: massa,
-        material: dadosPertencemAoMesAtual ? (e.material ?? null) : null,
-        frente: dadosPertencemAoMesAtual ? (e.frente ?? null) : null,
-        destino: dadosPertencemAoMesAtual ? (e.destino ?? null) : null,
+        th,
+        viagens,
+        massa,
+        material: dadosPertencemAoMesAtual ? (det?.material ?? e.material ?? null) : null,
+        frente: dadosPertencemAoMesAtual ? (det?.frente ?? e.frente ?? null) : null,
+        destinos,
       };
     });
     // Operando (com produção) no topo, sem produção no fim
@@ -644,6 +675,7 @@ export default function DashboardProducaoUM() {
   }, [dashboardData, dadosPertencemAoMesAtual]);
   const totalMassaTop5 = top5Escav.reduce((total, item) => total + Number(item.massa || 0), 0);
   const totalViagensTop5 = top5Escav.reduce((total, item) => total + Number(item.viagens || 0), 0);
+  const totalThTop5 = top5Escav.reduce((total, item) => total + Number(item.th || 0), 0);
 
     // ==========================================
     // NOVA SÉRIE: TKPH (Ton x Km / Hora) por Frota
