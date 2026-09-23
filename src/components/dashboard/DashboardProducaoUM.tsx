@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState, useEffect, useRef, memo } from "react";
+import React, { useCallback, useMemo, useState, useEffect, useRef, memo } from "react";
 import { motion } from "framer-motion";
 import { useAnimatedCounter } from "@/hooks/useAnimatedCounter";
 import {
@@ -593,45 +593,76 @@ export default function DashboardProducaoUM() {
     const rank = (dadosPertencemAoMesAtual && Array.isArray(dashboardData?.rankingEscavadeiras)) 
       ? dashboardData!.rankingEscavadeiras! 
       : [];
+    const detalhado = (dadosPertencemAoMesAtual && Array.isArray(dashboardData?.escavadeirasDetalhado))
+      ? dashboardData!.escavadeirasDetalhado!
+      : [];
     const byCode = new Map<string, any>();
     rank.forEach((e: any) => {
       const code = normEquip(e.equipamento);
       if (code) byCode.set(code, e);
     });
+    const detByCode = new Map<string, any>();
+    detalhado.forEach((d: any) => {
+      const code = normEquip(d.equipamento);
+      if (code) detByCode.set(code, d);
+    });
     const ordem = ["EH4026","EH4039","EH4041","EH4047","EH4050","EH4035","EH5003","EH5004","EH5036"];
     const rows = ordem.map((code) => {
       const e = byCode.get(code) ?? {};
-      const massa = dadosPertencemAoMesAtual ? Number(e.massa ?? 0) : 0;
+      const det = detByCode.get(code) ?? null;
+
+      // Uma linha por destino vindo de escavadeirasDetalhado
+      const destinos = det && Array.isArray(det.destinos)
+        ? det.destinos.map((x: any) => ({
+            destino: String(x.destino ?? "—"),
+            massa: toNum(x.massa),
+            viagens: toNum(x.viagens),
+          }))
+        : [];
+      const somaMassa = destinos.reduce((s, d) => s + d.massa, 0);
+      const somaViagens = destinos.reduce((s, d) => s + d.viagens, 0);
+
+      const massa = dadosPertencemAoMesAtual
+        ? (det ? (toNum(det.totalMassa) || somaMassa) : toNum(e.massa ?? 0))
+        : 0;
+      const viagens = dadosPertencemAoMesAtual
+        ? (det ? (toNum(det.totalViagens) || somaViagens) : toNum(e.viagens ?? 0))
+        : 0;
+
       let th = 0;
-
       if (dadosPertencemAoMesAtual) {
-        const massaMes = Number(e.massaMes ?? 0);
-        const horasMes = Number(e.horasMes ?? 0);
-        const thMes = Number(e.thMes ?? 0);
+        if (det && toNum(det.totalTh) > 0) {
+          // T/H oficial da API (escavadeirasDetalhado.totalTh)
+          th = toNum(det.totalTh);
+        } else {
+          const massaMes = Number(e.massaMes ?? 0);
+          const horasMes = Number(e.horasMes ?? 0);
+          const thMes = Number(e.thMes ?? 0);
 
-        if (massaMes > 0 && horasMes > 0) {
-          th = massaMes / horasMes;
-        } else if (thMes > 0) {
-          th = thMes;
-        } else if (massa > 0) {
-          const rawTh = Number(e.th ?? 0);
-          if (rawTh > 0 && Math.abs(rawTh - (massa / 24)) > 1 && Math.abs(rawTh - (massa / 8)) > 1) {
-            th = rawTh;
-          } else {
-            const horasEfetivas = Number(e.horasEfetivas ?? e.horas ?? 7.5);
-            th = massa / (horasEfetivas > 0 ? horasEfetivas : 7.5);
+          if (massaMes > 0 && horasMes > 0) {
+            th = massaMes / horasMes;
+          } else if (thMes > 0) {
+            th = thMes;
+          } else if (massa > 0) {
+            const rawTh = Number(e.th ?? 0);
+            if (rawTh > 0 && Math.abs(rawTh - (massa / 24)) > 1 && Math.abs(rawTh - (massa / 8)) > 1) {
+              th = rawTh;
+            } else {
+              const horasEfetivas = Number(e.horasEfetivas ?? e.horas ?? 7.5);
+              th = massa / (horasEfetivas > 0 ? horasEfetivas : 7.5);
+            }
           }
         }
       }
 
       return {
         equipamento: code,
-        th: th,
-        viagens: dadosPertencemAoMesAtual ? Number(e.viagens ?? 0) : 0,
-        massa: massa,
-        material: dadosPertencemAoMesAtual ? (e.material ?? null) : null,
-        frente: dadosPertencemAoMesAtual ? (e.frente ?? null) : null,
-        destino: dadosPertencemAoMesAtual ? (e.destino ?? null) : null,
+        th,
+        viagens,
+        massa,
+        material: dadosPertencemAoMesAtual ? (det?.material ?? e.material ?? null) : null,
+        frente: dadosPertencemAoMesAtual ? (det?.frente ?? e.frente ?? null) : null,
+        destinos,
       };
     });
     // Operando (com produção) no topo, sem produção no fim
@@ -644,6 +675,7 @@ export default function DashboardProducaoUM() {
   }, [dashboardData, dadosPertencemAoMesAtual]);
   const totalMassaTop5 = top5Escav.reduce((total, item) => total + Number(item.massa || 0), 0);
   const totalViagensTop5 = top5Escav.reduce((total, item) => total + Number(item.viagens || 0), 0);
+  const totalThTop5 = top5Escav.reduce((total, item) => total + Number(item.th || 0), 0);
 
     // ==========================================
     // NOVA SÉRIE: TKPH (Ton x Km / Hora) por Frota
@@ -1024,15 +1056,16 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
             <Empty />
           ) : (
             <div className="flex flex-col h-full">
-              <div className="flex-1 min-h-0 overflow-hidden">
+              <div className="flex-1 min-h-0 overflow-y-auto escav-scroll">
                 <table className="w-full table-fixed text-[10px] font-mono border-collapse">
                   <colgroup>
-                    <col style={{ width: "20%" }} />
-                    <col style={{ width: "14%" }} />
-                    <col style={{ width: "19%" }} />
-                    <col style={{ width: "19%" }} />
-                    <col style={{ width: "12%" }} />
                     <col style={{ width: "16%" }} />
+                    <col style={{ width: "11%" }} />
+                    <col style={{ width: "18%" }} />
+                    <col style={{ width: "21%" }} />
+                    <col style={{ width: "10%" }} />
+                    <col style={{ width: "13%" }} />
+                    <col style={{ width: "11%" }} />
                   </colgroup>
                   <thead className="text-[#9ca3af] sticky top-0 bg-[#000000] z-10">
                     <tr className="border-b border-[#22c55e]/25">
@@ -1042,39 +1075,22 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
                       <Th>Destino</Th>
                       <Th className="text-right">Qtd</Th>
                       <Th className="text-right">Tonelagem</Th>
+                      <Th className="text-right">T/H</Th>
                     </tr>
                   </thead>
                   <tbody>
-                    {top5Escav.map((esc, index) => (
-                      <motion.tr
-                        key={esc.equipamento}
-                        initial={{ opacity: 0, y: 6 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.35, ease: "easeOut", delay: index * 0.05 }}
-                        className={`border-b border-white/5 hover:bg-white/[0.03] ${
-                          esc.massa > 0 || esc.th > 0 || esc.viagens > 0
-                            ? "bg-emerald-500/[0.03]"
-                            : "opacity-60"
-                        }`}
-                      >
-                        {esc.massa > 0 || esc.th > 0 || esc.viagens > 0 ? (
-                          <>
-                        <Td>
-                          <span className="flex items-center gap-1.5">
-                            <span className="w-4 h-4 flex items-center justify-center rounded-sm bg-emerald-400 text-background text-[9px] font-black font-sans shadow-[0_0_8px_hsl(142_71%_45%/0.7)] animate-pulse">
-                              {index + 1}
-                            </span>
-                            <span className="font-black text-emerald-300 text-glow-neon">{esc.equipamento}</span>
-                          </span>
-                        </Td>
-                        <Td>{esc.material ?? "—"}</Td>
-                        <Td>{esc.frente ?? "—"}</Td>
-                        <Td>{esc.destino ?? "—"}</Td>
-                        <Td className="text-right text-[#22c55e] tabular-nums"><Counter value={esc.viagens} /></Td>
-                        <Td className="text-right text-mining-green tabular-nums"><Counter value={esc.massa} /> t</Td>
-                          </>
-                        ) : (
-                          <>
+                    {top5Escav.map((esc, index) => {
+                      const ativa = esc.massa > 0 || esc.th > 0 || esc.viagens > 0;
+
+                      if (!ativa) {
+                        return (
+                          <motion.tr
+                            key={esc.equipamento}
+                            initial={{ opacity: 0, y: 6 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.35, ease: "easeOut", delay: index * 0.05 }}
+                            className="border-b border-white/5 hover:bg-white/[0.03] opacity-60"
+                          >
                             <Td>
                               <span className="flex items-center gap-1.5">
                                 <span className="w-4 h-4 flex items-center justify-center rounded-sm bg-muted text-muted-foreground text-[9px] font-black font-sans">
@@ -1083,13 +1099,69 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
                                 <span className="font-black text-muted-foreground">{esc.equipamento}</span>
                               </span>
                             </Td>
-                            <Td colSpan={5} className="text-muted-foreground italic text-[10px]">
+                            <Td colSpan={6} className="text-muted-foreground italic text-[10px]">
                               SEM PRODUÇÃO NO DIA
                             </Td>
-                          </>
-                        )}
-                      </motion.tr>
-                    ))}
+                          </motion.tr>
+                        );
+                      }
+
+                      return (
+                        <React.Fragment key={esc.equipamento}>
+                          {/* Cabeçalho do grupo: escavadeira, material e frente (uma vez por escavadeira) */}
+                          <motion.tr
+                            initial={{ opacity: 0, y: 6 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.35, ease: "easeOut", delay: index * 0.05 }}
+                            className="border-b border-white/10 bg-emerald-500/[0.06]"
+                          >
+                            <Td>
+                              <span className="flex items-center gap-1.5">
+                                <span className="w-4 h-4 flex items-center justify-center rounded-sm bg-emerald-400 text-background text-[9px] font-black font-sans shadow-[0_0_8px_hsl(142_71%_45%/0.7)] animate-pulse">
+                                  {index + 1}
+                                </span>
+                                <span className="font-black text-emerald-300 text-glow-neon">{esc.equipamento}</span>
+                              </span>
+                            </Td>
+                            <Td title={esc.material ?? undefined}>{esc.material ?? "—"}</Td>
+                            <Td title={esc.frente ?? undefined}>{esc.frente ?? "—"}</Td>
+                            <Td />
+                            <Td />
+                            <Td />
+                            <Td />
+                          </motion.tr>
+
+                          {/* Uma linha para CADA destino desta escavadeira (sem T/H) */}
+                          {esc.destinos.map((d, di) => (
+                            <motion.tr
+                              key={`${esc.equipamento}-dest-${di}`}
+                              initial={{ opacity: 0, x: -4 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ duration: 0.25, ease: "easeOut", delay: index * 0.05 + di * 0.03 }}
+                              className="border-b border-white/5 hover:bg-white/[0.03]"
+                            >
+                              <Td />
+                              <Td />
+                              <Td />
+                              <Td title={d.destino}>{d.destino || "—"}</Td>
+                              <Td className="text-right text-[#22c55e] tabular-nums"><Counter value={d.viagens} /></Td>
+                              <Td className="text-right text-mining-green tabular-nums"><Counter value={d.massa} /> t</Td>
+                              <Td />
+                            </motion.tr>
+                          ))}
+
+                          {/* Subtotal da escavadeira: único lugar com T/H (totalTh da API) */}
+                          <tr className="border-b border-white/10 bg-emerald-500/10 font-bold">
+                            <Td colSpan={4} className="uppercase tracking-wider text-emerald-300">
+                              Subtotal {esc.equipamento}
+                            </Td>
+                            <Td className="text-right text-[#22c55e] tabular-nums">{fmt(esc.viagens)}</Td>
+                            <Td className="text-right text-mining-green tabular-nums">{fmt(esc.massa)} t</Td>
+                            <Td className="text-right text-white tabular-nums">{fmt(esc.th, 1)} t/h</Td>
+                          </tr>
+                        </React.Fragment>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -1098,6 +1170,7 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
                 <div className="flex items-center gap-6">
                   <span className="text-muted-foreground">Viagens: <span className="text-[#22c55e] font-bold">{fmt(totalViagensTop5)}</span></span>
                   <span className="text-muted-foreground">Tonelagem: <span className="text-mining-green font-bold">{fmt(totalMassaTop5)} t</span></span>
+                  <span className="text-muted-foreground">T/H: <span className="text-white font-bold">{fmt(totalThTop5, 1)}</span></span>
                 </div>
               </div>
             </div>
@@ -1624,8 +1697,8 @@ function StatBlock({
 function Th({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return <th className={`text-left font-bold py-1 pr-2 ${className}`}>{children}</th>;
 }
-function Td({ children, className = "", colSpan }: { children: React.ReactNode; className?: string; colSpan?: number }) {
-  return <td colSpan={colSpan} className={`py-1 pr-2 truncate ${className}`}>{children}</td>;
+function Td({ children, className = "", colSpan, title }: { children?: React.ReactNode; className?: string; colSpan?: number; title?: string }) {
+  return <td colSpan={colSpan} title={title} className={`py-1 pr-2 truncate ${className}`}>{children}</td>;
 }
 function Empty() {
   return <p className="text-[11px] text-muted-foreground font-mono py-8 text-center">Sem dados reais disponíveis</p>;
