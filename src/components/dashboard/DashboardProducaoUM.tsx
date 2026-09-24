@@ -1111,34 +1111,29 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
                       }
 
                       return (
-                        <React.Fragment key={esc.equipamento}>
-                          {/* Renderiza apenas as linhas de destino sem linha de subtotal */}
-                          {esc.destinos.map((d, di) => (
-                            <motion.tr
-                              key={`${esc.equipamento}-dest-${di}`}
-                              initial={{ opacity: 0, y: 4 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              transition={{ duration: 0.25, ease: "easeOut", delay: index * 0.05 + di * 0.03 }}
-                              className="border-b border-white/5 hover:bg-white/[0.03]"
-                            >
-                              <Td>
-                                {di === 0 && (
-                                  <span className="flex items-center gap-1.5">
-                                    <span className="w-4 h-4 flex items-center justify-center rounded-sm bg-emerald-400 text-background text-[9px] font-black font-sans shadow-[0_0_8px_hsl(142_71%_45%/0.7)] animate-pulse">
-                                      {index + 1}
-                                    </span>
-                                    <span className="font-black text-emerald-300 text-glow-neon">{esc.equipamento}</span>
-                                  </span>
-                                )}
-                              </Td>
-                              <Td title={di === 0 ? (esc.material ?? undefined) : undefined}>{di === 0 ? (esc.material ?? "—") : ""}</Td>
-                              <Td title={di === 0 ? (esc.frente ?? undefined) : undefined}>{di === 0 ? (esc.frente ?? "—") : ""}</Td>
-                              <Td title={d.destino}>{d.destino || "—"}</Td>
-                              <Td className="text-right text-[#22c55e] tabular-nums"><Counter value={d.viagens} /></Td>
-                              <Td className="text-right text-mining-green tabular-nums">{fmtTon(d.massa)}</Td>
-                            </motion.tr>
-                          ))}
-                        </React.Fragment>
+                        <motion.tr
+                          key={esc.equipamento}
+                          initial={{ opacity: 0, y: 6 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.35, ease: "easeOut", delay: index * 0.05 }}
+                          className="border-b border-white/5 hover:bg-white/[0.03]"
+                        >
+                          <Td>
+                            <span className="flex items-center gap-1.5">
+                              <span className="w-4 h-4 flex items-center justify-center rounded-sm bg-emerald-400 text-background text-[9px] font-black font-sans shadow-[0_0_8px_hsl(142_71%_45%/0.7)] animate-pulse">
+                                {index + 1}
+                              </span>
+                              <span className="font-black text-emerald-300 text-glow-neon">{esc.equipamento}</span>
+                            </span>
+                          </Td>
+                          <Td title={esc.material ?? undefined}>{esc.material ?? "—"}</Td>
+                          <Td title={esc.frente ?? undefined}>{esc.frente ?? "—"}</Td>
+                          <Td title={esc.destinos?.[0]?.destino ?? esc.destino ?? undefined}>
+                            {esc.destinos?.[0]?.destino || esc.destino || "—"}
+                          </Td>
+                          <Td className="text-right text-[#22c55e] tabular-nums"><Counter value={esc.viagens} /></Td>
+                          <Td className="text-right text-mining-green tabular-nums">{fmtTon(esc.massa)}</Td>
+                        </motion.tr>
                       );
                     })}
                   </tbody>

@@ -198,38 +198,37 @@ export default function EscavadeirasTable({
             </tr>
           </thead>
           <tbody>
-            {grupos.map((grupo) => (
-              <React.Fragment key={grupo.equipamento}>
-                {grupo.detalhes.map((det, dIndex) => (
-                  <tr
-                    key={`${grupo.equipamento}-${det.destino}-${dIndex}`}
-                    className="border-b border-emerald-500/5 text-emerald-300 hover:bg-emerald-500/5 transition-colors"
-                  >
-                    <td className="py-1.5 pr-3 text-cyan-400 font-semibold">
-                      {dIndex === 0 ? grupo.equipamento : ""}
-                    </td>
-                    <td className="py-1.5 pr-3 text-emerald-400/80">
-                      {dIndex === 0 ? det.material : ""}
-                    </td>
-                    <td className="py-1.5 pr-3 text-orange-300/80 truncate max-w-[180px]">
-                      {dIndex === 0 ? det.frente : ""}
-                    </td>
-                    <td className="py-1.5 pr-3 text-emerald-400/70 truncate max-w-[180px]">
-                      {dIndex === 0 ? det.subarea : ""}
-                    </td>
-                    <td className="py-1.5 pr-3 text-emerald-400/70 truncate max-w-[180px]">
-                      {det.destino || "—"}
-                    </td>
-                    <td className="py-1.5 pr-3 text-right text-emerald-400">
-                      {formatarNumero(det.viagens)}
-                    </td>
-                    <td className="py-1.5 pr-1 text-right text-emerald-300 font-semibold">
-                      {formatTon(det.massa)}
-                    </td>
-                  </tr>
-                ))}
-              </React.Fragment>
-            ))}
+            {grupos.map((grupo) => {
+              const det = grupo.detalhes[0];
+              return (
+                <tr
+                  key={grupo.equipamento}
+                  className="border-b border-emerald-500/5 text-emerald-300 hover:bg-emerald-500/5 transition-colors"
+                >
+                  <td className="py-1.5 pr-3 text-cyan-400 font-semibold">
+                    {grupo.equipamento}
+                  </td>
+                  <td className="py-1.5 pr-3 text-emerald-400/80">
+                    {det?.material || "—"}
+                  </td>
+                  <td className="py-1.5 pr-3 text-orange-300/80 truncate max-w-[180px]">
+                    {det?.frente || "—"}
+                  </td>
+                  <td className="py-1.5 pr-3 text-emerald-400/70 truncate max-w-[180px]">
+                    {det?.subarea || "—"}
+                  </td>
+                  <td className="py-1.5 pr-3 text-emerald-400/70 truncate max-w-[180px]">
+                    {det?.destino || "—"}
+                  </td>
+                  <td className="py-1.5 pr-3 text-right text-emerald-400">
+                    {formatarNumero(grupo.totalViagens)}
+                  </td>
+                  <td className="py-1.5 pr-1 text-right text-emerald-300 font-semibold">
+                    {formatTon(grupo.totalMassa)}
+                  </td>
+                </tr>
+              );
+            })}
 
             {grupos.length === 0 && (
               <tr>
