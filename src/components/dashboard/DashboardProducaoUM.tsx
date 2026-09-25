@@ -594,12 +594,51 @@ export default function DashboardProducaoUM() {
     return arr.map((r) => ({ ...r, pct: (r.value / total) * 100 }));
   }, [dashboardData, dadosPertencemAoMesAtual]);
 
-  // Mostra SEMPRE todas as escavadeiras da whitelist, zerando se virou o mês
+  // Shift context for Turno A (06:00-18:00) and Turno B (18:00-06:00)
+  const shiftInfo = useMemo(() => {
+    const now = new Date();
+    const hours = now.getHours();
+
+    const shiftStart = new Date(now);
+    if (hours >= 6 && hours < 18) {
+      shiftStart.setHours(6, 0, 0, 0);
+    } else if (hours >= 18) {
+      shiftStart.setHours(18, 0, 0, 0);
+    } else {
+      shiftStart.setDate(shiftStart.getDate() - 1);
+      shiftStart.setHours(18, 0, 0, 0);
+    }
+
+    const elapsedMs = now.getTime() - shiftStart.getTime();
+    const elapsedHours = Math.min(12, Math.max(0.05, elapsedMs / (1000 * 60 * 60)));
+
+    return {
+      shiftStart,
+      elapsedHours,
+    };
+  }, [ultimaAtualizacao]);
+
+  const dadosPertencemAoTurnoAtual = useMemo(() => {
+    if (!dadosPertencemAoMesAtual || !dashboardData) return false;
+
+    const atualizadoEm = (dashboardData as any)?.atualizadoEm;
+    if (atualizadoEm) {
+      const dt = new Date(atualizadoEm);
+      if (!isNaN(dt.getTime())) {
+        if (dt.getTime() < shiftInfo.shiftStart.getTime()) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }, [dashboardData, dadosPertencemAoMesAtual, shiftInfo.shiftStart]);
+
+  // Mostra SEMPRE todas as escavadeiras da whitelist, zerando se virou o turno ou mês
   const top5Escav = useMemo(() => {
-    const rank = (dadosPertencemAoMesAtual && Array.isArray(dashboardData?.rankingEscavadeiras)) 
+    const rank = (dadosPertencemAoTurnoAtual && Array.isArray(dashboardData?.rankingEscavadeiras)) 
       ? dashboardData!.rankingEscavadeiras! 
       : [];
-    const detalhado = (dadosPertencemAoMesAtual && Array.isArray(dashboardData?.escavadeirasDetalhado))
+    const detalhado = (dadosPertencemAoTurnoAtual && Array.isArray(dashboardData?.escavadeirasDetalhado))
       ? dashboardData!.escavadeirasDetalhado!
       : [];
     const byCode = new Map<string, any>();
@@ -628,15 +667,15 @@ export default function DashboardProducaoUM() {
       const somaMassa = destinos.reduce((s, d) => s + d.massa, 0);
       const somaViagens = destinos.reduce((s, d) => s + d.viagens, 0);
 
-      const massa = dadosPertencemAoMesAtual
+      const massa = dadosPertencemAoTurnoAtual
         ? (det ? (toNum(det.totalMassa) || somaMassa) : toNum(e.massa ?? 0))
         : 0;
-      const viagens = dadosPertencemAoMesAtual
+      const viagens = dadosPertencemAoTurnoAtual
         ? (det ? (toNum(det.totalViagens) || somaViagens) : toNum(e.viagens ?? 0))
         : 0;
 
       let th = 0;
-      if (dadosPertencemAoMesAtual) {
+      if (dadosPertencemAoTurnoAtual) {
         if (det && toNum(det.totalTh) > 0) {
           // T/H oficial da API (escavadeirasDetalhado.totalTh)
           th = toNum(det.totalTh);
@@ -666,8 +705,8 @@ export default function DashboardProducaoUM() {
         th,
         viagens,
         massa,
-        material: dadosPertencemAoMesAtual ? (det?.material ?? e.material ?? null) : null,
-        frente: dadosPertencemAoMesAtual ? (det?.frente ?? e.frente ?? null) : null,
+        material: dadosPertencemAoTurnoAtual ? (det?.material ?? e.material ?? null) : null,
+        frente: dadosPertencemAoTurnoAtual ? (det?.frente ?? e.frente ?? null) : null,
         destinos,
       };
     });
@@ -678,10 +717,15 @@ export default function DashboardProducaoUM() {
       if (aAtiva !== bAtiva) return bAtiva - aAtiva;
       return b.th - a.th;
     });
-  }, [dashboardData, dadosPertencemAoMesAtual]);
+  }, [dashboardData, dadosPertencemAoTurnoAtual]);
   const totalMassaTop5 = top5Escav.reduce((total, item) => total + Number(item.massa || 0), 0);
   const totalViagensTop5 = top5Escav.reduce((total, item) => total + Number(item.viagens || 0), 0);
   const totalThTop5 = top5Escav.reduce((total, item) => total + Number(item.th || 0), 0);
+
+  // T/H oficial do turno atual: total tonelagem da tabela / horas decorridas do turno
+  const thTurnoAtual = useMemo(() => {
+    return shiftInfo.elapsedHours > 0 ? totalMassaTop5 / shiftInfo.elapsedHours : 0;
+  }, [totalMassaTop5, shiftInfo.elapsedHours]);
 
     // ==========================================
     // NOVA SÉRIE: TKPH (Ton x Km / Hora) por Frota
@@ -904,7 +948,8 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
         />
         <BigKpi
           label="T/H"
-          value={producaoTotalEscavadeirasTH}
+          value={thTurnoAtual}
+          decimals={3}
           suffix=" t/h"
           tone="green"
           showBar
@@ -1610,6 +1655,7 @@ function BigKpi({
   label,
   value,
   suffix = "",
+  decimals = 0,
   tone,
   showBar = false,
   badge,
@@ -1617,6 +1663,7 @@ function BigKpi({
   label: string;
   value: number;
   suffix?: string;
+  decimals?: number;
   tone: KpiTone;
   showBar?: boolean;
   badge?: string;
@@ -1639,7 +1686,7 @@ function BigKpi({
       <div className="mt-1 h-px w-full bg-[#22c55e] opacity-30" />
 
       <p className={`mt-2 font-mono-mining text-3xl md:text-4xl font-extrabold leading-none tabular-nums ${TONE_TEXT[tone]}`}>
-        <Counter value={value} suffix={suffix} />
+        <Counter value={value} decimals={decimals} suffix={suffix} />
       </p>
 
       {showBar && (

@@ -241,7 +241,7 @@ export default function EscavadeirasTable({
           <tfoot>
             <tr className="border-t-2 border-emerald-500/40 text-emerald-400 font-bold bg-black/80">
               <td colSpan={5} className="py-2.5 pl-2 uppercase tracking-widest text-xs">
-                PRODUÇÃO DO DIA
+                PRODUÇÃO DO TURNO
               </td>
               <td className="py-2.5 pr-3 text-right text-emerald-400 font-bold">
                 {formatarNumero(totalViagens)}
