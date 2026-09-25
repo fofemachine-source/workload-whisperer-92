@@ -599,19 +599,28 @@ export default function DashboardProducaoUM() {
     return arr.map((r) => ({ ...r, pct: (r.value / total) * 100 }));
   }, [dashboardData, dadosPertencemAoMesAtual]);
 
-  // Shift context for Turno A (06:00-18:00) and Turno B (18:00-06:00)
+  // Shift context for Turno A (06:00-18:00) and Turno B (18:00-06:00 next day)
   const shiftInfo = useMemo(() => {
     const now = new Date();
     const hours = now.getHours();
 
     const shiftStart = new Date(now);
+    const shiftEnd = new Date(now);
+
     if (hours >= 6 && hours < 18) {
+      // Turno A
       shiftStart.setHours(6, 0, 0, 0);
+      shiftEnd.setHours(17, 59, 59, 999);
     } else if (hours >= 18) {
+      // Turno B (starts 18:00 today, ends 05:59:59 tomorrow)
       shiftStart.setHours(18, 0, 0, 0);
+      shiftEnd.setDate(shiftEnd.getDate() + 1);
+      shiftEnd.setHours(5, 59, 59, 999);
     } else {
+      // Turno B (started 18:00 yesterday, ends 05:59:59 today)
       shiftStart.setDate(shiftStart.getDate() - 1);
       shiftStart.setHours(18, 0, 0, 0);
+      shiftEnd.setHours(5, 59, 59, 999);
     }
 
     const elapsedMs = now.getTime() - shiftStart.getTime();
@@ -619,9 +628,64 @@ export default function DashboardProducaoUM() {
 
     return {
       shiftStart,
+      shiftEnd,
       elapsedHours,
+      shiftName: hours >= 6 && hours < 18 ? "A" : "B",
     };
   }, [ultimaAtualizacao]);
+
+  const isRecordInCurrentShift = useCallback(
+    (rec: any) => {
+      if (!rec) return false;
+      const { shiftStart, shiftEnd, shiftName } = shiftInfo;
+
+      // 1. Explicit shift field check
+      const s = String(rec.turno ?? rec.shift ?? "").toUpperCase();
+      if (s) {
+        if (s === shiftName || s === `TURNO ${shiftName}` || s === `TURNO_${shiftName}`) {
+          return true;
+        }
+        if (s === "A" || s === "B" || s === "TURNO A" || s === "TURNO B") {
+          return false;
+        }
+      }
+
+      // 2. Timestamp check (inicio, fim, created_at, timestamp, data, data_referencia)
+      const tRaw = rec.inicio || rec.created_at || rec.timestamp || rec.data_referencia || rec.data;
+      if (tRaw) {
+        const dt = new Date(tRaw);
+        if (!isNaN(dt.getTime())) {
+          if (typeof tRaw === "string" && tRaw.length <= 10 && tRaw.includes("-")) {
+            const dateStr = shiftStart.toISOString().slice(0, 10);
+            if (tRaw !== dateStr) return false;
+          } else {
+            return dt.getTime() >= shiftStart.getTime() && dt.getTime() <= shiftEnd.getTime();
+          }
+        }
+      }
+
+      // 3. Hour check (0..23)
+      if (rec.hora !== undefined && rec.hora !== null && rec.hora !== "") {
+        let h = -1;
+        if (typeof rec.hora === "number") {
+          h = rec.hora;
+        } else {
+          const m = String(rec.hora).match(/(\d{1,2})/);
+          if (m) h = parseInt(m[1], 10);
+        }
+        if (h >= 0 && h < 24) {
+          if (shiftName === "A") {
+            return h >= 6 && h < 18;
+          } else {
+            return h >= 18 || h < 6;
+          }
+        }
+      }
+
+      return true;
+    },
+    [shiftInfo]
+  );
 
   const dadosPertencemAoTurnoAtual = useMemo(() => {
     if (!dadosPertencemAoMesAtual || !dashboardData) return false;
@@ -638,83 +702,117 @@ export default function DashboardProducaoUM() {
     return true;
   }, [dashboardData, dadosPertencemAoMesAtual, shiftInfo.shiftStart]);
 
-  // Mostra SEMPRE todas as escavadeiras da whitelist, zerando se virou o turno ou mês
+  // Mostra SEMPRE todas as escavadeiras da whitelist, acumulando ESTRITAMENTE o turno atual
   const top5Escav = useMemo(() => {
-    const rank = (dadosPertencemAoTurnoAtual && Array.isArray(dashboardData?.rankingEscavadeiras)) 
-      ? dashboardData!.rankingEscavadeiras! 
-      : [];
-    const detalhado = (dadosPertencemAoTurnoAtual && Array.isArray(dashboardData?.escavadeirasDetalhado))
-      ? dashboardData!.escavadeirasDetalhado!
-      : [];
+    const rawViagens = Array.isArray(dashboardData?.viagensCR) ? dashboardData!.viagensCR! : [];
+    const filteredViagens = rawViagens.filter(isRecordInCurrentShift);
+
+    const rank = Array.isArray(dashboardData?.rankingEscavadeiras) ? dashboardData!.rankingEscavadeiras! : [];
+    const detalhado = Array.isArray(dashboardData?.escavadeirasDetalhado) ? dashboardData!.escavadeirasDetalhado! : [];
+
     const byCode = new Map<string, any>();
     rank.forEach((e: any) => {
       const code = normEquip(e.equipamento);
       if (code) byCode.set(code, e);
     });
+
     const detByCode = new Map<string, any>();
     detalhado.forEach((d: any) => {
       const code = normEquip(d.equipamento);
       if (code) detByCode.set(code, d);
     });
+
+    // Map filtered viagens by excavator code
+    const viagensByCode = new Map<string, any[]>();
+    filteredViagens.forEach((v: any) => {
+      const code = normEquip(v.escavadeira || v.cr || v.equipamento);
+      if (code) {
+        if (!viagensByCode.has(code)) viagensByCode.set(code, []);
+        viagensByCode.get(code)!.push(v);
+      }
+    });
+
     const ordem = ["EH4026","EH4039","EH4041","EH4047","EH4050","EH4035","EH5003","EH5004","EH5036"];
+
     const rows = ordem.map((code) => {
       const e = byCode.get(code) ?? {};
       const det = detByCode.get(code) ?? null;
+      const trips = viagensByCode.get(code) ?? [];
 
-      // Uma linha por destino vindo de escavadeirasDetalhado
-      const destinos = det && Array.isArray(det.destinos)
-        ? det.destinos.map((x: any) => ({
-            destino: String(x.destino ?? "—"),
-            massa: toNum(x.massa),
-            viagens: toNum(x.viagens),
-          }))
-        : [];
-      const somaMassa = destinos.reduce((s, d) => s + d.massa, 0);
-      const somaViagens = destinos.reduce((s, d) => s + d.viagens, 0);
+      let massa = 0;
+      let viagens = 0;
+      let material: string | null = null;
+      let frente: string | null = null;
+      let destinos: Array<{ destino: string; massa: number; viagens: number }> = [];
 
-      const massa = dadosPertencemAoTurnoAtual
-        ? (det ? (toNum(det.totalMassa) || somaMassa) : toNum(e.massa ?? 0))
-        : 0;
-      const viagens = dadosPertencemAoTurnoAtual
-        ? (det ? (toNum(det.totalViagens) || somaViagens) : toNum(e.viagens ?? 0))
-        : 0;
+      if (trips.length > 0) {
+        // Aggregate from filtered trip-level records (100% accurate per shift)
+        const destMap = new Map<string, { massa: number; viagens: number }>();
+        trips.forEach((t: any) => {
+          const vCount = toNum(t.quantidade ?? t.viagens ?? 1);
+          const mCount = toNum(t.tonelagem ?? t.massa ?? (vCount * 74));
+          viagens += vCount;
+          massa += mCount;
+          if (t.material && !material) material = String(t.material);
+          if (t.origem && !frente) frente = String(t.origem);
 
-      let th = 0;
-      if (dadosPertencemAoTurnoAtual) {
-        if (det && toNum(det.totalTh) > 0) {
-          // T/H oficial da API (escavadeirasDetalhado.totalTh)
-          th = toNum(det.totalTh);
-        } else {
-          const massaMes = Number(e.massaMes ?? 0);
-          const horasMes = Number(e.horasMes ?? 0);
-          const thMes = Number(e.thMes ?? 0);
+          const destName = String(t.destino || "—");
+          const cur = destMap.get(destName) || { massa: 0, viagens: 0 };
+          cur.massa += mCount;
+          cur.viagens += vCount;
+          destMap.set(destName, cur);
+        });
 
-          if (massaMes > 0 && horasMes > 0) {
-            th = massaMes / horasMes;
-          } else if (thMes > 0) {
-            th = thMes;
-          } else if (massa > 0) {
-            const rawTh = Number(e.th ?? 0);
-            if (rawTh > 0 && Math.abs(rawTh - (massa / 24)) > 1 && Math.abs(rawTh - (massa / 8)) > 1) {
-              th = rawTh;
-            } else {
-              const horasEfetivas = Number(e.horasEfetivas ?? e.horas ?? 7.5);
-              th = massa / (horasEfetivas > 0 ? horasEfetivas : 7.5);
-            }
-          }
+        destinos = Array.from(destMap.entries()).map(([destino, val]) => ({
+          destino,
+          massa: val.massa,
+          viagens: val.viagens,
+        }));
+      } else {
+        // Fallback to escavadeirasDetalhado / rankingEscavadeiras ONLY IF valid for current shift
+        const isDetValid = det && (dadosPertencemAoTurnoAtual || isRecordInCurrentShift(det));
+        const isRankValid = e && (dadosPertencemAoTurnoAtual || isRecordInCurrentShift(e));
+
+        if (isDetValid) {
+          const rawDestinos = det && Array.isArray(det.destinos)
+            ? det.destinos.map((x: any) => ({
+                destino: String(x.destino ?? "—"),
+                massa: toNum(x.massa),
+                viagens: toNum(x.viagens),
+              }))
+            : [];
+          const somaMassa = rawDestinos.reduce((s: number, d: any) => s + d.massa, 0);
+          const somaViagens = rawDestinos.reduce((s: number, d: any) => s + d.viagens, 0);
+
+          massa = toNum(det.totalMassa) || somaMassa;
+          viagens = toNum(det.totalViagens) || somaViagens;
+          material = det.material ?? null;
+          frente = det.frente ?? null;
+          destinos = rawDestinos;
+        } else if (isRankValid) {
+          massa = toNum(e.massa ?? 0);
+          viagens = toNum(e.viagens ?? 0);
+          material = e.material ?? null;
+          frente = e.frente ?? null;
         }
       }
+
+      // T/H por escavadeira no turno atual
+      const th = shiftInfo.elapsedHours > 0 && massa > 0
+        ? (massa / shiftInfo.elapsedHours)
+        : 0;
 
       return {
         equipamento: code,
         th,
         viagens,
         massa,
-        material: dadosPertencemAoTurnoAtual ? (det?.material ?? e.material ?? null) : null,
-        frente: dadosPertencemAoTurnoAtual ? (det?.frente ?? e.frente ?? null) : null,
+        material,
+        frente,
         destinos,
       };
     });
+
     // Operando (com produção) no topo, sem produção no fim
     return rows.sort((a, b) => {
       const aAtiva = a.massa > 0 || a.th > 0 || a.viagens > 0 ? 1 : 0;
@@ -722,12 +820,13 @@ export default function DashboardProducaoUM() {
       if (aAtiva !== bAtiva) return bAtiva - aAtiva;
       return b.th - a.th;
     });
-  }, [dashboardData, dadosPertencemAoTurnoAtual]);
+  }, [dashboardData, shiftInfo, isRecordInCurrentShift, dadosPertencemAoTurnoAtual]);
+
   const totalMassaTop5 = top5Escav.reduce((total, item) => total + Number(item.massa || 0), 0);
   const totalViagensTop5 = top5Escav.reduce((total, item) => total + Number(item.viagens || 0), 0);
   const totalThTop5 = top5Escav.reduce((total, item) => total + Number(item.th || 0), 0);
 
-  // T/H oficial do turno atual: total tonelagem da tabela / horas decorridas do turno
+  // T/H oficial do turno atual: total tonelagem do turno atual / horas decorridas do turno
   const thTurnoAtual = useMemo(() => {
     return shiftInfo.elapsedHours > 0 ? totalMassaTop5 / shiftInfo.elapsedHours : 0;
   }, [totalMassaTop5, shiftInfo.elapsedHours]);
@@ -953,7 +1052,7 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
         />
         <BigKpi
           label="T/H"
-          value={thTurnoAtual}
+          value={producaoTotalEscavadeirasTH}
           useTonFmt
           suffix=" t/h"
           tone="green"
@@ -1340,7 +1439,7 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
         <Panel className="col-span-12 lg:col-span-2 h-[184px] animated-card">
           <div className="flex flex-col justify-between h-full py-2 gap-2">
             <StatBlock label="Produção (9H/13H)" value={<Counter value={producaoDia} useTonFmt />} unit="t" big />
-            <StatBlock label="Próxima Média" value={<Counter value={thTurnoAtual} useTonFmt />} />
+            <StatBlock label="Próxima Média" value={<Counter value={producaoTotalEscavadeirasTH} useTonFmt />} />
             <StatBlock label="Viagens" value={<Counter value={viagens} />} />
             <StatBlock label="VOI 10.000" value={<Counter value={mediaViagens} />} />
           </div>
