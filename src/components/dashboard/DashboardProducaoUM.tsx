@@ -1051,10 +1051,10 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
           tone="green"
         />
         <BigKpi
-          label="T/H"
+          label="Produção do Turno"
           value={totalMassaTop5}
           useTonFmt
-          suffix=" t/h"
+          suffix=" t"
           tone="green"
           showBar
         />
