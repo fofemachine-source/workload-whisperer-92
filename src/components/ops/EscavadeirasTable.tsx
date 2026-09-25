@@ -220,10 +220,10 @@ export default function EscavadeirasTable({
                   <td className="py-1.5 pr-3 text-emerald-400/70 truncate max-w-[180px]">
                     {det?.destino || "—"}
                   </td>
-                  <td className="py-1.5 pr-3 text-right text-emerald-400">
+                  <td className="py-1 pr-3 text-right text-emerald-400 text-[13px] font-bold">
                     {formatarNumero(grupo.totalViagens)}
                   </td>
-                  <td className="py-1.5 pr-1 text-right text-emerald-300 font-semibold">
+                  <td className="py-1 pr-1 text-right text-emerald-300 text-[13px] font-bold">
                     {formatTon(grupo.totalMassa)}
                   </td>
                 </tr>
@@ -240,13 +240,13 @@ export default function EscavadeirasTable({
           </tbody>
           <tfoot>
             <tr className="border-t-2 border-emerald-500/40 text-emerald-400 font-bold bg-black/80">
-              <td colSpan={5} className="py-2.5 pl-2 uppercase tracking-widest text-xs">
+              <td colSpan={5} className="py-2 pl-2 uppercase tracking-widest text-xs">
                 PRODUÇÃO DO TURNO
               </td>
-              <td className="py-2.5 pr-3 text-right text-emerald-400 font-bold">
+              <td className="py-2 pr-3 text-right text-emerald-400 font-black text-sm">
                 {formatarNumero(totalViagens)}
               </td>
-              <td className="py-2.5 pr-1 text-right text-emerald-300 font-bold">
+              <td className="py-2 pr-1 text-right text-emerald-300 font-black text-sm">
                 {formatTon(totalTonelagem)}
               </td>
             </tr>

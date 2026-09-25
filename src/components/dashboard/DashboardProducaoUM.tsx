@@ -1222,13 +1222,13 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
                     <col style={{ width: "15%" }} />
                   </colgroup>
                   <thead className="text-[#9ca3af] sticky top-0 bg-[#000000] z-10">
-                    <tr className="border-b border-[#22c55e]/25">
+                      <tr className="border-b border-[#22c55e]/25">
                       <Th>Escavadeira</Th>
                       <Th>Material</Th>
                       <Th>Frente</Th>
                       <Th>Destino</Th>
-                      <Th className="text-right">Qtd</Th>
-                      <Th className="text-right">Tonelagem</Th>
+                      <Th className="text-right text-xs">Qtd</Th>
+                      <Th className="text-right text-xs">Tonelagem</Th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1244,7 +1244,7 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
                             transition={{ duration: 0.35, ease: "easeOut", delay: index * 0.05 }}
                             className="border-b border-white/5 hover:bg-white/[0.03] opacity-60"
                           >
-                            <Td>
+                            <Td className="py-0.5">
                               <span className="flex items-center gap-1.5">
                                 <span className="w-4 h-4 flex items-center justify-center rounded-sm bg-muted text-muted-foreground text-[9px] font-black font-sans">
                                   —
@@ -1252,7 +1252,7 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
                                 <span className="font-black text-muted-foreground">{esc.equipamento}</span>
                               </span>
                             </Td>
-                            <Td colSpan={5} className="text-muted-foreground italic text-[10px]">
+                            <Td colSpan={5} className="text-muted-foreground italic text-[10px] py-0.5">
                               SEM PRODUÇÃO NO DIA
                             </Td>
                           </motion.tr>
@@ -1267,7 +1267,7 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
                           transition={{ duration: 0.35, ease: "easeOut", delay: index * 0.05 }}
                           className="border-b border-white/5 hover:bg-white/[0.03]"
                         >
-                          <Td>
+                          <Td className="py-0.5">
                             <span className="flex items-center gap-1.5">
                               <span className="w-4 h-4 flex items-center justify-center rounded-sm bg-emerald-400 text-background text-[9px] font-black font-sans shadow-[0_0_8px_hsl(142_71%_45%/0.7)] animate-pulse">
                                 {index + 1}
@@ -1275,26 +1275,26 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
                               <span className="font-black text-emerald-300 text-glow-neon">{esc.equipamento}</span>
                             </span>
                           </Td>
-                          <Td title={esc.material ?? undefined}>{esc.material ?? "—"}</Td>
-                          <Td title={esc.frente ?? undefined}>{esc.frente ?? "—"}</Td>
-                          <Td title={esc.destinos?.[0]?.destino ?? esc.destino ?? undefined}>
+                          <Td title={esc.material ?? undefined} className="py-0.5">{esc.material ?? "—"}</Td>
+                          <Td title={esc.frente ?? undefined} className="py-0.5">{esc.frente ?? "—"}</Td>
+                          <Td title={esc.destinos?.[0]?.destino ?? esc.destino ?? undefined} className="py-0.5">
                             {esc.destinos?.[0]?.destino || esc.destino || "—"}
                           </Td>
-                          <Td className="text-right text-[#22c55e] tabular-nums"><Counter value={esc.viagens} /></Td>
-                          <Td className="text-right text-mining-green tabular-nums">{fmtTon(esc.massa)}</Td>
+                          <Td className="text-right text-[#22c55e] tabular-nums text-[13px] md:text-[14px] font-bold py-0.5"><Counter value={esc.viagens} /></Td>
+                          <Td className="text-right text-mining-green tabular-nums text-[13px] md:text-[14px] font-bold py-0.5">{fmtTon(esc.massa)}</Td>
                         </motion.tr>
                       );
                     })}
                   </tbody>
                   <tfoot className="sticky bottom-0 bg-[#000000] border-t-2 border-[#22c55e]/40 z-10">
                     <tr>
-                      <Td colSpan={4} className="text-left font-bold uppercase tracking-wider text-white">
+                      <Td colSpan={4} className="text-left font-bold uppercase tracking-wider text-white py-1">
                         
                       </Td>
-                      <Td className="text-right text-[#22c55e] tabular-nums font-bold text-xs py-1.5">
+                      <Td className="text-right text-[#22c55e] tabular-nums font-black text-sm md:text-base py-1">
                         {fmt(totalViagensTop5)}
                       </Td>
-                      <Td className="text-right text-mining-green tabular-nums font-bold text-xs py-1.5">
+                      <Td className="text-right text-mining-green tabular-nums font-black text-sm md:text-base py-1">
                         {fmtTon(totalMassaTop5)}
                       </Td>
                     </tr>
