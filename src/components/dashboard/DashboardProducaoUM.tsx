@@ -1052,7 +1052,7 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
         />
         <BigKpi
           label="T/H"
-          value={producaoTotalEscavadeirasTH}
+          value={totalMassaTop5}
           useTonFmt
           suffix=" t/h"
           tone="green"
@@ -1439,7 +1439,7 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
         <Panel className="col-span-12 lg:col-span-2 h-[184px] animated-card">
           <div className="flex flex-col justify-between h-full py-2 gap-2">
             <StatBlock label="Produção (9H/13H)" value={<Counter value={producaoDia} useTonFmt />} unit="t" big />
-            <StatBlock label="Próxima Média" value={<Counter value={producaoTotalEscavadeirasTH} useTonFmt />} />
+            <StatBlock label="Próxima Média" value={<Counter value={totalMassaTop5} useTonFmt />} />
             <StatBlock label="Viagens" value={<Counter value={viagens} />} />
             <StatBlock label="VOI 10.000" value={<Counter value={mediaViagens} />} />
           </div>
