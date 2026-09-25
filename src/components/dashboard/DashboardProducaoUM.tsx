@@ -45,13 +45,18 @@ const fmtTon = (n: number | undefined | null): string => {
 const Counter = memo(function Counter({
   value,
   decimals = 0,
+  useTonFmt = false,
   suffix = "",
 }: {
   value: number;
   decimals?: number;
+  useTonFmt?: boolean;
   suffix?: string;
 }) {
   const v = useAnimatedCounter(Number.isFinite(value) ? value : 0);
+  if (useTonFmt) {
+    return <>{fmtTon(v)}{suffix}</>;
+  }
   return <>{fmt(v, decimals)}{suffix}</>;
 });
 
@@ -949,7 +954,7 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
         <BigKpi
           label="T/H"
           value={thTurnoAtual}
-          decimals={3}
+          useTonFmt
           suffix=" t/h"
           tone="green"
           showBar
@@ -1334,8 +1339,8 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
         </Panel>
         <Panel className="col-span-12 lg:col-span-2 h-[184px] animated-card">
           <div className="flex flex-col justify-between h-full py-2 gap-2">
-            <StatBlock label="Produção (9H/13H)" value={<Counter value={producaoDia} />} unit="t" big />
-            <StatBlock label="Próxima Média" value={<Counter value={producaoTotalEscavadeirasTH} />} />
+            <StatBlock label="Produção (9H/13H)" value={<Counter value={producaoDia} useTonFmt />} unit="t" big />
+            <StatBlock label="Próxima Média" value={<Counter value={thTurnoAtual} useTonFmt />} />
             <StatBlock label="Viagens" value={<Counter value={viagens} />} />
             <StatBlock label="VOI 10.000" value={<Counter value={mediaViagens} />} />
           </div>
@@ -1656,6 +1661,7 @@ function BigKpi({
   value,
   suffix = "",
   decimals = 0,
+  useTonFmt = false,
   tone,
   showBar = false,
   badge,
@@ -1664,6 +1670,7 @@ function BigKpi({
   value: number;
   suffix?: string;
   decimals?: number;
+  useTonFmt?: boolean;
   tone: KpiTone;
   showBar?: boolean;
   badge?: string;
@@ -1686,7 +1693,7 @@ function BigKpi({
       <div className="mt-1 h-px w-full bg-[#22c55e] opacity-30" />
 
       <p className={`mt-2 font-mono-mining text-3xl md:text-4xl font-extrabold leading-none tabular-nums ${TONE_TEXT[tone]}`}>
-        <Counter value={value} decimals={decimals} suffix={suffix} />
+        <Counter value={value} decimals={decimals} useTonFmt={useTonFmt} suffix={suffix} />
       </p>
 
       {showBar && (
