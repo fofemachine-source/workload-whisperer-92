@@ -1280,7 +1280,7 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
                           <Td title={esc.destinos?.[0]?.destino ?? esc.destino ?? undefined} className="py-0.5">
                             {esc.destinos?.[0]?.destino || esc.destino || "—"}
                           </Td>
-                          <Td className="text-right text-[#22c55e] tabular-nums text-[28px] font-medium leading-none py-0.5"><Counter value={esc.viagens} /></Td>
+                          <Td className="text-right text-[#22c55e] tabular-nums text-[28px] font-medium leading-none py-0.5">{fmtTon(esc.viagens)}</Td>
                           <Td className="text-right text-mining-green tabular-nums text-[28px] font-medium leading-none py-0.5">{fmtTon(esc.massa)}</Td>
                         </motion.tr>
                       );
@@ -1292,7 +1292,7 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
                         
                       </Td>
                       <Td className="text-right text-[#22c55e] tabular-nums text-[28px] font-medium leading-none py-1">
-                        {fmt(totalViagensTop5)}
+                        {fmtTon(totalViagensTop5)}
                       </Td>
                       <Td className="text-right text-mining-green tabular-nums text-[28px] font-medium leading-none py-1">
                         {fmtTon(totalMassaTop5)}

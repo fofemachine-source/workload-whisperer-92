@@ -221,7 +221,7 @@ export default function EscavadeirasTable({
                     {det?.destino || "—"}
                   </td>
                   <td className="py-1 pr-3 text-right text-emerald-400 text-[13px] font-bold">
-                    {formatarNumero(grupo.totalViagens)}
+                    {formatTon(grupo.totalViagens)}
                   </td>
                   <td className="py-1 pr-1 text-right text-emerald-300 text-[13px] font-bold">
                     {formatTon(grupo.totalMassa)}
@@ -244,7 +244,7 @@ export default function EscavadeirasTable({
                 PRODUÇÃO DO TURNO
               </td>
               <td className="py-2 pr-3 text-right text-emerald-400 font-black text-sm">
-                {formatarNumero(totalViagens)}
+                {formatTon(totalViagens)}
               </td>
               <td className="py-2 pr-1 text-right text-emerald-300 font-black text-sm">
                 {formatTon(totalTonelagem)}
