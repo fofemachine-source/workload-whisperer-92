@@ -1214,21 +1214,21 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
               <div className="flex-1 min-h-0 overflow-y-auto escav-scroll">
                 <table className="w-full table-fixed text-[10px] font-mono border-collapse">
                   <colgroup>
-                    <col style={{ width: "20.6%" }} />
-                    <col style={{ width: "12.7%" }} />
-                    <col style={{ width: "20.6%" }} />
-                    <col style={{ width: "17.5%" }} />
-                    <col style={{ width: "11.1%" }} />
-                    <col style={{ width: "17.5%" }} />
+                    <col style={{ width: "18%" }} />
+                    <col style={{ width: "12%" }} />
+                    <col style={{ width: "20%" }} />
+                    <col style={{ width: "24%" }} />
+                    <col style={{ width: "11%" }} />
+                    <col style={{ width: "15%" }} />
                   </colgroup>
                   <thead className="text-[#9ca3af] sticky top-0 bg-[#000000] z-10">
-                      <tr className="border-b border-[#22c55e]/25">
+                    <tr className="border-b border-[#22c55e]/25">
                       <Th>Escavadeira</Th>
                       <Th>Material</Th>
                       <Th>Frente</Th>
                       <Th>Destino</Th>
-                      <Th className="text-right text-xs">Qtd</Th>
-                      <Th className="text-right text-xs">Tonelagem</Th>
+                      <Th className="text-right">Qtd</Th>
+                      <Th className="text-right">Tonelagem</Th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1244,15 +1244,15 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
                             transition={{ duration: 0.35, ease: "easeOut", delay: index * 0.05 }}
                             className="border-b border-white/5 hover:bg-white/[0.03] opacity-60"
                           >
-                            <Td className="py-0.5">
+                            <Td className="py-1">
                               <span className="flex items-center gap-1.5">
                                 <span className="w-4 h-4 flex items-center justify-center rounded-sm bg-muted text-muted-foreground text-[9px] font-black font-sans">
                                   —
                                 </span>
-                                <span className="font-medium text-[22px] text-muted-foreground">{esc.equipamento}</span>
+                                <span className="font-black text-muted-foreground">{esc.equipamento}</span>
                               </span>
                             </Td>
-                            <Td colSpan={5} className="text-muted-foreground italic text-[10px] py-0.5">
+                            <Td colSpan={5} className="text-muted-foreground italic text-[10px] py-1">
                               SEM PRODUÇÃO NO DIA
                             </Td>
                           </motion.tr>
@@ -1267,21 +1267,21 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
                           transition={{ duration: 0.35, ease: "easeOut", delay: index * 0.05 }}
                           className="border-b border-white/5 hover:bg-white/[0.03]"
                         >
-                          <Td className="py-0.5">
+                          <Td className="py-1">
                             <span className="flex items-center gap-1.5">
                               <span className="w-4 h-4 flex items-center justify-center rounded-sm bg-emerald-400 text-background text-[9px] font-black font-sans shadow-[0_0_8px_hsl(142_71%_45%/0.7)] animate-pulse">
                                 {index + 1}
                               </span>
-                              <span className="font-medium text-[22px] text-emerald-300 text-glow-neon leading-none">{esc.equipamento}</span>
+                              <span className="font-black text-emerald-300 text-glow-neon">{esc.equipamento}</span>
                             </span>
                           </Td>
-                          <Td title={esc.material ?? undefined} className="py-0.5">{esc.material ?? "—"}</Td>
-                          <Td title={esc.frente ?? undefined} className="py-0.5">{esc.frente ?? "—"}</Td>
-                          <Td title={esc.destinos?.[0]?.destino ?? esc.destino ?? undefined} className="py-0.5">
+                          <Td title={esc.material ?? undefined} className="py-1">{esc.material ?? "—"}</Td>
+                          <Td title={esc.frente ?? undefined} className="py-1">{esc.frente ?? "—"}</Td>
+                          <Td title={esc.destinos?.[0]?.destino ?? esc.destino ?? undefined} className="py-1">
                             {esc.destinos?.[0]?.destino || esc.destino || "—"}
                           </Td>
-                          <Td className="text-right text-[#22c55e] tabular-nums text-[28px] font-medium leading-none py-0.5">{fmtTon(esc.viagens)}</Td>
-                          <Td className="text-right text-mining-green tabular-nums text-[28px] font-medium leading-none py-0.5">{fmtTon(esc.massa)}</Td>
+                          <Td className="text-right text-[#22c55e] tabular-nums font-bold text-xs py-1"><Counter value={esc.viagens} /></Td>
+                          <Td className="text-right text-mining-green tabular-nums font-bold text-xs py-1">{fmtTon(esc.massa)}</Td>
                         </motion.tr>
                       );
                     })}
@@ -1291,10 +1291,10 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
                       <Td colSpan={4} className="text-left font-bold uppercase tracking-wider text-white py-1">
                         
                       </Td>
-                      <Td className="text-right text-[#22c55e] tabular-nums text-[28px] font-medium leading-none py-1">
-                        {fmtTon(totalViagensTop5)}
+                      <Td className="text-right text-[#22c55e] tabular-nums font-bold text-xs py-1.5">
+                        {fmt(totalViagensTop5)}
                       </Td>
-                      <Td className="text-right text-mining-green tabular-nums text-[28px] font-medium leading-none py-1">
+                      <Td className="text-right text-mining-green tabular-nums font-bold text-xs py-1.5">
                         {fmtTon(totalMassaTop5)}
                       </Td>
                     </tr>
