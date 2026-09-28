@@ -1216,10 +1216,10 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
                   <colgroup>
                     <col style={{ width: "18%" }} />
                     <col style={{ width: "12%" }} />
-                    <col style={{ width: "20%" }} />
                     <col style={{ width: "24%" }} />
-                    <col style={{ width: "11%" }} />
-                    <col style={{ width: "15%" }} />
+                    <col style={{ width: "16%" }} />
+                    <col style={{ width: "12%" }} />
+                    <col style={{ width: "18%" }} />
                   </colgroup>
                   <thead className="text-[#9ca3af] sticky top-0 bg-[#000000] z-10">
                     <tr className="border-b border-[#22c55e]/25">
