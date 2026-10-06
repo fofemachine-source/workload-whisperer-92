@@ -763,10 +763,8 @@ export default function DashboardProducaoUM() {
       });
     });
 
-    // Escavadeiras com produção no topo ordenadas por massa decrescente
+    // Escavadeiras com produção no topo mantendo a ordem exata de escavadeirasDetalhado
     const ativas = activeRows.filter((r) => r.ativa);
-    ativas.sort((a, b) => b.totalMassa - a.totalMassa);
-
     const inativasComDados = activeRows.filter((r) => !r.ativa);
 
     // Escavadeiras padrão da frota que não vieram em escavadeirasDetalhado
@@ -1216,7 +1214,7 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
                               key={esc.equipamento}
                               className="border-b border-white/5 hover:bg-white/[0.03] opacity-60"
                             >
-                              <Td className="py-1">
+                              <Td className="py-[3px]">
                                 <span className="flex items-center gap-1.5">
                                   <span className="w-4 h-4 flex items-center justify-center rounded-sm bg-muted text-muted-foreground text-[9px] font-black font-sans">
                                     —
@@ -1224,7 +1222,7 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
                                   <span className="font-black text-muted-foreground">{esc.equipamento}</span>
                                 </span>
                               </Td>
-                              <Td colSpan={5} className="text-muted-foreground italic text-[10px] py-1">
+                              <Td colSpan={5} className="text-muted-foreground italic text-[10px] py-[3px]">
                                 SEM PRODUÇÃO NO DIA
                               </Td>
                             </tr>
@@ -1233,68 +1231,25 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
 
                         activeRank += 1;
                         const currentRank = activeRank;
-                        const destList = Array.isArray(esc.destinos) && esc.destinos.length > 0 ? esc.destinos : [];
-                        const hasMultipleDestinos = destList.length > 1;
 
-                        if (destList.length > 0) {
-                          return (
-                            <React.Fragment key={esc.equipamento}>
-                              {destList.map((dest, dIdx) => (
-                                <tr
-                                  key={`${esc.equipamento}-dest-${dIdx}`}
-                                  className="border-b border-white/5 hover:bg-white/[0.03]"
-                                >
-                                  <Td className="py-1">
-                                    {dIdx === 0 ? (
-                                      <span className="flex items-center gap-1.5">
-                                        <span className="w-4 h-4 flex items-center justify-center rounded-sm bg-emerald-400 text-background text-[9px] font-black font-sans shadow-[0_0_8px_hsl(142_71%_45%/0.7)] animate-pulse">
-                                          {currentRank}
-                                        </span>
-                                        <span className="font-black text-emerald-300 text-glow-neon">{esc.equipamento}</span>
-                                      </span>
-                                    ) : null}
-                                  </Td>
-                                  <Td title={dIdx === 0 ? esc.material ?? undefined : undefined} className="py-1">
-                                    {dIdx === 0 ? (esc.material ?? "—") : ""}
-                                  </Td>
-                                  <Td title={dIdx === 0 ? esc.frente ?? undefined : undefined} className="py-1">
-                                    {dIdx === 0 ? (esc.frente ?? "—") : ""}
-                                  </Td>
-                                  <Td title={dest.destino ?? undefined} className="py-1">
-                                    {dest.destino || "—"}
-                                  </Td>
-                                  <Td className="text-right text-[#22c55e] tabular-nums font-bold text-xs py-1">
-                                    {fmtTon(dest.viagens)}
-                                  </Td>
-                                  <Td className="text-right text-mining-green tabular-nums font-bold text-xs py-1">
-                                    {fmtTon(dest.massa)}
-                                  </Td>
-                                </tr>
-                              ))}
-
-                              {hasMultipleDestinos && (
-                                <tr key={`${esc.equipamento}-subtotal`} className="border-b border-white/10 bg-white/[0.02]">
-                                  <Td className="py-1" />
-                                  <Td className="py-1" />
-                                  <Td className="py-1" />
-                                  <Td className="py-1 font-bold text-[#9ca3af] text-[9px] uppercase tracking-wider">
-                                    Total
-                                  </Td>
-                                  <Td className="text-right text-[#22c55e] tabular-nums font-bold text-xs py-1">
-                                    {fmtTon(esc.totalViagens)}
-                                  </Td>
-                                  <Td className="text-right text-mining-green tabular-nums font-bold text-xs py-1">
-                                    {fmtTon(esc.totalMassa)}
-                                  </Td>
-                                </tr>
-                              )}
-                            </React.Fragment>
-                          );
+                        // Destino principal (maior massa) + "+N" se houver múltiplos destinos
+                        let destinoTexto = "—";
+                        if (esc.destinos && esc.destinos.length > 0) {
+                          let best = esc.destinos[0];
+                          for (let i = 1; i < esc.destinos.length; i++) {
+                            if (toNum(esc.destinos[i].massa) > toNum(best.massa)) {
+                              best = esc.destinos[i];
+                            }
+                          }
+                          const bestName = String(best.destino || "—").trim() || "—";
+                          destinoTexto = esc.destinos.length > 1
+                            ? `${bestName} +${esc.destinos.length - 1}`
+                            : bestName;
                         }
 
                         return (
                           <tr key={esc.equipamento} className="border-b border-white/5 hover:bg-white/[0.03]">
-                            <Td className="py-1">
+                            <Td className="py-[3px]">
                               <span className="flex items-center gap-1.5">
                                 <span className="w-4 h-4 flex items-center justify-center rounded-sm bg-emerald-400 text-background text-[9px] font-black font-sans shadow-[0_0_8px_hsl(142_71%_45%/0.7)] animate-pulse">
                                   {currentRank}
@@ -1302,11 +1257,11 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
                                 <span className="font-black text-emerald-300 text-glow-neon">{esc.equipamento}</span>
                               </span>
                             </Td>
-                            <Td title={esc.material ?? undefined} className="py-1">{esc.material ?? "—"}</Td>
-                            <Td title={esc.frente ?? undefined} className="py-1">{esc.frente ?? "—"}</Td>
-                            <Td className="py-1">—</Td>
-                            <Td className="text-right text-[#22c55e] tabular-nums font-bold text-xs py-1">{fmtTon(esc.totalViagens)}</Td>
-                            <Td className="text-right text-mining-green tabular-nums font-bold text-xs py-1">{fmtTon(esc.totalMassa)}</Td>
+                            <Td title={esc.material ?? undefined} className="py-[3px] truncate">{esc.material ?? "—"}</Td>
+                            <Td title={esc.frente ?? undefined} className="py-[3px] truncate">{esc.frente ?? "—"}</Td>
+                            <Td title={destinoTexto} className="py-[3px] truncate">{destinoTexto}</Td>
+                            <Td className="text-right text-[#22c55e] tabular-nums font-bold text-xs py-[3px]">{fmtTon(esc.totalViagens)}</Td>
+                            <Td className="text-right text-mining-green tabular-nums font-bold text-xs py-[3px]">{fmtTon(esc.totalMassa)}</Td>
                           </tr>
                         );
                       });
