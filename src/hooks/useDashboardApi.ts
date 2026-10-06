@@ -21,6 +21,8 @@ export interface DashboardApiPayload {
     th?: number;
     viagens?: number;
     producaoDiaria?: number;
+    lavMensal?: number;
+    retMensal?: number;
   };
   atualizadoEm?: string;
   producaoDiaria: Array<{ data: string; real: number; previsto?: number }>;
@@ -52,6 +54,11 @@ export interface DashboardApiPayload {
     totalViagens?: number;
     totalTh?: number;
   }>;
+  totalRankingEscavadeiras?: {
+    viagens?: number;
+    tonelagem?: number;
+    thSomado?: number;
+  };
   viagensCR?: Array<{
     cr?: string;
     escavadeira?: string;

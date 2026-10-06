@@ -523,6 +523,8 @@ export default function DashboardProducaoUM() {
 
   // Valor bruto vindo da API (sem cálculo local)
   const producaoMensal = Number(dashboardData?.kpis?.producaoMensal ?? 0);
+  const lavMensal = Number(cards.lavMensal ?? (dashboardData as any)?.cards?.lavMensal ?? 0);
+  const retMensal = Number(cards.retMensal ?? (dashboardData as any)?.cards?.retMensal ?? 0);
 
   const dailySeries = useMemo(() => {
     const todos = dashboardData?.producaoDiaria ?? [];
@@ -702,128 +704,95 @@ export default function DashboardProducaoUM() {
     return true;
   }, [dashboardData, dadosPertencemAoMesAtual, shiftInfo.shiftStart]);
 
-  // Mostra SEMPRE todas as escavadeiras da whitelist, acumulando ESTRITAMENTE o turno atual
-  const top5Escav = useMemo(() => {
-    const rawViagens = Array.isArray(dashboardData?.viagensCR) ? dashboardData!.viagensCR! : [];
-    const filteredViagens = rawViagens.filter(isRecordInCurrentShift);
+  const totalRankingEscavadeiras = (dashboardData as any)?.totalRankingEscavadeiras ?? {};
+  const totalViagensRodape = toNum(totalRankingEscavadeiras.viagens ?? 0);
+  const totalTonelagemRodape = toNum(totalRankingEscavadeiras.tonelagem ?? 0);
 
-    const rank = Array.isArray(dashboardData?.rankingEscavadeiras) ? dashboardData!.rankingEscavadeiras! : [];
+  // Utiliza estritamente escavadeirasDetalhado vindo da API
+  const top5Escav = useMemo(() => {
     const detalhado = Array.isArray(dashboardData?.escavadeirasDetalhado) ? dashboardData!.escavadeirasDetalhado! : [];
 
-    const byCode = new Map<string, any>();
-    rank.forEach((e: any) => {
-      const code = normEquip(e.equipamento);
-      if (code) byCode.set(code, e);
-    });
+    const activeRows: Array<{
+      equipamento: string;
+      material: string | null;
+      frente: string | null;
+      destinos: Array<{ destino: string; massa: number; viagens: number }>;
+      totalMassa: number;
+      totalViagens: number;
+      th: number;
+      ativa: boolean;
+    }> = [];
 
-    const detByCode = new Map<string, any>();
+    const processedCodes = new Set<string>();
+
     detalhado.forEach((d: any) => {
-      const code = normEquip(d.equipamento);
-      if (code) detByCode.set(code, d);
-    });
+      const code = String(d.equipamento || "").trim();
+      if (!code) return;
 
-    // Map filtered viagens by excavator code
-    const viagensByCode = new Map<string, any[]>();
-    filteredViagens.forEach((v: any) => {
-      const code = normEquip(v.escavadeira || v.cr || v.equipamento);
-      if (code) {
-        if (!viagensByCode.has(code)) viagensByCode.set(code, []);
-        viagensByCode.get(code)!.push(v);
-      }
-    });
+      const normCode = normEquip(code);
+      processedCodes.add(normCode);
 
-    const ordem = ["EH4026","EH4039","EH4041","EH4047","EH4050","EH4035","EH5003","EH5004","EH5036"];
+      const rawDestinos = Array.isArray(d.destinos)
+        ? d.destinos.map((x: any) => ({
+            destino: String(x.destino ?? "—"),
+            massa: toNum(x.massa),
+            viagens: toNum(x.viagens),
+          }))
+        : [];
 
-    const rows = ordem.map((code) => {
-      const e = byCode.get(code) ?? {};
-      const det = detByCode.get(code) ?? null;
-      const trips = viagensByCode.get(code) ?? [];
+      const somaMassa = rawDestinos.reduce((s: number, x: any) => s + x.massa, 0);
+      const somaViagens = rawDestinos.reduce((s: number, x: any) => s + x.viagens, 0);
 
-      let massa = 0;
-      let viagens = 0;
-      let material: string | null = null;
-      let frente: string | null = null;
-      let destinos: Array<{ destino: string; massa: number; viagens: number }> = [];
+      const massa = toNum(d.totalMassa) || somaMassa;
+      const viagens = toNum(d.totalViagens) || somaViagens;
+      const material = d.material ? String(d.material) : null;
+      const frente = d.frente ? String(d.frente) : null;
 
-      if (trips.length > 0) {
-        // Aggregate from filtered trip-level records (100% accurate per shift)
-        const destMap = new Map<string, { massa: number; viagens: number }>();
-        trips.forEach((t: any) => {
-          const vCount = toNum(t.quantidade ?? t.viagens ?? 1);
-          const mCount = toNum(t.tonelagem ?? t.massa ?? (vCount * 74));
-          viagens += vCount;
-          massa += mCount;
-          if (t.material && !material) material = String(t.material);
-          if (t.origem && !frente) frente = String(t.origem);
+      const th = shiftInfo.elapsedHours > 0 && massa > 0 ? massa / shiftInfo.elapsedHours : 0;
+      const ativa = massa > 0 || viagens > 0 || rawDestinos.length > 0;
 
-          const destName = String(t.destino || "—");
-          const cur = destMap.get(destName) || { massa: 0, viagens: 0 };
-          cur.massa += mCount;
-          cur.viagens += vCount;
-          destMap.set(destName, cur);
-        });
-
-        destinos = Array.from(destMap.entries()).map(([destino, val]) => ({
-          destino,
-          massa: val.massa,
-          viagens: val.viagens,
-        }));
-      } else {
-        // Fallback to escavadeirasDetalhado / rankingEscavadeiras ONLY IF valid for current shift
-        const isDetValid = det && (dadosPertencemAoTurnoAtual || isRecordInCurrentShift(det));
-        const isRankValid = e && (dadosPertencemAoTurnoAtual || isRecordInCurrentShift(e));
-
-        if (isDetValid) {
-          const rawDestinos = det && Array.isArray(det.destinos)
-            ? det.destinos.map((x: any) => ({
-                destino: String(x.destino ?? "—"),
-                massa: toNum(x.massa),
-                viagens: toNum(x.viagens),
-              }))
-            : [];
-          const somaMassa = rawDestinos.reduce((s: number, d: any) => s + d.massa, 0);
-          const somaViagens = rawDestinos.reduce((s: number, d: any) => s + d.viagens, 0);
-
-          massa = toNum(det.totalMassa) || somaMassa;
-          viagens = toNum(det.totalViagens) || somaViagens;
-          material = det.material ?? null;
-          frente = det.frente ?? null;
-          destinos = rawDestinos;
-        } else if (isRankValid) {
-          massa = toNum(e.massa ?? 0);
-          viagens = toNum(e.viagens ?? 0);
-          material = e.material ?? null;
-          frente = e.frente ?? null;
-        }
-      }
-
-      // T/H por escavadeira no turno atual
-      const th = shiftInfo.elapsedHours > 0 && massa > 0
-        ? (massa / shiftInfo.elapsedHours)
-        : 0;
-
-      return {
+      activeRows.push({
         equipamento: code,
-        th,
-        viagens,
-        massa,
         material,
         frente,
-        destinos,
-      };
+        destinos: rawDestinos,
+        totalMassa: massa,
+        totalViagens: viagens,
+        th,
+        ativa,
+      });
     });
 
-    // Operando (com produção) no topo, sem produção no fim
-    return rows.sort((a, b) => {
-      const aAtiva = a.massa > 0 || a.th > 0 || a.viagens > 0 ? 1 : 0;
-      const bAtiva = b.massa > 0 || b.th > 0 || b.viagens > 0 ? 1 : 0;
-      if (aAtiva !== bAtiva) return bAtiva - aAtiva;
-      return b.th - a.th;
-    });
-  }, [dashboardData, shiftInfo, isRecordInCurrentShift, dadosPertencemAoTurnoAtual]);
+    // Escavadeiras com produção no topo ordenadas por massa decrescente
+    const ativas = activeRows.filter((r) => r.ativa);
+    ativas.sort((a, b) => b.totalMassa - a.totalMassa);
 
-  const totalMassaTop5 = top5Escav.reduce((total, item) => total + Number(item.massa || 0), 0);
-  const totalViagensTop5 = top5Escav.reduce((total, item) => total + Number(item.viagens || 0), 0);
+    const inativasComDados = activeRows.filter((r) => !r.ativa);
+
+    // Escavadeiras padrão da frota que não vieram em escavadeirasDetalhado
+    const defaultFleet = ["EH4026", "EH4039", "EH4041", "EH4047", "EH4050", "EH4035", "EH5003", "EH5004", "EH5036"];
+    const inativasSemDados: typeof activeRows = [];
+
+    defaultFleet.forEach((code) => {
+      if (!processedCodes.has(normEquip(code))) {
+        inativasSemDados.push({
+          equipamento: code,
+          material: null,
+          frente: null,
+          destinos: [],
+          totalMassa: 0,
+          totalViagens: 0,
+          th: 0,
+          ativa: false,
+        });
+      }
+    });
+
+    return [...ativas, ...inativasComDados, ...inativasSemDados];
+  }, [dashboardData, shiftInfo.elapsedHours]);
+
+  const totalMassaTop5 = top5Escav.reduce((total, item) => total + Number(item.totalMassa || 0), 0);
+  const totalViagensTop5 = top5Escav.reduce((total, item) => total + Number(item.totalViagens || 0), 0);
   const totalThTop5 = top5Escav.reduce((total, item) => total + Number(item.th || 0), 0);
 
   // T/H oficial do turno atual: total tonelagem do turno atual / horas decorridas do turno
@@ -1049,10 +1018,15 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
           value={producaoMensal}
           suffix=" t"
           tone="green"
+          details={
+            <>
+              LAV: <Counter value={lavMensal} /> t + RET: <Counter value={retMensal} /> t
+            </>
+          }
         />
         <BigKpi
           label="Produção do Turno"
-          value={totalMassaTop5}
+          value={totalTonelagemRodape}
           useTonFmt
           suffix=" t"
           tone="green"
@@ -1232,70 +1206,122 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
                     </tr>
                   </thead>
                   <tbody>
-                    {top5Escav.map((esc, index) => {
-                      const ativa = esc.massa > 0 || esc.th > 0 || esc.viagens > 0;
+                    {(() => {
+                      let activeRank = 0;
 
-                      if (!ativa) {
+                      return top5Escav.map((esc) => {
+                        if (!esc.ativa) {
+                          return (
+                            <tr
+                              key={esc.equipamento}
+                              className="border-b border-white/5 hover:bg-white/[0.03] opacity-60"
+                            >
+                              <Td className="py-1">
+                                <span className="flex items-center gap-1.5">
+                                  <span className="w-4 h-4 flex items-center justify-center rounded-sm bg-muted text-muted-foreground text-[9px] font-black font-sans">
+                                    —
+                                  </span>
+                                  <span className="font-black text-muted-foreground">{esc.equipamento}</span>
+                                </span>
+                              </Td>
+                              <Td colSpan={5} className="text-muted-foreground italic text-[10px] py-1">
+                                SEM PRODUÇÃO NO DIA
+                              </Td>
+                            </tr>
+                          );
+                        }
+
+                        activeRank += 1;
+                        const currentRank = activeRank;
+                        const destList = Array.isArray(esc.destinos) && esc.destinos.length > 0 ? esc.destinos : [];
+                        const hasMultipleDestinos = destList.length > 1;
+
+                        if (destList.length > 0) {
+                          return (
+                            <React.Fragment key={esc.equipamento}>
+                              {destList.map((dest, dIdx) => (
+                                <tr
+                                  key={`${esc.equipamento}-dest-${dIdx}`}
+                                  className="border-b border-white/5 hover:bg-white/[0.03]"
+                                >
+                                  <Td className="py-1">
+                                    {dIdx === 0 ? (
+                                      <span className="flex items-center gap-1.5">
+                                        <span className="w-4 h-4 flex items-center justify-center rounded-sm bg-emerald-400 text-background text-[9px] font-black font-sans shadow-[0_0_8px_hsl(142_71%_45%/0.7)] animate-pulse">
+                                          {currentRank}
+                                        </span>
+                                        <span className="font-black text-emerald-300 text-glow-neon">{esc.equipamento}</span>
+                                      </span>
+                                    ) : null}
+                                  </Td>
+                                  <Td title={dIdx === 0 ? esc.material ?? undefined : undefined} className="py-1">
+                                    {dIdx === 0 ? (esc.material ?? "—") : ""}
+                                  </Td>
+                                  <Td title={dIdx === 0 ? esc.frente ?? undefined : undefined} className="py-1">
+                                    {dIdx === 0 ? (esc.frente ?? "—") : ""}
+                                  </Td>
+                                  <Td title={dest.destino ?? undefined} className="py-1">
+                                    {dest.destino || "—"}
+                                  </Td>
+                                  <Td className="text-right text-[#22c55e] tabular-nums font-bold text-xs py-1">
+                                    {fmtTon(dest.viagens)}
+                                  </Td>
+                                  <Td className="text-right text-mining-green tabular-nums font-bold text-xs py-1">
+                                    {fmtTon(dest.massa)}
+                                  </Td>
+                                </tr>
+                              ))}
+
+                              {hasMultipleDestinos && (
+                                <tr key={`${esc.equipamento}-subtotal`} className="border-b border-white/10 bg-white/[0.02]">
+                                  <Td className="py-1" />
+                                  <Td className="py-1" />
+                                  <Td className="py-1" />
+                                  <Td className="py-1 font-bold text-[#9ca3af] text-[9px] uppercase tracking-wider">
+                                    Total
+                                  </Td>
+                                  <Td className="text-right text-[#22c55e] tabular-nums font-bold text-xs py-1">
+                                    {fmtTon(esc.totalViagens)}
+                                  </Td>
+                                  <Td className="text-right text-mining-green tabular-nums font-bold text-xs py-1">
+                                    {fmtTon(esc.totalMassa)}
+                                  </Td>
+                                </tr>
+                              )}
+                            </React.Fragment>
+                          );
+                        }
+
                         return (
-                          <motion.tr
-                            key={esc.equipamento}
-                            initial={{ opacity: 0, y: 6 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.35, ease: "easeOut", delay: index * 0.05 }}
-                            className="border-b border-white/5 hover:bg-white/[0.03] opacity-60"
-                          >
+                          <tr key={esc.equipamento} className="border-b border-white/5 hover:bg-white/[0.03]">
                             <Td className="py-1">
                               <span className="flex items-center gap-1.5">
-                                <span className="w-4 h-4 flex items-center justify-center rounded-sm bg-muted text-muted-foreground text-[9px] font-black font-sans">
-                                  —
+                                <span className="w-4 h-4 flex items-center justify-center rounded-sm bg-emerald-400 text-background text-[9px] font-black font-sans shadow-[0_0_8px_hsl(142_71%_45%/0.7)] animate-pulse">
+                                  {currentRank}
                                 </span>
-                                <span className="font-black text-muted-foreground">{esc.equipamento}</span>
+                                <span className="font-black text-emerald-300 text-glow-neon">{esc.equipamento}</span>
                               </span>
                             </Td>
-                            <Td colSpan={5} className="text-muted-foreground italic text-[10px] py-1">
-                              SEM PRODUÇÃO NO DIA
-                            </Td>
-                          </motion.tr>
+                            <Td title={esc.material ?? undefined} className="py-1">{esc.material ?? "—"}</Td>
+                            <Td title={esc.frente ?? undefined} className="py-1">{esc.frente ?? "—"}</Td>
+                            <Td className="py-1">—</Td>
+                            <Td className="text-right text-[#22c55e] tabular-nums font-bold text-xs py-1">{fmtTon(esc.totalViagens)}</Td>
+                            <Td className="text-right text-mining-green tabular-nums font-bold text-xs py-1">{fmtTon(esc.totalMassa)}</Td>
+                          </tr>
                         );
-                      }
-
-                      return (
-                        <motion.tr
-                          key={esc.equipamento}
-                          initial={{ opacity: 0, y: 6 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.35, ease: "easeOut", delay: index * 0.05 }}
-                          className="border-b border-white/5 hover:bg-white/[0.03]"
-                        >
-                          <Td className="py-1">
-                            <span className="flex items-center gap-1.5">
-                              <span className="w-4 h-4 flex items-center justify-center rounded-sm bg-emerald-400 text-background text-[9px] font-black font-sans shadow-[0_0_8px_hsl(142_71%_45%/0.7)] animate-pulse">
-                                {index + 1}
-                              </span>
-                              <span className="font-black text-emerald-300 text-glow-neon">{esc.equipamento}</span>
-                            </span>
-                          </Td>
-                          <Td title={esc.material ?? undefined} className="py-1">{esc.material ?? "—"}</Td>
-                          <Td title={esc.frente ?? undefined} className="py-1">{esc.frente ?? "—"}</Td>
-                          <Td title={esc.destinos?.[0]?.destino ?? esc.destino ?? undefined} className="py-1">
-                            {esc.destinos?.[0]?.destino || esc.destino || "—"}
-                          </Td>
-                          <Td className="text-right text-[#22c55e] tabular-nums font-bold text-xs py-1"><Counter value={esc.viagens} /></Td>
-                          <Td className="text-right text-mining-green tabular-nums font-bold text-xs py-1">{fmtTon(esc.massa)}</Td>
-                        </motion.tr>
-                      );
-                    })}
+                      });
+                    })()}
                   </tbody>
                   <tfoot className="sticky bottom-0 bg-[#000000] border-t-2 border-[#22c55e]/40 z-10">
                     <tr>
                       <Td colSpan={4} className="text-left font-bold uppercase tracking-wider text-white py-1">
-                        
+                        TOTAL
                       </Td>
                       <Td className="text-right text-[#22c55e] tabular-nums font-bold text-xs py-1.5">
-                        {fmt(totalViagensTop5)}
+                        {fmtTon(totalViagensRodape)}
                       </Td>
                       <Td className="text-right text-mining-green tabular-nums font-bold text-xs py-1.5">
-                        {fmtTon(totalMassaTop5)}
+                        {fmtTon(totalTonelagemRodape)}
                       </Td>
                     </tr>
                   </tfoot>
@@ -1764,6 +1790,7 @@ function BigKpi({
   tone,
   showBar = false,
   badge,
+  details,
 }: {
   label: string;
   value: number;
@@ -1773,6 +1800,7 @@ function BigKpi({
   tone: KpiTone;
   showBar?: boolean;
   badge?: string;
+  details?: React.ReactNode;
 }) {
   return (
     <motion.div
@@ -1794,6 +1822,12 @@ function BigKpi({
       <p className={`mt-2 font-mono-mining text-3xl md:text-4xl font-extrabold leading-none tabular-nums ${TONE_TEXT[tone]}`}>
         <Counter value={value} decimals={decimals} useTonFmt={useTonFmt} suffix={suffix} />
       </p>
+
+      {details && (
+        <p className="mt-1 font-mono text-[10px] md:text-[11px] font-semibold text-[#9ca3af] tracking-tight">
+          {details}
+        </p>
+      )}
 
       {showBar && (
         <div className="mt-2 h-[3px] w-full rounded-full bg-[#22c55e]/50 shadow-[0_0_10px_rgba(34,197,94,0.5)]" />
