@@ -1025,7 +1025,6 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
         <BigKpi
           label="Produção do Turno"
           value={totalTonelagemRodape}
-          useTonFmt
           suffix=" t"
           tone="green"
           showBar
@@ -1223,7 +1222,7 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
                                 </span>
                               </Td>
                               <Td colSpan={5} className="text-muted-foreground italic text-[10px] py-[3px]">
-                                SEM PRODUÇÃO NO DIA
+                                SEM PRODUÇÃO NO TURNO
                               </Td>
                             </tr>
                           );
@@ -1260,8 +1259,12 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
                             <Td title={esc.material ?? undefined} className="py-[3px] truncate">{esc.material ?? "—"}</Td>
                             <Td title={esc.frente ?? undefined} className="py-[3px] truncate">{esc.frente ?? "—"}</Td>
                             <Td title={destinoTexto} className="py-[3px] truncate">{destinoTexto}</Td>
-                            <Td className="text-right text-[#22c55e] tabular-nums font-bold text-xs py-[3px]">{fmtTon(esc.totalViagens)}</Td>
-                            <Td className="text-right text-mining-green tabular-nums font-bold text-xs py-[3px]">{fmtTon(esc.totalMassa)}</Td>
+                            <Td className="text-right text-[#22c55e] tabular-nums font-bold text-xs py-[3px]">
+                              {Number(esc.totalViagens).toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
+                            </Td>
+                            <Td className="text-right text-mining-green tabular-nums font-bold text-xs py-[3px]">
+                              {Number(esc.totalMassa).toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
+                            </Td>
                           </tr>
                         );
                       });
@@ -1273,10 +1276,10 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
                         TOTAL
                       </Td>
                       <Td className="text-right text-[#22c55e] tabular-nums font-bold text-xs py-1.5">
-                        {fmtTon(totalViagensRodape)}
+                        {Number(totalViagensRodape).toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
                       </Td>
                       <Td className="text-right text-mining-green tabular-nums font-bold text-xs py-1.5">
-                        {fmtTon(totalTonelagemRodape)}
+                        {Number(totalTonelagemRodape).toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
                       </Td>
                     </tr>
                   </tfoot>
