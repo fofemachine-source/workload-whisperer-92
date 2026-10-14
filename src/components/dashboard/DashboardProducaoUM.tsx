@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState, useEffect, useRef, memo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Wrench, Fuel, RefreshCw, Utensils } from "lucide-react";
 import { useAnimatedCounter } from "@/hooks/useAnimatedCounter";
 import {
@@ -207,15 +207,6 @@ export default function DashboardProducaoUM() {
   const isFetchingRef = useRef(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Avisos de paradas e notificações estilo painel de carro
-  const [toasts, setToasts] = useState<ToastAviso[]>([]);
-  const prevAlertIdsRef = useRef<Set<string> | null>(null);
-  const wasDisconnectedRef = useRef<boolean>(false);
-
-  const removeToast = useCallback((id: string) => {
-    setToasts((prev) => prev.filter((t) => t.id !== id));
-  }, []);
-
   const carregarDashboard = useCallback(async () => {
     if (isFetchingRef.current) return;
     isFetchingRef.current = true;
@@ -254,7 +245,6 @@ export default function DashboardProducaoUM() {
       setSegundosAtualizacao(15);
       setErroApi(null);
     } catch (error) {
-      wasDisconnectedRef.current = true;
       const message = error instanceof Error ? error.message : String(error);
       console.error("[DASHBOARD ERRO]", error);
       
@@ -436,7 +426,6 @@ export default function DashboardProducaoUM() {
         setErroApi(null);
       } catch (fbError) {
         console.error("[DASHBOARD FALLBACK ERRO]", fbError);
-        wasDisconnectedRef.current = true;
         setErroApi(message);
       }
     } finally {
@@ -464,67 +453,6 @@ export default function DashboardProducaoUM() {
     }, 1000);
     return () => clearInterval(timer);
   }, []);
-
-  // Detecção de novos avisos de paradas para notificações (Parte 2)
-  useEffect(() => {
-    if (!dashboardData) return;
-
-    const currentAlerts: Array<{
-      id: string;
-      equipamento: string;
-      frota: string;
-      motivo: string;
-    }> = [];
-
-    const disp = Array.isArray(dashboardData?.disponibilidadePorFrota)
-      ? dashboardData.disponibilidadePorFrota
-      : [];
-
-    disp.forEach((f: any) => {
-      const fName = String(f.frota || "").trim();
-      if (Array.isArray(f.paradas)) {
-        f.paradas.forEach((p: any) => {
-          if (p && p.id) {
-            currentAlerts.push({
-              id: String(p.id),
-              equipamento: String(p.equipamento || ""),
-              frota: fName,
-              motivo: String(p.motivo || "").toLowerCase(),
-            });
-          }
-        });
-      }
-    });
-
-    const currentIds = new Set(currentAlerts.map((a) => a.id));
-
-    // Regra: na primeira vez que o dashboard carrega, e depois de reconectar após uma queda,
-    // NÃO mostre notificações dos avisos que já existiam. Só mostre notificação para avisos que aparecerem depois disso.
-    if (prevAlertIdsRef.current === null || wasDisconnectedRef.current) {
-      prevAlertIdsRef.current = currentIds;
-      wasDisconnectedRef.current = false;
-      return;
-    }
-
-    // Identifica avisos NOVOS (um id que não existia na atualização anterior dos dados)
-    const newAlerts = currentAlerts.filter((a) => !prevAlertIdsRef.current!.has(a.id));
-
-    if (newAlerts.length > 0) {
-      const now = Date.now();
-      const newToasts: ToastAviso[] = newAlerts.map((a, idx) => ({
-        id: `${a.id}-${now}-${idx}`,
-        alertId: a.id,
-        equipamento: a.equipamento,
-        frota: a.frota,
-        motivo: a.motivo,
-      }));
-
-      // Empilha até 4 (a mais nova embaixo) e empurra as anteriores para cima
-      setToasts((prev) => [...prev, ...newToasts].slice(-4));
-    }
-
-    prevAlertIdsRef.current = currentIds;
-  }, [dashboardData]);
 
   // Identificação dinâmica do mês e ano para virada de chave automática
   const nomesMeses = useMemo(() => [
@@ -1549,19 +1477,6 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
           </span>
         </span>
       </div>
-
-      {/* Toast notifications de novos avisos de paradas (estilo painel de carro) */}
-      <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2.5 items-end pointer-events-none">
-        <AnimatePresence mode="popLayout">
-          {toasts.map((toast) => (
-            <ToastNotificationItem
-              key={toast.id}
-              toast={toast}
-              onDismiss={() => removeToast(toast.id)}
-            />
-          ))}
-        </AnimatePresence>
-      </div>
     </div>
   );
 }
@@ -1972,22 +1887,11 @@ function ExcavatorIcon({ className = "" }: { className?: string }) {
 }
 
 /* ---------- Avisos de paradas no estilo painel de carro ---------- */
-interface ToastAviso {
-  id: string;
-  alertId: string;
-  equipamento: string;
-  frota: string;
-  motivo: string;
-}
-
 interface MotivoConfig {
   icon: React.ComponentType<{ className?: string; size?: number; color?: string; strokeWidth?: number }>;
   color: string;
   rgba14: string;
   glow: string;
-  cardGlow: string;
-  title: string;
-  action: string;
 }
 
 const MOTIVO_CONFIG: Record<string, MotivoConfig> = {
@@ -1996,36 +1900,24 @@ const MOTIVO_CONFIG: Record<string, MotivoConfig> = {
     color: "#ef4444",
     rgba14: "rgba(239, 68, 68, 0.14)",
     glow: "0 0 14px rgba(239, 68, 68, 0.65), inset 0 0 6px rgba(239, 68, 68, 0.2)",
-    cardGlow: "0 0 18px rgba(239, 68, 68, 0.4), 0 4px 20px rgba(0, 0, 0, 0.7)",
-    title: "MANUTENÇÃO",
-    action: "entrou em manutenção",
   },
   abast: {
     icon: Fuel,
     color: "#f59e0b",
     rgba14: "rgba(245, 158, 11, 0.14)",
     glow: "0 0 14px rgba(245, 158, 11, 0.65), inset 0 0 6px rgba(245, 158, 11, 0.2)",
-    cardGlow: "0 0 18px rgba(245, 158, 11, 0.4), 0 4px 20px rgba(0, 0, 0, 0.7)",
-    title: "ABASTECIMENTO",
-    action: "foi abastecer",
   },
   turno: {
     icon: RefreshCw,
     color: "#38bdf8",
     rgba14: "rgba(56, 189, 248, 0.14)",
-    glow: "0 0 14px rgba(56, 189, 248, 0.65), inset 0 0 6px rgba(56, 189, 248, 0.2)",
-    cardGlow: "0 0 18px rgba(56, 189, 248, 0.4), 0 4px 20px rgba(0, 0, 0, 0.7)",
-    title: "TROCA DE TURNO",
-    action: "em troca de turno",
+    glow: "0 0 14px rgba(56, 189, 248, 0.65), inset 0 0 6px rgba(245, 158, 11, 0.2)",
   },
   almoco: {
     icon: Utensils,
     color: "#a78bfa",
     rgba14: "rgba(167, 139, 250, 0.14)",
-    glow: "0 0 14px rgba(167, 139, 250, 0.65), inset 0 0 6px rgba(167, 139, 250, 0.2)",
-    cardGlow: "0 0 18px rgba(167, 139, 250, 0.4), 0 4px 20px rgba(0, 0, 0, 0.7)",
-    title: "ALMOÇO",
-    action: "saiu para almoço",
+    glow: "0 0 14px rgba(167, 139, 250, 0.65), inset 0 0 6px rgba(239, 68, 68, 0.2)",
   },
 };
 
@@ -2064,88 +1956,6 @@ function LuzAviso({ parada }: { parada: ParadaFrota }) {
         {parada.tempo}
       </span>
     </div>
-  );
-}
-
-function ToastNotificationItem({
-  toast,
-  onDismiss,
-}: {
-  toast: ToastAviso;
-  onDismiss: () => void;
-}) {
-  const config = getMotivoConfig(toast.motivo);
-  const Icon = config.icon;
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      onDismiss();
-    }, 12000);
-    return () => clearTimeout(timer);
-  }, [onDismiss]);
-
-  return (
-    <motion.div
-      layout
-      initial={{ opacity: 0, y: 35, scale: 0.95 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: 20, scale: 0.95 }}
-      transition={{ duration: 0.35, ease: "easeOut" }}
-      className="relative flex items-center gap-3.5 bg-[#0a0a0a]/95 border rounded-xl p-3.5 pr-4 shadow-2xl overflow-hidden min-w-[340px] max-w-[420px] pointer-events-auto backdrop-blur-md"
-      style={{
-        borderWidth: "1.3px",
-        borderColor: config.color,
-        boxShadow: config.cardGlow,
-      }}
-    >
-      {/* Barrinha vertical colorida na esquerda */}
-      <div
-        className="absolute left-0 top-0 bottom-0 w-[4px]"
-        style={{ backgroundColor: config.color }}
-      />
-
-      {/* Círculo com o ícone do motivo */}
-      <div
-        className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 ml-1.5"
-        style={{
-          backgroundColor: `${config.color}20`,
-          border: `1.5px solid ${config.color}60`,
-        }}
-      >
-        <Icon size={20} color={config.color} strokeWidth={2.2} />
-      </div>
-
-      {/* Textos */}
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center justify-between gap-2">
-          <span
-            className="font-bold text-xs uppercase tracking-wider"
-            style={{ color: config.color }}
-          >
-            {config.title}
-          </span>
-          <span className="text-[10px] text-gray-400 font-mono tracking-wide">
-            agora
-          </span>
-        </div>
-        <p className="text-xs text-gray-200 mt-1 font-medium leading-snug">
-          <strong className="text-white font-bold">{toast.equipamento}</strong>
-          {" · "}
-          {toast.frota} {config.action}
-        </p>
-      </div>
-
-      {/* Linha fina de progresso no rodapé mostrando o tempo até sumir (12s) */}
-      <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-white/10 overflow-hidden">
-        <motion.div
-          className="h-full"
-          style={{ backgroundColor: config.color }}
-          initial={{ width: "100%" }}
-          animate={{ width: "0%" }}
-          transition={{ duration: 12, ease: "linear" }}
-        />
-      </div>
-    </motion.div>
   );
 }
 
