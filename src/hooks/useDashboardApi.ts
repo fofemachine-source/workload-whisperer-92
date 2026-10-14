@@ -1,5 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 
+export interface ParadaFrota {
+  id: string;
+  equipamento: string;
+  motivo: "manut" | "abast" | "turno" | "almoco" | string;
+  rotulo?: string;
+  tempo: string;
+}
+
 export interface DashboardApiPayload {
   kpis: {
     producaoReal: number;
@@ -77,6 +85,7 @@ export interface DashboardApiPayload {
     valor?: number;
     quantidadeComDados?: number;
     quantidadeConfigurada?: number;
+    paradas?: ParadaFrota[];
   }>;
   utilizacaoPorFrota?: Array<{
     frota: string;
