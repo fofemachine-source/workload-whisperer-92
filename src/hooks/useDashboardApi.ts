@@ -8,6 +8,28 @@ export interface ParadaFrota {
   tempo: string;
 }
 
+export interface LavRetCardData {
+  titulo?: string;
+  acumuladoDia?: number | null;
+  projetadoDia?: number | null;
+  projetadoEhMeta?: boolean;
+  viagens?: number | null;
+  producaoTurno?: number | null;
+  viagensTurno?: number | null;
+  previstoTurno?: number | null;
+  previstoAteAgora?: number | null;
+  ritmo?: number | null;
+  meta?: number | null;
+  precisa?: number | null;
+  projecao?: number | null;
+  aderencia?: number | null;
+  aderenciaExata?: number | null;
+  faixaAderencia?: string | null;
+  previstoTurnoOrigem?: string | null;
+  dia?: Record<string, any>;
+  [key: string]: any;
+}
+
 export interface DashboardApiPayload {
   kpis: {
     producaoReal: number;
@@ -23,14 +45,19 @@ export interface DashboardApiPayload {
     ret?: number;
   };
   cards?: {
-    lav?: { acumuladoDia?: number; projetadoDia?: number };
-    ret?: { acumuladoDia?: number; projetadoDia?: number };
+    lav?: LavRetCardData;
+    ret?: LavRetCardData;
     mensal?: number;
     th?: number;
     viagens?: number;
     producaoDiaria?: number;
+    projetadoDia?: number;
+    producaoMensal?: number;
+    producaoTurno?: number;
     lavMensal?: number;
     retMensal?: number;
+    lavMaisRetMensal?: number;
+    [key: string]: any;
   };
   atualizadoEm?: string;
   producaoDiaria: Array<{ data: string; real: number; previsto?: number }>;

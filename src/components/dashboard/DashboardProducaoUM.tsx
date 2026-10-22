@@ -998,43 +998,26 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
 
   return (
     <div className="force-live-animation min-h-screen bg-[hsl(220_50%_5%)] text-foreground p-2 md:p-3 font-sans dashboard-enter">
-      {/* KPI strip — valores exclusivos de data.kpis */}
+      {/* 4 primeiros cartões (~160px de altura) */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
-        <LavRetKpi
-          label="LAV"
-          acumulado={lavFinal}
-          projetado={lavProjetado}
-          tone="green"
-          acumuladoTone="blue"
-          projetadoTone="green"
+        <LavRetCard
+          title="LAVRA"
+          data={cards?.lav}
         />
-        <LavRetKpi
-          label="RET"
-          acumulado={retFinal}
-          projetado={retProjetado}
-          tone="amber"
-          acumuladoTone="blue"
-          projetadoTone="amber"
+        <LavRetCard
+          title="RETALUDAMENTO"
+          data={cards?.ret}
         />
-        <BigKpi
-          label={`Produção Mensal (${nomeMesAtual})`}
-          badge={`${siglaMesAtual}/${anoAtual}`}
-          value={producaoMensal}
-          suffix=" t"
-          tone="green"
-          details={
-            <>
-              LAV: <Counter value={lavMensal} /> t + RET: <Counter value={retMensal} /> t
-            </>
-          }
+        <ProducaoMensalCard
+          mesNome={nomeMesAtual}
+          mesSigla={siglaMesAtual}
+          ano={anoAtual}
+          producaoMensal={cards?.producaoMensal ?? dashboardData?.kpis?.producaoMensal}
+          lavMensal={cards?.lavMensal}
+          retMensal={cards?.retMensal}
         />
-        <BigKpi
-          label="Produção do Turno"
-          value={totalTonelagemRodape}
-          useTonFmt
-          suffix=" t"
-          tone="green"
-          showBar
+        <ProducaoTurnoCard
+          producaoTurno={cards?.producaoTurno}
         />
       </div>
 
@@ -1692,134 +1675,287 @@ function MiniKpi({ label, value, unit }: { label: string; value: string; unit?: 
   );
 }
 
-/* ---------- LAV / RET dual line KPI (photo-1 layout) ---------- */
-type KpiTone = "green" | "amber" | "blue";
-const TONE_TEXT: Record<KpiTone, string> = {
-  green: "text-[#22c55e]",
-  amber: "text-[#f97316]",
-  blue: "text-[#38bdf8]",
-};
-const TONE_BORDER: Record<KpiTone, string> = {
-  green: "border-[#22c55e]/30",
-  amber: "border-[#f97316]/30",
-  blue: "border-[#38bdf8]/30",
-};
-const TONE_GLOW: Record<KpiTone, string> = {
-  green: "bg-[#22c55e]",
-  amber: "bg-[#f97316]",
-  blue: "bg-[#38bdf8]",
-};
+/* ---------- Helper to format card values and fallback to "—" ---------- */
+function renderCardVal(val: any, suffix = ""): string {
+  if (val === null || val === undefined || val === "" || isNaN(Number(val))) {
+    return "—";
+  }
+  return `${fmt(Number(val))}${suffix}`;
+}
 
-function LavRetKpi({
-  label,
-  acumulado,
-  projetado,
-  tone,
-  acumuladoTone,
-  projetadoTone,
+/* ---------- 1 & 2. LAVRA / RETALUDAMENTO Card (~160px) ---------- */
+function LavRetCard({
+  title,
+  data,
 }: {
-  label: string;
-  acumulado: number;
-  projetado: number;
-  tone: KpiTone;
-  acumuladoTone: KpiTone;
-  projetadoTone: KpiTone;
+  title: "LAVRA" | "RETALUDAMENTO";
+  data?: any;
 }) {
-  const isRet = label.toUpperCase() === "RET";
-  const headerTextColor = isRet ? "text-[#f97316]" : "text-[#22c55e]";
-  const headerLineColor = isRet ? "bg-[#f97316]" : "bg-[#22c55e]";
-  const headerBorderColor = isRet ? "border-[#f97316]" : "border-[#22c55e]";
-  const headerGlowColor = isRet ? "bg-[#f97316]" : "bg-[#22c55e]";
+  const producaoTurno = data?.producaoTurno;
+  const viagensTurno = data?.viagensTurno;
+  const previstoAteAgora = data?.previstoAteAgora;
+  const previstoTurno = data?.previstoTurno;
+  const ritmo = data?.ritmo;
+  const meta = data?.meta;
+  const precisa = data?.precisa;
+  const projecao = data?.projecao;
+  const aderencia = data?.aderencia;
+
+  const producaoTurnoStr =
+    producaoTurno !== null && producaoTurno !== undefined && producaoTurno !== "" && !isNaN(Number(producaoTurno))
+      ? fmt(Number(producaoTurno))
+      : "—";
+
+  const viagensTurnoStr =
+    viagensTurno !== null && viagensTurno !== undefined && viagensTurno !== "" && !isNaN(Number(viagensTurno))
+      ? fmt(Number(viagensTurno))
+      : "—";
+
+  const isRitmoAbaixo =
+    ritmo != null && meta != null && Number(ritmo) < Number(meta);
+
+  const aderenciaText =
+    aderencia !== null && aderencia !== undefined && aderencia !== "" && !isNaN(Number(aderencia))
+      ? `ADERÊNCIA ${aderencia}%`
+      : "ADERÊNCIA —";
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
-      className={`kpi-card relative overflow-hidden rounded-lg border ${isRet ? "border-[#f97316]/30" : "border-[#22c55e]/20"} bg-[#000000] px-4 py-1.5`}
+      style={{ fontFamily: "'Montserrat', sans-serif" }}
+      className="kpi-card relative overflow-hidden rounded-lg border border-[#22c55e]/20 bg-[#000000] h-[160px] min-h-[160px] flex flex-col justify-between"
     >
-      <p className={`font-mono-mining text-base font-bold tracking-wider ${headerTextColor} uppercase`}>{label}</p>
-      <div className={`mt-0.5 h-px w-full ${headerLineColor} opacity-30`} />
+      <div className="px-3 pt-2.5 pb-1 flex-1 flex flex-col justify-between min-h-0">
+        {/* Título maiúsculas, SemiBold 12px, verde #22c55e */}
+        <div>
+          <p className="text-[12px] font-semibold text-[#22c55e] uppercase tracking-wider leading-none">
+            {title}
+          </p>
+          {/* Linha divisória fina verde-escura */}
+          <div className="h-px w-full bg-[#14532d] mt-1.5 mb-1 shrink-0" />
+        </div>
 
-      <div className="mt-1.5 flex items-center justify-between gap-2">
-        <p className="font-mono-mining text-xs uppercase tracking-widest font-semibold leading-tight text-[#9ca3af]">
-          Acumulado<br />Dia:
-        </p>
-        <p className={`font-mono-mining text-2xl md:text-3xl font-extrabold tabular-nums leading-none ${TONE_TEXT[acumuladoTone]}`}>
-          <Counter value={acumulado} />
-        </p>
+        {/* Corpo: Esquerda + Divisor Vertical + Direita (2x3) */}
+        <div className="flex-1 flex items-center justify-between gap-2 min-h-0 my-auto">
+          {/* Esquerda: número grande producaoTurno + viagensTurno */}
+          <div className="flex flex-col justify-center min-w-[90px] xl:min-w-[100px] shrink-0">
+            <div className="flex items-baseline">
+              <span className="text-[34px] xl:text-[38px] font-medium text-white leading-none tracking-tight">
+                {producaoTurnoStr}
+              </span>
+              {producaoTurnoStr !== "—" && (
+                <span className="text-[18px] font-medium text-[#22c55e] ml-1">
+                  t
+                </span>
+              )}
+            </div>
+            <div className="mt-1 text-[13px] font-semibold leading-tight">
+              <span className="text-white">{viagensTurnoStr}</span>{" "}
+              <span className="text-[#22c55e]">viagens</span>
+            </div>
+          </div>
+
+          {/* Linha vertical divisória fina */}
+          <div className="w-px bg-[#22c55e]/20 self-stretch my-0.5 shrink-0" />
+
+          {/* Direita: Grade 2 colunas por 3 linhas com rótulo e valor */}
+          <div className="grid grid-cols-2 gap-x-2.5 gap-y-1 flex-1 min-w-0">
+            {/* Linha 1 */}
+            <div className="flex flex-col min-w-0">
+              <span className="text-[8.5px] font-semibold text-[#22c55e] uppercase tracking-wider leading-none truncate">
+                PREVISTO ATÉ AGORA
+              </span>
+              <span className="text-[13px] xl:text-[14px] font-semibold text-white leading-tight truncate mt-0.5">
+                {renderCardVal(previstoAteAgora, " t")}
+              </span>
+            </div>
+            <div className="flex flex-col min-w-0">
+              <span className="text-[8.5px] font-semibold text-[#22c55e] uppercase tracking-wider leading-none truncate">
+                DO TURNO
+              </span>
+              <span className="text-[13px] xl:text-[14px] font-semibold text-white leading-tight truncate mt-0.5">
+                {renderCardVal(previstoTurno, " t")}
+              </span>
+            </div>
+
+            {/* Linha 2 */}
+            <div className="flex flex-col min-w-0">
+              <span className="text-[8.5px] font-semibold text-[#22c55e] uppercase tracking-wider leading-none truncate">
+                RITMO
+              </span>
+              <span
+                className={`text-[13px] xl:text-[14px] font-semibold leading-tight truncate mt-0.5 ${
+                  isRitmoAbaixo ? "text-[#ef4444]" : "text-white"
+                }`}
+              >
+                {renderCardVal(ritmo, " t/h")}
+              </span>
+            </div>
+            <div className="flex flex-col min-w-0">
+              <span className="text-[8.5px] font-semibold text-[#22c55e] uppercase tracking-wider leading-none truncate">
+                META
+              </span>
+              <span className="text-[13px] xl:text-[14px] font-semibold text-white leading-tight truncate mt-0.5">
+                {renderCardVal(meta, " t/h")}
+              </span>
+            </div>
+
+            {/* Linha 3 */}
+            <div className="flex flex-col min-w-0">
+              <span className="text-[8.5px] font-semibold text-[#22c55e] uppercase tracking-wider leading-none truncate">
+                PRECISA
+              </span>
+              <span className="text-[13px] xl:text-[14px] font-semibold text-white leading-tight truncate mt-0.5">
+                {renderCardVal(precisa, " t/h")}
+              </span>
+            </div>
+            <div className="flex flex-col min-w-0">
+              <span className="text-[8.5px] font-semibold text-[#22c55e] uppercase tracking-wider leading-none truncate">
+                PROJEÇÃO
+              </span>
+              <span className="text-[13px] xl:text-[14px] font-semibold text-white leading-tight truncate mt-0.5">
+                {renderCardVal(projecao, " t")}
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div className={`my-1.5 border-t border-dashed ${headerBorderColor} opacity-20`} />
-
-      <div className="flex items-center justify-between gap-2">
-        <p className="font-mono-mining text-xs uppercase tracking-widest font-semibold leading-tight text-[#9ca3af]">
-          Projetado<br />Dia:
-        </p>
-        <p className={`font-mono-mining text-2xl md:text-3xl font-extrabold tabular-nums leading-none ${TONE_TEXT[projetadoTone]}`}>
-          <Counter value={projetado} />
-        </p>
+      {/* Rodapé: Faixa vermelha #dc3545 em toda a largura, cantos de baixo arredondados */}
+      <div className="w-full bg-[#dc3545] py-1 text-center text-white text-[14px] font-medium rounded-b-lg tracking-wide shrink-0 leading-tight">
+        {aderenciaText}
       </div>
-
-      <span className={`pointer-events-none absolute left-6 right-6 bottom-0 h-[2px] rounded-full ${headerGlowColor} opacity-30 blur-[1px]`} />
     </motion.div>
   );
 }
 
-/* ---------- Big single value KPI (photo-1 mensal / T/H) ---------- */
-function BigKpi({
-  label,
-  value,
-  suffix = "",
-  decimals = 0,
-  useTonFmt = false,
-  tone,
-  showBar = false,
-  badge,
-  details,
+/* ---------- 3. PRODUÇÃO MENSAL Card (~160px) ---------- */
+function ProducaoMensalCard({
+  mesNome,
+  mesSigla,
+  ano,
+  producaoMensal,
+  lavMensal,
+  retMensal,
 }: {
-  label: string;
-  value: number;
-  suffix?: string;
-  decimals?: number;
-  useTonFmt?: boolean;
-  tone: KpiTone;
-  showBar?: boolean;
-  badge?: string;
-  details?: React.ReactNode;
+  mesNome: string;
+  mesSigla: string;
+  ano: number | string;
+  producaoMensal?: number | null;
+  lavMensal?: number | null;
+  retMensal?: number | null;
 }) {
+  const producaoMensalStr =
+    producaoMensal !== null && producaoMensal !== undefined && producaoMensal !== "" && !isNaN(Number(producaoMensal))
+      ? fmt(Number(producaoMensal))
+      : "—";
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
-      className="kpi-card relative overflow-hidden rounded-lg border border-[#22c55e]/20 bg-[#000000] px-4 py-1.5 flex flex-col justify-center"
+      style={{ fontFamily: "'Montserrat', sans-serif" }}
+      className="kpi-card relative overflow-hidden rounded-lg border border-[#22c55e]/20 bg-[#000000] h-[160px] min-h-[160px] px-3 pt-2.5 pb-2 flex flex-col justify-between"
     >
-      <div className="flex items-center justify-between gap-2">
-        <p className="font-mono-mining text-base font-bold tracking-wider text-[#22c55e] uppercase">{label}</p>
-        {badge && (
-          <span className="text-[10px] bg-[#22c55e]/20 border border-[#22c55e]/30 text-[#22c55e] px-2 py-0.5 rounded font-mono font-bold tracking-wider">
-            {badge}
+      <div>
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-[12px] font-semibold text-[#22c55e] uppercase tracking-wider leading-none">
+            PRODUÇÃO MENSAL ({mesNome})
+          </p>
+          <span className="border border-[#22c55e]/60 bg-[#052e16] text-[#22c55e] text-[10px] font-semibold px-2 py-0.5 rounded tracking-wider leading-none shrink-0">
+            {mesSigla}/{ano}
           </span>
-        )}
+        </div>
+        <div className="h-px w-full bg-[#14532d] mt-1.5 mb-1" />
       </div>
-      <div className="mt-1 h-px w-full bg-[#22c55e] opacity-30" />
 
-      <p className={`mt-2 font-mono-mining text-3xl md:text-4xl font-extrabold leading-none tabular-nums ${TONE_TEXT[tone]}`}>
-        <Counter value={value} decimals={decimals} useTonFmt={useTonFmt} suffix={suffix} />
-      </p>
+      {/* Corpo: Esquerda + Divisor Vertical + Direita (dois itens empilhados) */}
+      <div className="flex-1 flex items-center justify-between gap-3 min-h-0 my-auto">
+        {/* Esquerda: número grande */}
+        <div className="flex items-baseline min-w-[105px] xl:min-w-[120px] shrink-0">
+          <span className="text-[34px] xl:text-[38px] font-medium text-white leading-none tracking-tight">
+            {producaoMensalStr}
+          </span>
+          {producaoMensalStr !== "—" && (
+            <span className="text-[18px] font-medium text-[#22c55e] ml-1">
+              t
+            </span>
+          )}
+        </div>
 
-      {details && (
-        <p className="mt-1 font-mono text-[10px] md:text-[11px] font-semibold text-[#9ca3af] tracking-tight">
-          {details}
+        {/* Linha vertical divisória */}
+        <div className="w-px bg-[#22c55e]/20 self-stretch my-1 shrink-0" />
+
+        {/* Direita: dois itens empilhados */}
+        <div className="flex-1 flex flex-col justify-center gap-2.5 min-w-0 pl-1">
+          <div className="flex flex-col min-w-0">
+            <span className="text-[8.5px] font-semibold text-[#22c55e] uppercase tracking-wider leading-none">
+              LAVRA
+            </span>
+            <span className="text-[14px] font-semibold text-white leading-tight truncate mt-0.5">
+              {renderCardVal(lavMensal, " t")}
+            </span>
+          </div>
+          <div className="flex flex-col min-w-0">
+            <span className="text-[8.5px] font-semibold text-[#22c55e] uppercase tracking-wider leading-none">
+              RETALUDAMENTO
+            </span>
+            <span className="text-[14px] font-semibold text-white leading-tight truncate mt-0.5">
+              {renderCardVal(retMensal, " t")}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div className="h-0.5 shrink-0" />
+    </motion.div>
+  );
+}
+
+/* ---------- 4. PRODUÇÃO DO TURNO Card (~160px) ---------- */
+function ProducaoTurnoCard({
+  producaoTurno,
+}: {
+  producaoTurno?: number | null;
+}) {
+  const producaoTurnoStr =
+    producaoTurno !== null && producaoTurno !== undefined && producaoTurno !== "" && !isNaN(Number(producaoTurno))
+      ? fmtTon(Number(producaoTurno))
+      : "—";
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: "easeOut" }}
+      style={{ fontFamily: "'Montserrat', sans-serif" }}
+      className="kpi-card relative overflow-hidden rounded-lg border border-[#22c55e]/20 bg-[#000000] h-[160px] min-h-[160px] px-3 pt-2.5 pb-2 flex flex-col justify-between"
+    >
+      <div>
+        <p className="text-[12px] font-semibold text-[#22c55e] uppercase tracking-wider leading-none">
+          PRODUÇÃO DO TURNO
         </p>
-      )}
+        <div className="h-px w-full bg-[#14532d] mt-1.5 mb-1" />
+      </div>
 
-      {showBar && (
-        <div className="mt-2 h-[3px] w-full rounded-full bg-[#22c55e]/50 shadow-[0_0_10px_rgba(34,197,94,0.5)]" />
-      )}
+      {/* Corpo: número grande à esquerda com unidade 't' menor e em verde */}
+      <div className="flex-1 flex items-center min-h-0 my-auto">
+        <div className="flex items-baseline">
+          <span className="text-[34px] xl:text-[38px] font-medium text-white leading-none tracking-tight">
+            {producaoTurnoStr}
+          </span>
+          {producaoTurnoStr !== "—" && (
+            <span className="text-[18px] font-medium text-[#22c55e] ml-1">
+              t
+            </span>
+          )}
+        </div>
+      </div>
 
-      <span className="pointer-events-none absolute left-6 right-6 bottom-0 h-[2px] rounded-full bg-[#22c55e] opacity-30 blur-[1px]" />
+      <div className="h-0.5 shrink-0" />
     </motion.div>
   );
 }
