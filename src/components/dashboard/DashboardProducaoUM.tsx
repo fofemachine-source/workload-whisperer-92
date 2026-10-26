@@ -998,8 +998,8 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
 
   return (
     <div className="force-live-animation min-h-screen bg-[hsl(220_50%_5%)] text-foreground p-2 md:p-3 font-sans dashboard-enter">
-      {/* 4 primeiros cartões (~160px de altura) */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
+      {/* 4 primeiros cartões (~160px de altura) — 32% / 32% / 18% / 18% */}
+      <div className="grid grid-cols-1 md:grid-cols-[32fr_32fr_18fr_18fr] gap-2">
         <LavRetCard
           title="LAVRA"
           data={cards?.lav}
@@ -1009,10 +1009,9 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
           data={cards?.ret}
         />
         <ProducaoMensalCard
-          mesNome={nomeMesAtual}
           mesSigla={siglaMesAtual}
           ano={anoAtual}
-          producaoMensal={cards?.producaoMensal ?? dashboardData?.kpis?.producaoMensal}
+          total={cards?.lavMaisRetMensal ?? cards?.producaoMensal ?? dashboardData?.kpis?.producaoMensal}
           lavMensal={cards?.lavMensal}
           retMensal={cards?.retMensal}
         />
@@ -1711,6 +1710,9 @@ function LavRetCard({
       ? fmt(Number(viagensTurno))
       : "—";
 
+  const isLongNum = producaoTurnoStr.length >= 6;
+  const numFontSize = isLongNum ? "text-[56px]" : "text-[68px]";
+
   const isRitmoAbaixo =
     ritmo != null && meta != null && Number(ritmo) < Number(meta);
 
@@ -1737,39 +1739,39 @@ function LavRetCard({
 
       {/* Corpo do card: padding 0 em cima e embaixo, 10px à esquerda e 8px à direita */}
       <div className="flex-1 min-h-0 flex items-center pl-[10px] pr-[8px] py-0">
-        {/* COLUNA DA ESQUERDA (largura fixa e igual nos dois cards: 170px) */}
-        <div className="w-[170px] min-w-[170px] max-w-[170px] shrink-0 flex flex-col justify-center overflow-hidden">
-          {/* Número principal: 54px (reduzido de 62px conforme regra de segurança para caber em 170px), negrito, line-height: 0.95 */}
+        {/* Coluna da esquerda com largura fixa de 190px */}
+        <div className="w-[190px] min-w-[190px] max-w-[190px] shrink-0 flex flex-col justify-center overflow-hidden">
+          {/* Número principal: 66px, negrito, line-height: 0.95 */}
           <div className="flex items-baseline whitespace-nowrap leading-[0.95]">
-            <span className="text-[54px] font-bold text-white leading-[0.95] tracking-tight whitespace-nowrap">
+            <span className={`${numFontSize} font-bold text-white leading-[0.95] tracking-tight whitespace-nowrap`}>
               {producaoTurnoStr}
             </span>
             {producaoTurnoStr !== "—" && (
-              <span className="text-[20px] font-bold text-[#22c55e] ml-[3px] whitespace-nowrap leading-[0.95]">
+              <span className="text-[22px] font-bold text-[#22c55e] ml-[3px] whitespace-nowrap leading-[0.95]">
                 t
               </span>
             )}
           </div>
-          {/* "16 viagens" / "50 viagens": 24px, verde, 8px abaixo do número */}
-          <div className="mt-[8px] text-[24px] font-bold text-[#22c55e] leading-none whitespace-nowrap">
+          {/* "50 viagens" / "110 viagens": 26px, verde */}
+          <div className="mt-[6px] text-[26px] font-bold text-[#22c55e] leading-none whitespace-nowrap">
             {viagensTurnoStr !== "—" ? `${viagensTurnoStr} viagens` : "—"}
           </div>
         </div>
 
-        {/* GRADE DA DIREITA (PREVISTO ATÉ AGORA / RITMO / PRECISA e DO TURNO / META / PROJEÇÃO) */}
+        {/* Grade da direita: grid-template-columns: 1fr 1fr; column-gap: 10px; row-gap: 0 */}
         <div
           className="flex-1 min-w-0 grid h-full"
           style={{
             gridTemplateColumns: "1fr 1fr",
             width: "100%",
-            columnGap: "8px",
+            columnGap: "10px",
             rowGap: "0px",
             alignContent: "space-evenly",
           }}
         >
-          {/* Linha 1: PREVISTO ATÉ AGORA | DO TURNO */}
+          {/* Linha 1 */}
           <div className="flex flex-col min-w-0">
-            <span className="text-[10px] font-bold text-[#22c55e] uppercase whitespace-nowrap leading-none">
+            <span className="text-[10.5px] font-bold text-[#22c55e] uppercase whitespace-nowrap leading-none">
               PREVISTO ATÉ AGORA
             </span>
             <span className="text-[27px] font-bold text-white whitespace-nowrap leading-none mt-0">
@@ -1777,7 +1779,7 @@ function LavRetCard({
             </span>
           </div>
           <div className="flex flex-col min-w-0">
-            <span className="text-[10px] font-bold text-[#22c55e] uppercase whitespace-nowrap leading-none">
+            <span className="text-[10.5px] font-bold text-[#22c55e] uppercase whitespace-nowrap leading-none">
               DO TURNO
             </span>
             <span className="text-[27px] font-bold text-white whitespace-nowrap leading-none mt-0">
@@ -1785,9 +1787,9 @@ function LavRetCard({
             </span>
           </div>
 
-          {/* Linha 2: RITMO | META */}
+          {/* Linha 2 */}
           <div className="flex flex-col min-w-0">
-            <span className="text-[10px] font-bold text-[#22c55e] uppercase whitespace-nowrap leading-none">
+            <span className="text-[10.5px] font-bold text-[#22c55e] uppercase whitespace-nowrap leading-none">
               RITMO
             </span>
             <span
@@ -1799,7 +1801,7 @@ function LavRetCard({
             </span>
           </div>
           <div className="flex flex-col min-w-0">
-            <span className="text-[10px] font-bold text-[#22c55e] uppercase whitespace-nowrap leading-none">
+            <span className="text-[10.5px] font-bold text-[#22c55e] uppercase whitespace-nowrap leading-none">
               META
             </span>
             <span className="text-[27px] font-bold text-white whitespace-nowrap leading-none mt-0">
@@ -1807,9 +1809,9 @@ function LavRetCard({
             </span>
           </div>
 
-          {/* Linha 3: PRECISA | PROJEÇÃO */}
+          {/* Linha 3 */}
           <div className="flex flex-col min-w-0">
-            <span className="text-[10px] font-bold text-[#22c55e] uppercase whitespace-nowrap leading-none">
+            <span className="text-[10.5px] font-bold text-[#22c55e] uppercase whitespace-nowrap leading-none">
               PRECISA
             </span>
             <span className="text-[27px] font-bold text-white whitespace-nowrap leading-none mt-0">
@@ -1817,7 +1819,7 @@ function LavRetCard({
             </span>
           </div>
           <div className="flex flex-col min-w-0">
-            <span className="text-[10px] font-bold text-[#22c55e] uppercase whitespace-nowrap leading-none">
+            <span className="text-[10.5px] font-bold text-[#22c55e] uppercase whitespace-nowrap leading-none">
               PROJEÇÃO
             </span>
             <span className="text-[27px] font-bold text-white whitespace-nowrap leading-none mt-0">
@@ -1835,25 +1837,23 @@ function LavRetCard({
   );
 }
 
-/* ---------- 3. PRODUÇÃO MENSAL Card (~160px) ---------- */
+/* ---------- 3. PRODUÇÃO MENSAL Card (card mais estreito) ---------- */
 function ProducaoMensalCard({
-  mesNome,
   mesSigla,
   ano,
-  producaoMensal,
+  total,
   lavMensal,
   retMensal,
 }: {
-  mesNome: string;
   mesSigla: string;
   ano: number | string;
-  producaoMensal?: number | null;
+  total?: number | null;
   lavMensal?: number | null;
   retMensal?: number | null;
 }) {
-  const producaoMensalStr =
-    producaoMensal !== null && producaoMensal !== undefined && producaoMensal !== "" && !isNaN(Number(producaoMensal))
-      ? fmt(Number(producaoMensal))
+  const totalStr =
+    total !== null && total !== undefined && total !== "" && !isNaN(Number(total))
+      ? fmt(Number(total))
       : "—";
 
   return (
@@ -1862,64 +1862,60 @@ function ProducaoMensalCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
       style={{ fontFamily: "'Montserrat', sans-serif" }}
-      className="kpi-card relative overflow-hidden rounded-lg border border-[#22c55e]/20 bg-[#000000] h-[160px] min-h-[160px] px-3 pt-2.5 pb-2 flex flex-col justify-between"
+      className="kpi-card relative overflow-hidden rounded-lg border border-[#22c55e]/20 bg-[#000000] h-[160px] min-h-[160px] max-h-[160px] px-[10px] pt-[3px] pb-[8px] flex flex-col justify-between"
     >
-      <div>
-        <div className="flex items-center justify-between gap-2">
+      {/* Header: Título "PRODUÇÃO MENSAL" e selo à direita */}
+      <div className="shrink-0">
+        <div className="flex items-center justify-between">
           <p className="text-[12px] font-semibold text-[#22c55e] uppercase tracking-wider leading-none">
-            PRODUÇÃO MENSAL ({mesNome})
+            PRODUÇÃO MENSAL
           </p>
-          <span className="border border-[#22c55e]/60 bg-[#052e16] text-[#22c55e] text-[10px] font-semibold px-2 py-0.5 rounded tracking-wider leading-none shrink-0">
+          <span className="border border-[#22c55e]/60 bg-[#052e16] text-[#22c55e] text-[10px] font-semibold px-1.5 py-0.5 rounded tracking-wider leading-none shrink-0">
             {mesSigla}/{ano}
           </span>
         </div>
-        <div className="h-px w-full bg-[#14532d] mt-1.5 mb-1" />
+        <div className="h-px w-full bg-[#14532d] mt-[3px]" />
       </div>
 
-      {/* Corpo: Esquerda + Divisor Vertical + Direita (dois itens empilhados) */}
-      <div className="flex-1 flex items-center justify-between gap-3 min-h-0 my-auto">
-        {/* Esquerda: número grande */}
-        <div className="flex items-baseline min-w-[105px] xl:min-w-[120px] shrink-0">
-          <span className="text-[34px] xl:text-[38px] font-medium text-white leading-none tracking-tight">
-            {producaoMensalStr}
+      {/* Body: Número grande em cima (44px) + Embaixo LAVRA e RETALUDAMENTO lado a lado */}
+      <div className="flex-1 flex flex-col justify-around min-h-0 pt-1">
+        {/* Número grande (cards.lavMaisRetMensal) em cima: 44px, com o 't' ao lado em 16px */}
+        <div className="flex items-baseline whitespace-nowrap leading-none">
+          <span className="text-[44px] font-bold text-white leading-none tracking-tight">
+            {totalStr}
           </span>
-          {producaoMensalStr !== "—" && (
-            <span className="text-[18px] font-medium text-[#22c55e] ml-1">
+          {totalStr !== "—" && (
+            <span className="text-[16px] font-bold text-[#22c55e] ml-1 leading-none">
               t
             </span>
           )}
         </div>
 
-        {/* Linha vertical divisória */}
-        <div className="w-px bg-[#22c55e]/20 self-stretch my-1 shrink-0" />
-
-        {/* Direita: dois itens empilhados */}
-        <div className="flex-1 flex flex-col justify-center gap-2.5 min-w-0 pl-1">
+        {/* Embaixo, LAVRA e RETALUDAMENTO lado a lado: rótulo 11px verde e valor 18px negrito */}
+        <div className="grid grid-cols-2 gap-x-2 w-full">
           <div className="flex flex-col min-w-0">
-            <span className="text-[8.5px] font-semibold text-[#22c55e] uppercase tracking-wider leading-none">
+            <span className="text-[11px] font-semibold text-[#22c55e] uppercase leading-none whitespace-nowrap">
               LAVRA
             </span>
-            <span className="text-[14px] font-semibold text-white leading-tight truncate mt-0.5">
+            <span className="text-[18px] font-bold text-white leading-tight whitespace-nowrap mt-0.5">
               {renderCardVal(lavMensal, " t")}
             </span>
           </div>
           <div className="flex flex-col min-w-0">
-            <span className="text-[8.5px] font-semibold text-[#22c55e] uppercase tracking-wider leading-none">
+            <span className="text-[11px] font-semibold text-[#22c55e] uppercase leading-none whitespace-nowrap">
               RETALUDAMENTO
             </span>
-            <span className="text-[14px] font-semibold text-white leading-tight truncate mt-0.5">
+            <span className="text-[18px] font-bold text-white leading-tight whitespace-nowrap mt-0.5">
               {renderCardVal(retMensal, " t")}
             </span>
           </div>
         </div>
       </div>
-
-      <div className="h-0.5 shrink-0" />
     </motion.div>
   );
 }
 
-/* ---------- 4. PRODUÇÃO DO TURNO Card (~160px) ---------- */
+/* ---------- 4. PRODUÇÃO DO TURNO Card (card mais estreito) ---------- */
 function ProducaoTurnoCard({
   producaoTurno,
 }: {
@@ -1927,7 +1923,7 @@ function ProducaoTurnoCard({
 }) {
   const producaoTurnoStr =
     producaoTurno !== null && producaoTurno !== undefined && producaoTurno !== "" && !isNaN(Number(producaoTurno))
-      ? fmtTon(Number(producaoTurno))
+      ? Number(producaoTurno).toLocaleString("pt-BR", { maximumFractionDigits: 0 })
       : "—";
 
   return (
@@ -1936,30 +1932,28 @@ function ProducaoTurnoCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
       style={{ fontFamily: "'Montserrat', sans-serif" }}
-      className="kpi-card relative overflow-hidden rounded-lg border border-[#22c55e]/20 bg-[#000000] h-[160px] min-h-[160px] px-3 pt-2.5 pb-2 flex flex-col justify-between"
+      className="kpi-card relative overflow-hidden rounded-lg border border-[#22c55e]/20 bg-[#000000] h-[160px] min-h-[160px] max-h-[160px] px-[10px] pt-[3px] pb-[8px] flex flex-col justify-between"
     >
-      <div>
+      <div className="shrink-0">
         <p className="text-[12px] font-semibold text-[#22c55e] uppercase tracking-wider leading-none">
           PRODUÇÃO DO TURNO
         </p>
-        <div className="h-px w-full bg-[#14532d] mt-1.5 mb-1" />
+        <div className="h-px w-full bg-[#14532d] mt-[3px]" />
       </div>
 
-      {/* Corpo: número grande à esquerda com unidade 't' menor e em verde */}
-      <div className="flex-1 flex items-center min-h-0 my-auto">
-        <div className="flex items-baseline">
-          <span className="text-[34px] xl:text-[38px] font-medium text-white leading-none tracking-tight">
+      {/* Corpo: 52px, negrito, inteiro com ponto de milhar pt-BR */}
+      <div className="flex-1 flex items-center min-h-0">
+        <div className="flex items-baseline whitespace-nowrap leading-none">
+          <span className="text-[52px] font-bold text-white leading-none tracking-tight">
             {producaoTurnoStr}
           </span>
           {producaoTurnoStr !== "—" && (
-            <span className="text-[18px] font-medium text-[#22c55e] ml-1">
+            <span className="text-[20px] font-bold text-[#22c55e] ml-1 leading-none">
               t
             </span>
           )}
         </div>
       </div>
-
-      <div className="h-0.5 shrink-0" />
     </motion.div>
   );
 }
