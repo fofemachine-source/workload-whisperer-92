@@ -1725,106 +1725,110 @@ function LavRetCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
       style={{ fontFamily: "'Montserrat', sans-serif" }}
-      className="kpi-card relative overflow-hidden rounded-lg border border-[#22c55e]/20 bg-[#000000] h-[160px] min-h-[160px] flex flex-col justify-between"
+      className="kpi-card relative overflow-hidden rounded-lg border border-[#22c55e]/20 bg-[#000000] h-[160px] min-h-[160px] max-h-[160px] flex flex-col justify-between"
     >
-      <div className="px-3 pt-2.5 pb-1 flex-1 flex flex-col justify-between min-h-0">
-        {/* Título maiúsculas, SemiBold 12px, verde #22c55e */}
-        <div>
-          <p className="text-[12px] font-semibold text-[#22c55e] uppercase tracking-wider leading-none">
-            {title}
-          </p>
-          {/* Linha divisória fina verde-escura */}
-          <div className="h-px w-full bg-[#14532d] mt-1.5 mb-1 shrink-0" />
+      {/* Título do card (LAVRA / RETALUDAMENTO): 12px, padding 3px em cima e 1px embaixo */}
+      <div className="pt-[3px] pb-[1px] px-[10px] shrink-0">
+        <p className="text-[12px] font-semibold text-[#22c55e] uppercase tracking-wider leading-none">
+          {title}
+        </p>
+        <div className="h-px w-full bg-[#14532d] mt-[2px]" />
+      </div>
+
+      {/* Corpo do card: padding 0 em cima e embaixo, 10px à esquerda e 8px à direita */}
+      <div className="flex-1 min-h-0 flex items-center pl-[10px] pr-[8px] py-0">
+        {/* COLUNA DA ESQUERDA (largura fixa e igual nos dois cards: 170px) */}
+        <div className="w-[170px] min-w-[170px] max-w-[170px] shrink-0 flex flex-col justify-center overflow-hidden">
+          {/* Número principal: 54px (reduzido de 62px conforme regra de segurança para caber em 170px), negrito, line-height: 0.95 */}
+          <div className="flex items-baseline whitespace-nowrap leading-[0.95]">
+            <span className="text-[54px] font-bold text-white leading-[0.95] tracking-tight whitespace-nowrap">
+              {producaoTurnoStr}
+            </span>
+            {producaoTurnoStr !== "—" && (
+              <span className="text-[20px] font-bold text-[#22c55e] ml-[3px] whitespace-nowrap leading-[0.95]">
+                t
+              </span>
+            )}
+          </div>
+          {/* "16 viagens" / "50 viagens": 24px, verde, 8px abaixo do número */}
+          <div className="mt-[8px] text-[24px] font-bold text-[#22c55e] leading-none whitespace-nowrap">
+            {viagensTurnoStr !== "—" ? `${viagensTurnoStr} viagens` : "—"}
+          </div>
         </div>
 
-        {/* Corpo: Esquerda + Divisor Vertical + Direita (2x3) */}
-        <div className="flex-1 flex items-center justify-between gap-2 min-h-0 my-auto">
-          {/* Esquerda: número grande producaoTurno + viagensTurno */}
-          <div className="flex flex-col justify-center min-w-[90px] xl:min-w-[100px] shrink-0">
-            <div className="flex items-baseline">
-              <span className="text-[34px] xl:text-[38px] font-medium text-white leading-none tracking-tight">
-                {producaoTurnoStr}
-              </span>
-              {producaoTurnoStr !== "—" && (
-                <span className="text-[18px] font-medium text-[#22c55e] ml-1">
-                  t
-                </span>
-              )}
-            </div>
-            <div className="mt-1 text-[13px] font-semibold leading-tight">
-              <span className="text-white">{viagensTurnoStr}</span>{" "}
-              <span className="text-[#22c55e]">viagens</span>
-            </div>
+        {/* GRADE DA DIREITA (PREVISTO ATÉ AGORA / RITMO / PRECISA e DO TURNO / META / PROJEÇÃO) */}
+        <div
+          className="flex-1 min-w-0 grid h-full"
+          style={{
+            gridTemplateColumns: "1fr 1fr",
+            width: "100%",
+            columnGap: "8px",
+            rowGap: "0px",
+            alignContent: "space-evenly",
+          }}
+        >
+          {/* Linha 1: PREVISTO ATÉ AGORA | DO TURNO */}
+          <div className="flex flex-col min-w-0">
+            <span className="text-[10px] font-bold text-[#22c55e] uppercase whitespace-nowrap leading-none">
+              PREVISTO ATÉ AGORA
+            </span>
+            <span className="text-[27px] font-bold text-white whitespace-nowrap leading-none mt-0">
+              {renderCardVal(previstoAteAgora, " t")}
+            </span>
+          </div>
+          <div className="flex flex-col min-w-0">
+            <span className="text-[10px] font-bold text-[#22c55e] uppercase whitespace-nowrap leading-none">
+              DO TURNO
+            </span>
+            <span className="text-[27px] font-bold text-white whitespace-nowrap leading-none mt-0">
+              {renderCardVal(previstoTurno, " t")}
+            </span>
           </div>
 
-          {/* Linha vertical divisória fina */}
-          <div className="w-px bg-[#22c55e]/20 self-stretch my-0.5 shrink-0" />
+          {/* Linha 2: RITMO | META */}
+          <div className="flex flex-col min-w-0">
+            <span className="text-[10px] font-bold text-[#22c55e] uppercase whitespace-nowrap leading-none">
+              RITMO
+            </span>
+            <span
+              className={`text-[27px] font-bold whitespace-nowrap leading-none mt-0 ${
+                isRitmoAbaixo ? "text-[#ef4444]" : "text-white"
+              }`}
+            >
+              {renderCardVal(ritmo, " t/h")}
+            </span>
+          </div>
+          <div className="flex flex-col min-w-0">
+            <span className="text-[10px] font-bold text-[#22c55e] uppercase whitespace-nowrap leading-none">
+              META
+            </span>
+            <span className="text-[27px] font-bold text-white whitespace-nowrap leading-none mt-0">
+              {renderCardVal(meta, " t/h")}
+            </span>
+          </div>
 
-          {/* Direita: Grade 2 colunas por 3 linhas com rótulo e valor */}
-          <div className="grid grid-cols-2 gap-x-2.5 gap-y-1 flex-1 min-w-0">
-            {/* Linha 1 */}
-            <div className="flex flex-col min-w-0">
-              <span className="text-[8.5px] font-semibold text-[#22c55e] uppercase tracking-wider leading-none truncate">
-                PREVISTO ATÉ AGORA
-              </span>
-              <span className="text-[13px] xl:text-[14px] font-semibold text-white leading-tight truncate mt-0.5">
-                {renderCardVal(previstoAteAgora, " t")}
-              </span>
-            </div>
-            <div className="flex flex-col min-w-0">
-              <span className="text-[8.5px] font-semibold text-[#22c55e] uppercase tracking-wider leading-none truncate">
-                DO TURNO
-              </span>
-              <span className="text-[13px] xl:text-[14px] font-semibold text-white leading-tight truncate mt-0.5">
-                {renderCardVal(previstoTurno, " t")}
-              </span>
-            </div>
-
-            {/* Linha 2 */}
-            <div className="flex flex-col min-w-0">
-              <span className="text-[8.5px] font-semibold text-[#22c55e] uppercase tracking-wider leading-none truncate">
-                RITMO
-              </span>
-              <span
-                className={`text-[13px] xl:text-[14px] font-semibold leading-tight truncate mt-0.5 ${
-                  isRitmoAbaixo ? "text-[#ef4444]" : "text-white"
-                }`}
-              >
-                {renderCardVal(ritmo, " t/h")}
-              </span>
-            </div>
-            <div className="flex flex-col min-w-0">
-              <span className="text-[8.5px] font-semibold text-[#22c55e] uppercase tracking-wider leading-none truncate">
-                META
-              </span>
-              <span className="text-[13px] xl:text-[14px] font-semibold text-white leading-tight truncate mt-0.5">
-                {renderCardVal(meta, " t/h")}
-              </span>
-            </div>
-
-            {/* Linha 3 */}
-            <div className="flex flex-col min-w-0">
-              <span className="text-[8.5px] font-semibold text-[#22c55e] uppercase tracking-wider leading-none truncate">
-                PRECISA
-              </span>
-              <span className="text-[13px] xl:text-[14px] font-semibold text-white leading-tight truncate mt-0.5">
-                {renderCardVal(precisa, " t/h")}
-              </span>
-            </div>
-            <div className="flex flex-col min-w-0">
-              <span className="text-[8.5px] font-semibold text-[#22c55e] uppercase tracking-wider leading-none truncate">
-                PROJEÇÃO
-              </span>
-              <span className="text-[13px] xl:text-[14px] font-semibold text-white leading-tight truncate mt-0.5">
-                {renderCardVal(projecao, " t")}
-              </span>
-            </div>
+          {/* Linha 3: PRECISA | PROJEÇÃO */}
+          <div className="flex flex-col min-w-0">
+            <span className="text-[10px] font-bold text-[#22c55e] uppercase whitespace-nowrap leading-none">
+              PRECISA
+            </span>
+            <span className="text-[27px] font-bold text-white whitespace-nowrap leading-none mt-0">
+              {renderCardVal(precisa, " t/h")}
+            </span>
+          </div>
+          <div className="flex flex-col min-w-0">
+            <span className="text-[10px] font-bold text-[#22c55e] uppercase whitespace-nowrap leading-none">
+              PROJEÇÃO
+            </span>
+            <span className="text-[27px] font-bold text-white whitespace-nowrap leading-none mt-0">
+              {renderCardVal(projecao, " t")}
+            </span>
           </div>
         </div>
       </div>
 
-      {/* Rodapé: Faixa vermelha #dc3545 em toda a largura, cantos de baixo arredondados */}
-      <div className="w-full bg-[#dc3545] py-1 text-center text-white text-[14px] font-medium rounded-b-lg tracking-wide shrink-0 leading-tight">
+      {/* Faixa ADERÊNCIA: texto 19px, negrito, mesma altura de hoje */}
+      <div className="w-full bg-[#dc3545] h-[26px] flex items-center justify-center text-white text-[19px] font-bold rounded-b-lg tracking-wide shrink-0 leading-none">
         {aderenciaText}
       </div>
     </motion.div>
