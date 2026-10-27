@@ -705,9 +705,6 @@ export default function DashboardProducaoUM() {
     return true;
   }, [dashboardData, dadosPertencemAoMesAtual, shiftInfo.shiftStart]);
 
-  const totalRankingEscavadeiras = (dashboardData as any)?.totalRankingEscavadeiras ?? {};
-  const totalViagensRodape = toNum(totalRankingEscavadeiras.viagens ?? 0);
-  const totalTonelagemRodape = toNum(totalRankingEscavadeiras.tonelagem ?? 0);
 
   // Utiliza estritamente escavadeirasDetalhado vindo da API
   const top5Escav = useMemo(() => {
@@ -1259,19 +1256,6 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
                       });
                     })()}
                   </tbody>
-                  <tfoot className="sticky bottom-0 bg-[#000000] border-t-2 border-[#22c55e]/40 z-10">
-                    <tr>
-                      <Td colSpan={4} className="text-left font-bold uppercase tracking-wider text-white py-1">
-                        TOTAL
-                      </Td>
-                      <Td className="text-right text-[#22c55e] tabular-nums font-extrabold text-xs py-1.5">
-                        {Number(totalViagensRodape).toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
-                      </Td>
-                      <Td className="text-right text-mining-green tabular-nums font-extrabold text-xs py-1.5">
-                        {fmtTon(totalTonelagemRodape)}
-                      </Td>
-                    </tr>
-                  </tfoot>
                 </table>
               </div>
             </div>
