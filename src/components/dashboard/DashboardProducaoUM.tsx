@@ -1329,7 +1329,7 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
           </div>
         </Panel>
 
-        <Panel className="col-span-12 lg:col-span-6 h-[480px] animated-card">
+        <Panel title="UTILIZAÇÃO POR FROTA" className="col-span-12 lg:col-span-6 h-[480px] animated-card">
           <div className="h-full" />
         </Panel>
 
