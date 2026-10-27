@@ -71,11 +71,11 @@
 @layer base {
   * {
     @apply border-border;
-    font-family: Inter, "Segoe UI", Arial, sans-serif;
+    font-family: Montserrat, "Segoe UI", Arial, sans-serif;
   }
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    font-family: Inter, "Segoe UI", Arial, sans-serif;
+    font-family: Montserrat, "Segoe UI", Arial, sans-serif;
     background-image: var(--gradient-ops);
     background-attachment: fixed;
   }
@@ -86,7 +86,7 @@
 
 @layer utilities {
   .font-mono-mining {
-    font-family: Inter, "Segoe UI", Arial, sans-serif;
+    font-family: Montserrat, "Segoe UI", Arial, sans-serif;
     font-variant-numeric: tabular-nums;
   }
   .ops-card {
