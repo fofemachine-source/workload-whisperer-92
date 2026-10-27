@@ -1698,9 +1698,9 @@ interface MotivoConfig {
 const MOTIVO_CONFIG: Record<string, MotivoConfig> = {
   manut: {
     icon: Wrench,
-    color: "#ef4444",
-    rgba14: "rgba(239, 68, 68, 0.14)",
-    glow: "0 0 14px rgba(239, 68, 68, 0.65), inset 0 0 6px rgba(239, 68, 68, 0.2)",
+    color: "#DC3545",
+    rgba14: "rgba(220, 53, 69, 0.10)",
+    glow: "none",
   },
   abast: {
     icon: Fuel,
@@ -1747,7 +1747,7 @@ function LuzAviso({ parada }: { parada: ParadaFrota }) {
       >
         <Icon size={20} color={config.color} strokeWidth={2.2} />
       </div>
-      <span className="text-white font-bold text-[10.5px] tabular-nums leading-tight mt-1 text-center whitespace-nowrap">
+      <span className="font-bold text-[10.5px] tabular-nums leading-tight mt-1 text-center whitespace-nowrap" style={{ color: "#2C2D2D" }}>
         {parada.equipamento}
       </span>
       <span
