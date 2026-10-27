@@ -1854,7 +1854,7 @@ function ProducaoMensalCard({
   retMensal?: number | null;
 }) {
   const totalStr =
-    total !== null && total !== undefined && total !== "" && !isNaN(Number(total))
+    total !== null && total !== undefined && !isNaN(Number(total))
       ? fmt(Number(total))
       : "—";
 
@@ -1923,7 +1923,7 @@ function ProducaoTurnoCard({
   producaoTurno?: number | null;
 }) {
   const producaoTurnoStr =
-    producaoTurno !== null && producaoTurno !== undefined && producaoTurno !== "" && !isNaN(Number(producaoTurno))
+    producaoTurno !== null && producaoTurno !== undefined && !isNaN(Number(producaoTurno))
       ? Number(producaoTurno).toLocaleString("pt-BR", { maximumFractionDigits: 0 })
       : "—";
 
@@ -2022,7 +2022,7 @@ function ExcavatorIcon({ className = "" }: { className?: string }) {
 
 /* ---------- Avisos de paradas no estilo painel de carro ---------- */
 interface MotivoConfig {
-  icon: React.ComponentType<{ className?: string; size?: number; color?: string; strokeWidth?: number }>;
+  icon: React.ComponentType<{ className?: string; size?: number | string; color?: string; strokeWidth?: number | string }>;
   color: string;
   rgba14: string;
   glow: string;
