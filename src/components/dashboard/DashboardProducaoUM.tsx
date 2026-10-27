@@ -1261,30 +1261,35 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
             </div>
           )}
         </Panel>
-        <Panel title="% DISPONIBILIDADE FÍSICA POR FROTA" className="col-span-12 lg:col-span-6 h-[480px] animated-card">
+        <Panel title="% DISPONIBILIDADE FÍSICA E UTILIZAÇÃO POR FROTA" className="col-span-12 lg:col-span-6 h-[480px] animated-card">
           <div className="flex flex-col h-full justify-evenly">
-            {frotasDfRender.map((item) => (
-              <div key={item.name} className="flex items-center justify-between py-1 border-b border-white/5 last:border-0 pr-2">
-                <div className="flex items-center gap-6 flex-shrink-0">
+            {frotasDfRender.map((item) => {
+              const utItem = frotasUtRender.find((u) => u.name === item.name);
+              const linhas = [
+                { label: "DISPO", value: item.df, meta: item.meta, color: item.df >= item.meta ? "#22c55e" : "#ef4444" },
+                ...(utItem ? [{ label: "UTIL", value: utItem.ut, meta: utItem.meta, color: utItem.ut >= utItem.meta ? "#22c55e" : "#eab308" }] : []),
+              ];
+              return (
+              <div key={item.name} className="flex items-center gap-3 py-1 border-b border-white/5 last:border-0 pr-2">
+                <div className="flex items-center gap-3 flex-shrink-0">
                   <div className="w-[80px] flex items-center justify-center flex-shrink-0">
                     {item.type === "exc" ? (
                       <ExcavatorIcon className="w-[80px] h-[60px]" />
                     ) : (
-                      <CaminhaoBasculante className="w-[100px] h-[80px]" />
+                      <CaminhaoBasculante className="w-[90px] h-[70px]" />
                     )}
                   </div>
-                  <div>
-                    <div className="text-2xl font-bold text-white uppercase tracking-wider">{item.name}</div>
+                  <div className="whitespace-nowrap">
+                    <div className="text-[22px] font-bold text-white uppercase tracking-wide">{item.name}</div>
                     <div className={`text-lg tabular-nums mt-1 ${item.ativos < item.total ? "text-[#fbbf24] font-bold" : "text-[#9ca3af]"}`}>
                       ({item.eq})
                     </div>
                   </div>
                 </div>
 
-                {/* Luzes de aviso estilo painel de carro */}
-                <div className="flex-1 flex items-center justify-center gap-3 px-2 min-w-0">
+                <div className="flex-1 flex items-center justify-center gap-2 min-w-0">
                   {item.paradas && item.paradas.length > 0 ? (
-                    <div className="flex items-center justify-center gap-3">
+                    <div className="flex items-center justify-center gap-2">
                       {item.paradas.slice(0, 4).map((parada: any, idx: number) => (
                         <LuzAviso key={parada.id || `${item.name}-${idx}`} parada={parada} />
                       ))}
@@ -1299,51 +1304,33 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
                   ) : null}
                 </div>
 
-                <div className="flex items-center gap-6 flex-shrink-0">
-                  <div className="flex items-center justify-center">
-                    <DonutProgress value={item.df} color={item.df >= item.meta ? "#22c55e" : "#ef4444"} showPercent={true} />
-                  </div>
-                  <div className="h-14 w-px bg-white/10" />
-                  <div className="text-center w-20">
-                    <div className="text-sm text-[#9ca3af] font-bold uppercase mb-1">Meta</div>
-                    <div className="text-2xl font-extrabold tabular-nums text-white">{item.meta.toFixed(1)}%</div>
-                  </div>
+                <div className="flex flex-col gap-1.5 flex-shrink-0 w-[300px]">
+                  {linhas.map((l) => {
+                    const pct = Math.max(0, Math.min(100, Number(l.value) || 0));
+                    const metaPct = Math.max(0, Math.min(100, Number(l.meta) || 0));
+                    return (
+                      <div key={l.label} className="flex items-center gap-2 whitespace-nowrap">
+                        <span className="w-[42px] text-[12px] font-bold text-[#9ca3af] uppercase">{l.label}</span>
+                        <span className="w-[82px] text-right text-[24px] font-bold tabular-nums" style={{ color: l.color }}>
+                          {pct.toFixed(1)}%
+                        </span>
+                        <div className="relative flex-1 h-[10px] rounded-full bg-white/10">
+                          <div className="absolute inset-y-0 left-0 rounded-full transition-all duration-700" style={{ width: `${pct}%`, background: l.color, boxShadow: `0 0 8px ${l.color}` }} />
+                          <div className="absolute -top-[3px] -bottom-[3px] w-[2px] bg-white" style={{ left: `calc(${metaPct}% - 1px)` }} />
+                        </div>
+                        <span className="text-[11px] text-[#9ca3af] font-bold tabular-nums">Meta {metaPct.toFixed(1)}%</span>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         </Panel>
 
-        <Panel title="UTILIZAÇÃO POR FROTA" className="col-span-12 lg:col-span-6 h-[480px] animated-card">
-          <div className="flex flex-col h-full justify-evenly">
-            {frotasUtRender.map((item) => (
-              <div key={item.name} className="flex items-center justify-between py-1 border-b border-white/5 last:border-0 pr-2">
-                <div className="flex items-center gap-6">
-                  <div className="w-[80px] flex items-center justify-center flex-shrink-0">
-                    {item.type === "exc" ? (
-                      <ExcavatorIcon className="w-[80px] h-[60px]" />
-                    ) : (
-                      <CaminhaoBasculante className="w-[100px] h-[80px]" />
-                    )}
-                  </div>
-                  <div>
-                    <div className="text-2xl font-bold text-white uppercase tracking-wider">{item.name}</div>
-                    <div className="text-lg text-[#9ca3af] tabular-nums mt-1">({item.eq})</div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-6">
-                  <div className="flex items-center justify-center">
-                    <DonutProgress value={item.ut} color={item.ut >= item.meta ? "#22c55e" : "#eab308"} showPercent={true} />
-                  </div>
-                  <div className="h-14 w-px bg-white/10" />
-                  <div className="text-center w-20">
-                    <div className="text-sm text-[#9ca3af] font-bold uppercase mb-1">Meta</div>
-                    <div className="text-2xl font-extrabold tabular-nums text-white">{item.meta.toFixed(1)}%</div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+        <Panel className="col-span-12 lg:col-span-6 h-[480px] animated-card">
+          <div className="h-full" />
         </Panel>
 
         <Panel className="col-span-12 lg:col-span-5 h-[184px] animated-card relative overflow-hidden !p-1">
