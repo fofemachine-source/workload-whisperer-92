@@ -314,14 +314,14 @@ const Dif = ({ v, bold }: { v: any; bold?: boolean }) => {
 };
 const tOrDash = (v: any) => (isNum(v) ? `${fmtInt(v)} t` : "—");
 
-export function FrentesTable({ tipo, rows, card }: { tipo: "LAV" | "RET"; rows: any[]; card?: any }) {
+export function FrentesTable({ tipo, rows, card, className = "" }: { tipo: "LAV" | "RET"; rows: any[]; card?: any; className?: string }) {
   const isLav = tipo === "LAV";
   const cor = isLav ? UM.green : UM.goldText;
   const c = card ?? {};
   const th = "py-1 px-1.5 text-[11px] font-semibold whitespace-nowrap";
   const td = "py-1 px-1.5 text-[13px] whitespace-nowrap tabular-nums";
   return (
-    <UMCard className="p-3">
+    <UMCard className={`p-3 flex flex-col ${className}`}>
       <UMTitle
         color={cor}
         right={
