@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState, useEffect, useRef, memo } from "react";
-import { motion } from "framer-motion";
+import { motion, useAnimationControls } from "framer-motion";
 import { Wrench, Fuel, RefreshCw, Utensils } from "lucide-react";
 import { useAnimatedCounter } from "@/hooks/useAnimatedCounter";
 import {
@@ -801,41 +801,8 @@ export default function DashboardProducaoUM() {
     // ==========================================
     // NOVA SÉRIE: TKPH (Ton x Km / Hora) por Frota
     // ==========================================
-    const tkphSeries = useMemo(() => {
-      const diarias = dashboardData?.producaoDiaria || [];
-      if (diarias.length === 0) return [];
-      
-      // Parâmetros simulados para o cálculo de TKPH, baseado apenas na ida (aprox 6km)
-      // Fórmula: (Toneladas * Km_ida) / Horas_operacionais_totais_da_frota
-      const distIda785 = 6.0; // km
-      const distIda730 = 5.2; // km
-      
-      // Considerando que a frota toda operou no dia
-      const frota785_ativas = 24;
-      const frota730_ativas = 15;
-      const horasPorTurno = 18; // horas efetivas médias por caminhão no dia
-  
-      return diarias.map((d) => {
-        const baseTon = d.real > 0 ? d.real : 45000;
-        
-        // Simulação da divisão de tonelagem entre as frotas
-        const ton785 = baseTon * 0.62;
-        const ton730 = baseTon * 0.38;
-  
-        const horasTotais785 = frota785_ativas * horasPorTurno;
-        const horasTotais730 = frota730_ativas * horasPorTurno;
-
-        const tkph785 = Math.round((ton785 * distIda785) / horasTotais785);
-        const tkph730 = Math.round((ton730 * distIda730) / horasTotais730);
-  
-        return {
-          dia: d.data ? (d.data.includes('-') ? d.data.split('-')[2] : d.data.split('/')[0]) : "00",
-          fullDate: d.data,
-          "CR 785": tkph785,
-          "CR 730": tkph730,
-        };
-      }).slice(-8); // Últimos 8 dias
-    }, [dashboardData?.producaoDiaria]);
+    // TKPH: sem valor na API por enquanto — exibido como "—" (nenhum dado fixo/fictício)
+    const tkphSeries: Array<Record<string, any>> = [];
 
   const viagensPorHora = useMemo(() => {
     if (!dadosPertencemAoMesAtual) return [];
@@ -992,6 +959,7 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
     setDtFim(hoje);
   };
 
+  const visaoFade = useAnimationControls();
   const atualizadoEm = (dashboardData as any)?.atualizadoEm || ultimaAtualizacao;
   const atualizadoEmFormatado = atualizadoEm ? new Date(atualizadoEm).toLocaleString("pt-BR") : "—";
 
@@ -1042,7 +1010,8 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
       className="force-live-animation min-h-screen p-2 md:p-3 dashboard-enter"
       style={{ background: UM.bg, color: UM.text, fontFamily: "Montserrat, sans-serif", fontVariantNumeric: "tabular-nums" }}
     >
-      <UMHeader logo={logoUM} info={headerInfo} />
+      <UMHeader logo={logoUM} info={headerInfo} onVisaoChange={() => visaoFade.start({ opacity: [0.25, 1], transition: { duration: 0.2 } })} />
+      <motion.div animate={visaoFade}>
 
       <SectionSep label="Visão Macro" />
       <div className="grid grid-cols-2 gap-2">
@@ -1120,7 +1089,7 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
                             {pct.toFixed(1).replace(".", ",")}%
                           </span>
                           <div className="relative flex-1 h-[8px] rounded-full" style={{ background: UM.border }}>
-                            <div className="absolute inset-y-0 left-0 rounded-full transition-all duration-700" style={{ width: `${pct}%`, background: l.color }} />
+                            <motion.div className="absolute inset-y-0 left-0 rounded-full" initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 0.8, ease: "easeOut" }} style={{ background: l.color }} />
                             <div className="absolute -top-[3px] -bottom-[3px] w-[2px]" style={{ left: `calc(${metaPct}% - 1px)`, background: UM.text }} />
                           </div>
                           <span className="text-[11px] font-semibold tabular-nums" style={{ color: UM.text2 }}>Meta {metaPct.toFixed(1).replace(".", ",")}%</span>
@@ -1142,6 +1111,8 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
           </div>
         </UMCard>
       </div>
+
+      </motion.div>
 
       {/* Footer */}
       <div className="mt-1.5 flex flex-wrap items-center justify-between gap-2 px-1 text-[11px] tabular-nums" style={{ color: UM.text3 }}>
@@ -1767,7 +1738,7 @@ function LuzAviso({ parada }: { parada: ParadaFrota }) {
   return (
     <div className="flex flex-col items-center flex-shrink-0">
       <div
-        className="w-[40px] h-[40px] rounded-[12px] flex items-center justify-center transition-all duration-300"
+        className={`w-[40px] h-[40px] rounded-[12px] flex items-center justify-center ${config === MOTIVO_CONFIG.manut ? "um-manut-pulse" : ""}`}
         style={{
           border: `1.5px solid ${config.color}`,
           backgroundColor: config.rgba14,
