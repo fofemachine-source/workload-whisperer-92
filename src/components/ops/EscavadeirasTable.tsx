@@ -22,6 +22,8 @@ export interface EscavadeiraRanking {
   destino?: string;
   massa?: number;
   viagens?: number;
+  quantidade?: number;
+  tonelagem?: number;
   horasOp?: number;
   th?: number;
   totalTh?: number;
