@@ -25,7 +25,14 @@ export const fmtInt = (v: any) =>
 /** Número animado: 0→valor na 1ª carga, valor anterior→novo nas atualizações. */
 export const AnimNum = memo(function AnimNum({ value, suffix = "", decimals = 0 }: { value: any; suffix?: string; decimals?: number }) {
   const ok = isNum(value);
-  const v = useAnimatedCounter(ok ? Number(value) : 0);
+  const firstDone = React.useRef(false);
+  const v = useAnimatedCounter(ok ? Number(value) : 0, firstDone.current ? 400 : 800);
+  React.useEffect(() => {
+    if (ok && Number(value) !== 0) {
+      const id = setTimeout(() => { firstDone.current = true; }, 850);
+      return () => clearTimeout(id);
+    }
+  }, [ok, value]);
   if (!ok) return <>—</>;
   return (
     <>
@@ -68,7 +75,7 @@ export function SectionSep({ label }: { label: string }) {
 }
 
 /* ---------- Header ---------- */
-export function UMHeader({ logo, info }: { logo: string; info: string }) {
+export function UMHeader({ logo, info, onVisaoChange }: { logo: string; info: string; onVisaoChange?: () => void }) {
   const [visao, setVisao] = React.useState<"contratual" | "rumo">("contratual");
   return (
     <UMCard className="px-4 py-2 flex items-center justify-between gap-4">
@@ -88,7 +95,7 @@ export function UMHeader({ logo, info }: { logo: string; info: string }) {
           ] as const).map(([k, l]) => (
             <button
               key={k}
-              onClick={() => setVisao(k)}
+              onClick={() => { if (k !== visao) { setVisao(k); onVisaoChange?.(); } }}
               className="px-4 py-1.5 rounded-[8px] text-[14px] font-semibold transition-colors"
               style={visao === k ? { background: UM.green, color: "#FFFFFF" } : { color: UM.text }}
             >
@@ -183,7 +190,7 @@ export function ContratoCard({ tipo, data, mensal }: { tipo: "LAV" | "RET"; data
       <div className="flex items-center justify-center gap-10 py-1.5 text-[17px] font-bold whitespace-nowrap" style={{ background: UM.red, color: "#FFFFFF" }}>
         <span>ADERÊNCIA {isNum(d.aderencia) ? `${d.aderencia}%` : "—"}</span>
         <span>
-          DIF. PROJETADA NO TURNO {isNum(dif) ? (difPos ? "▲" : "▼") : ""}{" "}
+          DIF. PROJETADA NO TURNO {isNum(dif) ? (difPos ? "▲" : <span className="um-arrow-pulse">▼</span>) : ""}{" "}
           {isNum(dif) ? <><AnimNum value={dif} /> t</> : "—"}
         </span>
       </div>
@@ -219,10 +226,10 @@ export function DailyContratoChart({ title, data, realColor, titleColor }: { tit
                 contentStyle={{ background: "#fff", border: `1px solid ${UM.border}`, borderRadius: 8, fontFamily: "Montserrat", fontSize: 12 }}
                 formatter={(v: any) => `${fmtInt(v)} t`}
               />
-              <Bar dataKey="Programada" fill={UM.prog} radius={[2, 2, 0, 0]} animationDuration={900}>
+              <Bar dataKey="Programada" fill={UM.prog} radius={[2, 2, 0, 0]} animationDuration={800} animationBegin={0} animationEasing="ease-out">
                 <LabelList dataKey="Programada" position="top" formatter={kLabel} style={{ fontSize: 11, fill: UM.text2, fontWeight: 600, fontFamily: "Montserrat" }} />
               </Bar>
-              <Bar dataKey="Real" fill={realColor} radius={[2, 2, 0, 0]} animationDuration={900}>
+              <Bar dataKey="Real" fill={realColor} radius={[2, 2, 0, 0]} animationDuration={800} animationBegin={120} animationEasing="ease-out">
                 <LabelList dataKey="Real" position="top" formatter={kLabel} style={{ fontSize: 11, fill: UM.text, fontWeight: 700, fontFamily: "Montserrat" }} />
               </Bar>
             </BarChart>
@@ -262,7 +269,10 @@ export function FrenteDonut({ data }: { data: Array<{ name: string; value: numbe
                   paddingAngle={1}
                   stroke="#fff"
                   strokeWidth={2}
-                  animationDuration={900}
+                  startAngle={90}
+                  endAngle={-270}
+                  animationDuration={1000}
+                  animationEasing="ease-out"
                 >
                   {data.map((f, i) => <Cell key={i} fill={frenteCor(f.name, i)} />)}
                 </Pie>
@@ -298,7 +308,7 @@ const Dif = ({ v, bold }: { v: any; bold?: boolean }) => {
   const pos = Number(v) >= 0;
   return (
     <span className={bold ? "font-bold" : "font-semibold"} style={{ color: pos ? UM.green : UM.red }}>
-      {pos ? "▲" : "▼"} {fmtInt(v)} t
+      {pos ? "▲" : <span className="um-arrow-pulse">▼</span>} {fmtInt(v)} t
     </span>
   );
 };
@@ -345,7 +355,7 @@ export function FrentesTable({ tipo, rows, card }: { tipo: "LAV" | "RET"; rows: 
               key={`${r.equipamento}-${i}`}
               initial={{ opacity: 0, y: 4 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: i * 0.05 }}
+              transition={{ duration: 0.3 }}
               className="border-b"
               style={{ borderColor: UM.border, color: UM.text }}
             >
