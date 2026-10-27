@@ -965,7 +965,10 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
 
   // Cabeçalho: data de referência, turno e hora da última atualização (API)
   const headerInfo = (() => {
-    const ref = String((dashboardData as any)?.dataReferencia || "").trim();
+    const refRaw: any = (dashboardData as any)?.dataReferencia;
+    const ref = String(
+      refRaw && typeof refRaw === "object" ? (refRaw.data ?? refRaw.dia ?? refRaw.date ?? "") : (refRaw ?? "")
+    ).trim();
     let dataTxt = "—";
     if (ref) {
       const m = ref.match(/^(\d{4})-(\d{2})-(\d{2})/);
@@ -1028,8 +1031,8 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
       <SectionSep label="Visão Micro" />
       <div className="grid grid-cols-2 gap-2 items-stretch">
         <div className="flex flex-col gap-2 min-w-0">
-          <FrentesTable tipo="LAV" rows={frentesLav} card={cards?.lav} />
-          <FrentesTable tipo="RET" rows={frentesRet} card={cards?.ret} />
+          <FrentesTable tipo="LAV" rows={frentesLav} card={cards?.lav} className="flex-1" />
+          <FrentesTable tipo="RET" rows={frentesRet} card={cards?.ret} className="flex-1" />
         </div>
 
         <UMCard className="p-3 flex flex-col">
