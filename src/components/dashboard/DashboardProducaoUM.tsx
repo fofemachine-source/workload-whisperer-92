@@ -26,6 +26,8 @@ import { EstradaAnimada } from "@/components/dashboard/EstradaAnimada";
 import excavatorNeon from "@/assets/excavator.png";
 import truckNeon from "@/assets/truck.png";
 import { CaminhaoBasculante } from "@/components/dashboard/CaminhaoBasculante";
+import logoUM from "@/assets/logo-um.png";
+import { UM, UMHeader, SectionSep, ContratoCard, DailyContratoChart, FrenteDonut, FrentesTable, UMCard, UMTitle, AnimNum, isNum } from "@/components/dashboard/UMLight";
 
 /* ---------- helpers ---------- */
 
@@ -993,440 +995,163 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
   const atualizadoEm = (dashboardData as any)?.atualizadoEm || ultimaAtualizacao;
   const atualizadoEmFormatado = atualizadoEm ? new Date(atualizadoEm).toLocaleString("pt-BR") : "—";
 
+  // Cabeçalho: data de referência, turno e hora da última atualização (API)
+  const headerInfo = (() => {
+    const ref = String((dashboardData as any)?.dataReferencia || "").trim();
+    let dataTxt = "—";
+    if (ref) {
+      const m = ref.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      dataTxt = m ? `${m[3]}/${m[2]}/${m[1]}` : ref;
+    } else if (atualizadoEm) {
+      dataTxt = new Date(atualizadoEm).toLocaleDateString("pt-BR");
+    }
+    const turnoTxt = shiftInfo.elapsedHours >= 0 && new Date().getHours() >= 6 && new Date().getHours() < 18
+      ? "Turno A (06:00–18:00)"
+      : "Turno B (18:00–06:00)";
+    const hora = atualizadoEm ? new Date(atualizadoEm).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "—";
+    return `${dataTxt} · ${turnoTxt} · atualizado ${hora}`;
+  })();
+
+  // Séries diárias por contrato (campos da API, sem cálculo)
+  const dailyLav = (dashboardData?.producaoDiaria ?? []).slice(-7).map((d: any) => ({
+    dia: d.data && String(d.data).includes("-") ? `${String(d.data).split("-")[2]}/${String(d.data).split("-")[1]}` : d.data,
+    Programada: d.programadoLav ?? null,
+    Real: d.realLav ?? null,
+  }));
+  const dailyRet = (dashboardData?.producaoDiaria ?? []).slice(-7).map((d: any) => ({
+    dia: d.data && String(d.data).includes("-") ? `${String(d.data).split("-")[2]}/${String(d.data).split("-")[1]}` : d.data,
+    Programada: d.programadoRet ?? null,
+    Real: d.realRet ?? null,
+  }));
+
+  // Frentes por contrato (escavadeirasDetalhado, só as que produzem)
+  const detalhadoRaw: any[] = Array.isArray(dashboardData?.escavadeirasDetalhado) ? (dashboardData!.escavadeirasDetalhado as any[]) : [];
+  const produzindo = detalhadoRaw.filter((r) => toNum(r.totalMassa) > 0 || toNum(r.totalViagens) > 0);
+  const frentesLav = produzindo.filter((r) => String(r.contrato || "").toUpperCase() === "LAV");
+  const frentesRet = produzindo.filter((r) => String(r.contrato || "").toUpperCase() === "RET");
+
+  const tkphUltimo = tkphSeries.length > 0 ? tkphSeries[tkphSeries.length - 1] : null;
+  const tkphData = tkphUltimo?.fullDate
+    ? (String(tkphUltimo.fullDate).includes("-")
+        ? `${String(tkphUltimo.fullDate).split("-")[2]}/${String(tkphUltimo.fullDate).split("-")[1]}`
+        : String(tkphUltimo.fullDate))
+    : "";
+
   return (
-    <div className="force-live-animation min-h-screen bg-[hsl(220_50%_5%)] text-foreground p-2 md:p-3 font-sans dashboard-enter">
-      {/* 4 primeiros cartões (~160px de altura) — 32% / 32% / 18% / 18% */}
-      <div className="grid grid-cols-1 md:grid-cols-[32fr_32fr_18fr_18fr] gap-2">
-        <LavRetCard
-          title="LAVRA"
-          data={cards?.lav}
-        />
-        <LavRetCard
-          title="RETALUDAMENTO"
-          data={cards?.ret}
-        />
-        <ProducaoMensalCard
-          mesSigla={siglaMesAtual}
-          ano={anoAtual}
-          total={cards?.lavMaisRetMensal ?? cards?.producaoMensal ?? dashboardData?.kpis?.producaoMensal}
-          lavMensal={cards?.lavMensal}
-          retMensal={cards?.retMensal}
-        />
-        <ProducaoTurnoCard
-          producaoTurno={cards?.producaoTurno}
-        />
+    <div
+      className="force-live-animation min-h-screen p-2 md:p-3 dashboard-enter"
+      style={{ background: UM.bg, color: UM.text, fontFamily: "Montserrat, sans-serif", fontVariantNumeric: "tabular-nums" }}
+    >
+      <UMHeader logo={logoUM} info={headerInfo} />
+
+      <SectionSep label="Visão Macro" />
+      <div className="grid grid-cols-2 gap-2">
+        <ContratoCard tipo="LAV" data={cards?.lav} mensal={cards?.lavMensal} />
+        <ContratoCard tipo="RET" data={cards?.ret} mensal={cards?.retMensal} />
       </div>
 
-      {/* Dashboard grid */}
-      <div className="grid grid-cols-12 gap-2 mt-2 items-stretch">
-        <Panel title="Produção Diária (t)" className="col-span-12 lg:col-span-4 h-[300px]">
-          <div className="h-full neon-chart">
-            {dailySeries.length === 0 ? (
-              <Empty />
-            ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={dailySeries} margin={{ top: 12, right: 60, left: 0, bottom: 0 }}>
-                  <defs>
-                    <filter id="neonGlowLine" x="-50%" y="-50%" width="200%" height="200%">
-                      <feDropShadow dx="0" dy="0" stdDeviation="4" floodColor="#f97316" floodOpacity="0.8"/>
-                    </filter>
-                  </defs>
-                  <CartesianGrid stroke="rgba(255,255,255,0.05)" vertical={false} />
-                  <XAxis dataKey="dia" stroke="#9ca3af" tick={{ fontSize: 10, fontFamily: "Inter, sans-serif" }} />
-                  <YAxis stroke="#9ca3af" tick={{ fontSize: 10, fontFamily: "Inter, sans-serif" }} />
-                  <Tooltip contentStyle={tooltipStyle} />
-                  <Legend wrapperStyle={{ fontSize: 10, fontFamily: "Inter, sans-serif" }} />
-                  <Bar dataKey="Programada" fill="#f59e0b" radius={[2, 2, 0, 0]} isAnimationActive={false} />
-                  <Bar dataKey="Real" fill="#22c55e" radius={[2, 2, 0, 0]} isAnimationActive={false} />
-                  
-                  <ReferenceLine 
-                    y={mediaDiaria} 
-                    stroke="#f97316" 
-                    strokeWidth={2}
-                    strokeDasharray="12 8"
-                  >
-                    <Label
-                      value={rotuloMedia}
-                      position="right"
-                      content={(props) => <CustomLabel {...props} />}
-                    />
-                  </ReferenceLine>
-                </BarChart>
-              </ResponsiveContainer>
-            )}
-          </div>
-        </Panel>
+      <div className="grid gap-2 mt-2" style={{ gridTemplateColumns: "1.25fr 0.9fr 1.25fr" }}>
+        <DailyContratoChart title="Produção diária · Lavra (t)" data={dailyLav} realColor={UM.green} titleColor={UM.green} />
+        <FrenteDonut data={frenteAgg} />
+        <DailyContratoChart title="Produção diária · Retaludamento (t)" data={dailyRet} realColor={UM.gold} titleColor={UM.goldText} />
+      </div>
 
-        <Panel title="Produção por Frente (t)" className="col-span-12 lg:col-span-3 h-[300px] animated-card">
-          <div className="force-live-animation front-donut neon-donut h-full">
-            {frenteAgg.length === 0 ? (
-              <Empty />
-            ) : (() => {
-            const totalFrente = frenteAgg.reduce((s, r) => s + r.value, 0);
-            return (
-              <div className="h-full flex items-center gap-3">
-                <div className="w-[58%] h-full relative">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <defs>
-                        <filter id="frenteNeonGlow" x="-50%" y="-50%" width="200%" height="200%">
-                          <feGaussianBlur stdDeviation="6" result="blur" />
-                          <feMerge>
-                            <feMergeNode in="blur" />
-                            <feMergeNode in="SourceGraphic" />
-                          </feMerge>
-                        </filter>
-                        <radialGradient id="frenteCenterGlow" cx="50%" cy="50%" r="50%">
-                          <stop offset="0%" stopColor="hsl(199 100% 60% / 0.55)" />
-                          <stop offset="60%" stopColor="hsl(199 100% 60% / 0.10)" />
-                          <stop offset="100%" stopColor="hsl(199 100% 60% / 0)" />
-                        </radialGradient>
-                      </defs>
-                      <Pie
-                        className="animate-[spin_20s_linear_infinite] origin-center"
-                        data={frenteAgg}
-                        dataKey="value"
-                        nameKey="name"
-                        innerRadius="62%"
-                        outerRadius="94%"
-                        paddingAngle={2}
-                        stroke="hsl(220 50% 6%)"
-                        strokeWidth={1.5}
-                        filter="url(#frenteNeonGlow)"
-                        animationDuration={900}
-                        animationEasing="ease-out"
-                        isAnimationActive
-                      >
-                        {frenteAgg.map((f, i) => (
-                          <Cell key={i} fill={colorForFrente(f.name, i)} />
-                        ))}
-                      </Pie>
-                      <Tooltip
-                        contentStyle={tooltipStyle}
-                        formatter={(v: number, _n, p: any) => [
-                          `${fmt(v)} t (${(p?.payload?.pct ?? 0).toFixed(1)}%)`,
-                          p?.payload?.name,
-                        ]}
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
-                  <div
-                    className="chart-center-pulse absolute inset-0 rounded-full pointer-events-none"
-                    style={{ background: "radial-gradient(circle, rgba(0,234,255,0.22) 0%, transparent 60%)" }}
-                  />
-                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                    <span className="text-[11px] uppercase tracking-[0.25em] text-cyan-300 font-bold drop-shadow-[0_0_6px_rgba(0,234,255,0.8)]">Total</span>
-                    <span className="text-2xl md:text-3xl font-extrabold text-cyan-300 tabular-nums drop-shadow-[0_0_14px_rgba(0,234,255,0.95)] leading-none mt-0.5">
-                      {fmt(totalFrente)}
-                    </span>
-                    <span className="text-sm text-cyan-300/90 tracking-widest mt-0.5">t</span>
-                  </div>
-                </div>
-                <div className="w-[42%] h-full flex flex-col justify-center pr-1 divide-y divide-cyan-400/15">
-                  {frenteAgg.map((f, i) => {
-                    const c = colorForFrente(f.name, i);
-                    return (
-                      <motion.div
-                        key={f.name}
-                        initial={{ opacity: 0, x: 6 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.3, delay: i * 0.04 }}
-                        className="flex items-center gap-2 py-2"
-                      >
-                        <span
-                          className="w-4 h-4 shrink-0 inline-block rounded-full"
-                          style={{
-                            background: c,
-                            boxShadow: `0 0 10px ${c}, 0 0 0 2px rgba(255,255,255,0.12)`,
-                          }}
-                        />
-                        <span
-                          className="flex-1 font-extrabold tracking-wide text-white text-base md:text-lg truncate"
-                          title={f.name}
-                          style={{ textShadow: "0 0 6px rgba(255,255,255,0.35)" }}
-                        >
-                          {f.name}
-                        </span>
-                        <span
-                          className="tabular-nums shrink-0 font-extrabold text-base md:text-lg"
-                          style={{ color: c, textShadow: `0 0 8px ${c}` }}
-                        >
-                          {f.pct.toFixed(1)}%
-                        </span>
-                      </motion.div>
-                    );
-                  })}
-                </div>
-              </div>
-            );
-            })()}
-          </div>
-        </Panel>
+      <SectionSep label="Visão Micro" />
+      <div className="grid grid-cols-2 gap-2 items-stretch">
+        <div className="flex flex-col gap-2 min-w-0">
+          <FrentesTable tipo="LAV" rows={frentesLav} card={cards?.lav} />
+          <FrentesTable tipo="RET" rows={frentesRet} card={cards?.ret} />
+        </div>
 
-        <Panel title="ESCAVADEIRAS" className="col-span-12 lg:col-span-5 h-[300px] animated-card">
-          {top5Escav.length === 0 ? (
-            <Empty />
-          ) : (
-            <div className="flex flex-col h-full">
-              <div className="flex-1 min-h-0 overflow-y-auto escav-scroll">
-                <table className="w-full table-fixed text-[10px] tabular-nums border-collapse">
-                  <colgroup>
-                    <col style={{ width: "18%" }} />
-                    <col style={{ width: "12%" }} />
-                    <col style={{ width: "24%" }} />
-                    <col style={{ width: "16%" }} />
-                    <col style={{ width: "12%" }} />
-                    <col style={{ width: "18%" }} />
-                  </colgroup>
-                  <thead className="text-[#9ca3af] sticky top-0 bg-[#000000] z-10">
-                    <tr className="border-b border-[#22c55e]/25">
-                      <Th>Escavadeira</Th>
-                      <Th>Material</Th>
-                      <Th>Frente</Th>
-                      <Th>Destino</Th>
-                      <Th className="text-right">Qtd</Th>
-                      <Th className="text-right">Tonelagem</Th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {(() => {
-                      let activeRank = 0;
-
-                      return top5Escav.map((esc) => {
-                        if (!esc.ativa) {
-                          return (
-                            <tr
-                              key={esc.equipamento}
-                              className="border-b border-white/5 hover:bg-white/[0.03] opacity-60"
-                            >
-                              <Td className="py-[3px]">
-                                <span className="flex items-center gap-1.5">
-                                  <span className="w-4 h-4 flex items-center justify-center rounded-sm bg-muted text-muted-foreground text-[9px] font-black font-sans">
-                                    —
-                                  </span>
-                                  <span className="font-black text-muted-foreground">{esc.equipamento}</span>
-                                </span>
-                              </Td>
-                              <Td colSpan={5} className="text-muted-foreground italic text-[10px] py-[3px]">
-                                SEM PRODUÇÃO NO TURNO
-                              </Td>
-                            </tr>
-                          );
-                        }
-
-                        activeRank += 1;
-                        const currentRank = activeRank;
-
-                        // Destino principal (maior massa) + "+N" se houver múltiplos destinos
-                        let destinoTexto = "—";
-                        if (esc.destinos && esc.destinos.length > 0) {
-                          let best = esc.destinos[0];
-                          for (let i = 1; i < esc.destinos.length; i++) {
-                            if (toNum(esc.destinos[i].massa) > toNum(best.massa)) {
-                              best = esc.destinos[i];
-                            }
-                          }
-                          const bestName = String(best.destino || "—").trim() || "—";
-                          destinoTexto = esc.destinos.length > 1
-                            ? `${bestName} +${esc.destinos.length - 1}`
-                            : bestName;
-                        }
-
-                        return (
-                          <tr key={esc.equipamento} className="border-b border-white/5 hover:bg-white/[0.03]">
-                            <Td className="py-[3px]">
-                              <span className="flex items-center gap-1.5">
-                                <span className="w-4 h-4 flex items-center justify-center rounded-sm bg-emerald-400 text-background text-[9px] font-black font-sans shadow-[0_0_8px_hsl(142_71%_45%/0.7)] animate-pulse">
-                                  {currentRank}
-                                </span>
-                                <span className="font-bold text-emerald-300 text-glow-neon">{esc.equipamento}</span>
-                              </span>
-                            </Td>
-                            <Td title={esc.material ?? undefined} className="py-[3px] truncate">{esc.material ?? "—"}</Td>
-                            <Td title={esc.frente ?? undefined} className="py-[3px] truncate">{esc.frente ?? "—"}</Td>
-                            <Td title={destinoTexto} className="py-[3px] truncate">{destinoTexto}</Td>
-                            <Td className="text-right text-[#22c55e] tabular-nums font-bold text-xs py-[3px]">
-                              {Number(esc.totalViagens).toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
-                            </Td>
-                            <Td className="text-right text-mining-green tabular-nums font-bold text-xs py-[3px]">
-                              {fmtTon(esc.totalMassa)}
-                            </Td>
-                          </tr>
-                        );
-                      });
-                    })()}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-        </Panel>
-        <Panel title="% DISPONIBILIDADE FÍSICA E UTILIZAÇÃO POR FROTA" className="col-span-12 lg:col-span-6 h-[480px] animated-card">
-          <div className="flex flex-col h-full justify-evenly">
+        <UMCard className="p-3 flex flex-col">
+          <UMTitle>Indicadores por frota · disponibilidade, utilização e produtividade</UMTitle>
+          <div className="flex flex-col flex-1 justify-evenly">
             {frotasDfRender.map((item) => {
               const utItem = frotasUtRender.find((u) => u.name === item.name);
               const linhas = [
-                { label: "DISPO", value: item.df, meta: item.meta, color: item.df >= item.meta ? "#22c55e" : "#ef4444" },
-                ...(utItem ? [{ label: "UTIL", value: utItem.ut, meta: utItem.meta, color: utItem.ut >= utItem.meta ? "#22c55e" : "#eab308" }] : []),
+                { label: "DISPO", value: item.df, meta: item.meta, color: item.df >= item.meta ? UM.green : UM.red },
+                ...(utItem ? [{ label: "UTIL", value: utItem.ut, meta: utItem.meta, color: utItem.ut >= utItem.meta ? UM.green : UM.goldText }] : []),
               ];
+              const isTrk = item.type === "trk";
+              const tkphVal = isTrk && tkphUltimo
+                ? (item.name.includes("785") ? (tkphUltimo as any)["CR 785"] : item.name.includes("730") ? (tkphUltimo as any)["CR 730"] : null)
+                : null;
               return (
-              <div key={item.name} className="flex items-center gap-3 py-1 border-b border-white/5 last:border-0 pr-2">
-                <div className="flex items-center gap-3 flex-shrink-0">
-                  <div className="w-[80px] flex items-center justify-center flex-shrink-0">
-                    {item.type === "exc" ? (
-                      <ExcavatorIcon className="w-[80px] h-[60px]" />
-                    ) : (
-                      <CaminhaoBasculante className="w-[90px] h-[70px]" />
-                    )}
-                  </div>
-                  <div className="whitespace-nowrap">
-                    <div className="text-[22px] font-bold text-white uppercase tracking-wide">{item.name}</div>
-                    <div className={`text-lg tabular-nums mt-1 ${item.ativos < item.total ? "text-[#fbbf24] font-bold" : "text-[#9ca3af]"}`}>
-                      ({item.eq})
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex-1 flex items-center justify-center gap-2 min-w-0">
-                  {item.paradas && item.paradas.length > 0 ? (
-                    <div className="flex items-center justify-center gap-2">
-                      {item.paradas.slice(0, 4).map((parada: any, idx: number) => (
-                        <LuzAviso key={parada.id || `${item.name}-${idx}`} parada={parada} />
-                      ))}
-                      {item.paradas.length > 4 && (
-                        <div className="flex flex-col items-center justify-center self-start mt-1">
-                          <div className="w-[32px] h-[32px] rounded-[10px] border border-gray-600/70 bg-gray-800/40 text-gray-300 text-xs font-bold tabular-nums flex items-center justify-center shadow-sm">
-                            +{item.paradas.length - 4}
-                          </div>
-                        </div>
+                <div key={item.name} className="flex items-center gap-2 py-1 border-b last:border-0" style={{ borderColor: UM.border }}>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <div className="w-[70px] flex items-center justify-center flex-shrink-0">
+                      {item.type === "exc" ? (
+                        <ExcavatorIcon className="w-[70px] h-[52px]" />
+                      ) : (
+                        <CaminhaoBasculante className="w-[78px] h-[60px]" />
                       )}
                     </div>
-                  ) : null}
-                </div>
-
-                <div className="flex flex-col gap-1.5 flex-shrink-0 w-[300px]">
-                  {linhas.map((l) => {
-                    const pct = Math.max(0, Math.min(100, Number(l.value) || 0));
-                    const metaPct = Math.max(0, Math.min(100, Number(l.meta) || 0));
-                    return (
-                      <div key={l.label} className="flex items-center gap-2 whitespace-nowrap">
-                        <span className="w-[42px] text-[12px] font-bold text-[#9ca3af] uppercase">{l.label}</span>
-                        <span className="w-[82px] text-right text-[24px] font-bold tabular-nums" style={{ color: l.color }}>
-                          {pct.toFixed(1)}%
-                        </span>
-                        <div className="relative flex-1 h-[10px] rounded-full bg-white/10">
-                          <div className="absolute inset-y-0 left-0 rounded-full transition-all duration-700" style={{ width: `${pct}%`, background: l.color, boxShadow: `0 0 8px ${l.color}` }} />
-                          <div className="absolute -top-[3px] -bottom-[3px] w-[2px] bg-white" style={{ left: `calc(${metaPct}% - 1px)` }} />
-                        </div>
-                        <span className="text-[11px] text-[#9ca3af] font-bold tabular-nums">Meta {metaPct.toFixed(1)}%</span>
+                    <div className="whitespace-nowrap">
+                      <div className="text-[19px] font-bold uppercase" style={{ color: UM.text }}>{item.name}</div>
+                      <div className="text-[15px] font-semibold tabular-nums" style={{ color: item.ativos < item.total ? UM.goldText : UM.text2 }}>
+                        ({item.eq})
                       </div>
-                    );
-                  })}
+                    </div>
+                  </div>
+
+                  <div className="flex-1 flex items-center justify-center gap-1.5 min-w-0">
+                    {item.paradas && item.paradas.length > 0 ? (
+                      <div className="flex items-center justify-center gap-1.5">
+                        {item.paradas.slice(0, 4).map((parada: any, idx: number) => (
+                          <LuzAviso key={parada.id || `${item.name}-${idx}`} parada={parada} />
+                        ))}
+                        {item.paradas.length > 4 && (
+                          <div className="w-[32px] h-[32px] rounded-[10px] border text-xs font-bold flex items-center justify-center" style={{ borderColor: UM.border, color: UM.text2 }}>
+                            +{item.paradas.length - 4}
+                          </div>
+                        )}
+                      </div>
+                    ) : null}
+                  </div>
+
+                  <div className="flex flex-col gap-1.5 flex-shrink-0 w-[270px]">
+                    {linhas.map((l) => {
+                      const pct = Math.max(0, Math.min(100, Number(l.value) || 0));
+                      const metaPct = Math.max(0, Math.min(100, Number(l.meta) || 0));
+                      return (
+                        <div key={l.label} className="flex items-center gap-2 whitespace-nowrap">
+                          <span className="w-[40px] text-[11px] font-bold" style={{ color: UM.text2 }}>{l.label}</span>
+                          <span className="w-[72px] text-right text-[20px] font-bold tabular-nums" style={{ color: l.color }}>
+                            {pct.toFixed(1).replace(".", ",")}%
+                          </span>
+                          <div className="relative flex-1 h-[8px] rounded-full" style={{ background: UM.border }}>
+                            <div className="absolute inset-y-0 left-0 rounded-full transition-all duration-700" style={{ width: `${pct}%`, background: l.color }} />
+                            <div className="absolute -top-[3px] -bottom-[3px] w-[2px]" style={{ left: `calc(${metaPct}% - 1px)`, background: UM.text }} />
+                          </div>
+                          <span className="text-[11px] font-semibold tabular-nums" style={{ color: UM.text2 }}>Meta {metaPct.toFixed(1).replace(".", ",")}%</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <div className="w-[70px] flex-shrink-0 border-l pl-2 text-right whitespace-nowrap" style={{ borderColor: UM.border }}>
+                    <div className="text-[11px] font-bold" style={{ color: UM.green }}>{isTrk ? "TKPH" : "PROD"}</div>
+                    <div className="text-[22px] font-bold tabular-nums leading-tight" style={{ color: UM.text }}>
+                      {isTrk ? (isNum(tkphVal) ? <AnimNum value={tkphVal} /> : "—") : "—"}
+                    </div>
+                    <div className="text-[10px]" style={{ color: UM.text3 }}>{isTrk ? tkphData : "t/h efetiva"}</div>
+                  </div>
                 </div>
-              </div>
               );
             })}
           </div>
-        </Panel>
-
-        <Panel title="UTILIZAÇÃO POR FROTA" className="col-span-12 lg:col-span-6 h-[480px] animated-card">
-          <div className="h-full" />
-        </Panel>
-
-        <Panel className="col-span-12 lg:col-span-5 h-[184px] animated-card relative overflow-hidden !p-1">
-          <div className="absolute top-1 left-3 z-10 pointer-events-none">
-            <h2 className="text-[#22c55e] text-[16px] font-black uppercase tracking-tight">PRODUTIVIDADE TKPH (TON X KM / HORA)</h2>
-          </div>
-          <div className="force-live-animation productivity-bar h-full relative pt-5">
-            {tkphSeries.length === 0 ? (
-              <Empty />
-            ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={tkphSeries} margin={{ top: 20, right: 8, left: 0, bottom: 32 }} barGap={0}>
-                  <CartesianGrid stroke="rgba(255,255,255,0.05)" vertical={false} />
-                  <XAxis dataKey="dia" stroke="#9ca3af" tick={<TkphTick />} tickLine={false} axisLine={false} />
-                  <YAxis stroke="#9ca3af" tick={{ fontSize: 16, fill: '#ffffff', fontWeight: 700, fontFamily: "Inter, sans-serif" }} width={45} tickCount={4} domain={[0, 'dataMax']} />
-                  <Tooltip 
-                    contentStyle={{ ...tooltipStyle, padding: '8px' }} 
-                    cursor={{ fill: 'rgba(255,255,255,0.05)' }}
-                  />
-                  <Bar dataKey="CR 785" fill="#f97316" radius={[2, 2, 0, 0]} barSize={40} animationDuration={1000}>
-                    <LabelList dataKey="CR 785" position="top" fill="#ffffff" fontSize={15} fontWeight={700} fontFamily="Inter, sans-serif" offset={4} />
-                  </Bar>
-                  <Bar dataKey="CR 730" fill="#22c55e" radius={[2, 2, 0, 0]} barSize={40} animationDuration={1000}>
-                    <LabelList dataKey="CR 730" position="top" fill="#ffffff" fontSize={15} fontWeight={700} fontFamily="Inter, sans-serif" offset={4} />
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            )}
-            
-            {tkphSeries.length > 0 && (
-              <div className="absolute bottom-0 left-0 w-full flex justify-center z-10 pointer-events-none">
-                <div className="flex items-center gap-6 border border-[#22c55e]/30 rounded-full px-6 py-0.5 bg-[#000000]">
-                  <div className="flex items-center gap-2">
-                    <span className="w-5 h-5 rounded-full bg-[#f97316]" />
-                    <span className="font-bold text-[16px] text-[#f97316]">CR 785</span>
-                  </div>
-                  <span className="text-[#9ca3af] font-light text-sm">|</span>
-                  <div className="flex items-center gap-2">
-                    <span className="w-5 h-5 rounded-full bg-[#22c55e]" />
-                    <span className="font-bold text-[16px] text-[#22c55e]">CR 730</span>
-                  </div>
-                </div>
-              </div>
-            )}
-            
-            {/* Ícone de Caminhão no canto inferior direito */}
-            <div className="absolute right-2 bottom-0 opacity-80 pointer-events-none">
-              <img src={truckNeon} alt="Truck Icon" className="h-12 object-contain" style={{ filter: "drop-shadow(0 0 5px #22c55e) brightness(1.2)" }} />
-            </div>
-          </div>
-        </Panel>
-        <Panel title="Viagens por Hora" className="col-span-12 lg:col-span-5 h-[184px] animated-card">
-          <div className="force-live-animation trips-chart h-full">
-            {viagensPorHora.length === 0 ? (
-              <Empty />
-            ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={viagensPorHora} margin={{ top: 20, right: 4, left: 0, bottom: 0 }}>
-                  <CartesianGrid stroke="rgba(255,255,255,0.05)" vertical={false} />
-                  <XAxis dataKey="hora" stroke="#9ca3af" tick={{ fontSize: 10, fontWeight: 700, fontFamily: "Inter, sans-serif" }} interval={1} />
-                  <YAxis stroke="#9ca3af" tick={{ fontSize: 10, fontWeight: 700, fontFamily: "Inter, sans-serif" }} width={30} />
-                  <Tooltip contentStyle={tooltipStyle} />
-                  <Bar dataKey="Real" fill="#22c55e" radius={[2, 2, 0, 0]} animationDuration={900} animationEasing="ease-out">
-                    <LabelList dataKey="Real" position="top" fill="#22c55e" fontSize={11} fontWeight={700} fontFamily="Inter, sans-serif" offset={4} formatter={(val: any) => (Number(val) > 0 ? val : '')} />
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            )}
-          </div>
-        </Panel>
-        <Panel className="col-span-12 lg:col-span-2 h-[184px] animated-card">
-          <div className="flex flex-col justify-between h-full py-2 gap-2">
-            <StatBlock label="Produção (9H/13H)" value={<Counter value={producaoDia} useTonFmt />} unit="t" big />
-            <StatBlock label="Próxima Média" value={<Counter value={totalMassaTop5} useTonFmt />} />
-            <StatBlock label="Viagens" value={<Counter value={viagens} />} />
-            <StatBlock label="VOI 10.000" value={<Counter value={mediaViagens} />} />
-          </div>
-        </Panel>
-
+        </UMCard>
       </div>
 
-      {/* Animated road footer */}
-      <EstradaAnimada />
-
       {/* Footer */}
-      <div className="mt-1 flex flex-wrap items-center justify-between gap-2 px-1 text-[10px] tabular-nums text-[#9ca3af]">
-        <span className="flex items-center gap-2">
-          Fonte: http://192.168.17.15:3001/api/dashboard
-        </span>
+      <div className="mt-1.5 flex flex-wrap items-center justify-between gap-2 px-1 text-[11px] tabular-nums" style={{ color: UM.text3 }}>
+        <span>Fonte: http://192.168.17.15:3001/api/dashboard</span>
         <span className="flex items-center gap-4">
           <span>
-            Atualização em: <span className="text-[#22c55e] font-bold tabular-nums">{segundosAtualizacao}s</span>
+            Atualização em: <span className="font-bold" style={{ color: UM.green }}>{segundosAtualizacao}s</span>
           </span>
           <span>
-            Última atualização:{" "}
-            <span className="text-foreground font-bold">{atualizadoEmFormatado}</span>
+            Última atualização: <span className="font-bold" style={{ color: UM.text }}>{atualizadoEmFormatado}</span>
           </span>
         </span>
       </div>
