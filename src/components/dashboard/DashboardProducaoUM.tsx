@@ -540,7 +540,7 @@ export default function DashboardProducaoUM() {
         dia: labelDia,
         diaOriginal: d.data,
         Real: Number(d.real ?? 0),
-        Prevista: Number(d.previsto ?? 0),
+        Programada: Number(d.previsto ?? 0),
       };
     });
   }, [dashboardData]);
@@ -879,7 +879,7 @@ export default function DashboardProducaoUM() {
       dailySeries.map((d) => ({
         dia: d.dia,
         Real: d.Real,
-        Prevista: d.Prevista,
+        Programada: d.Programada,
       })),
     [dailySeries],
   );
@@ -1039,7 +1039,7 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
                   <YAxis stroke="#9ca3af" tick={{ fontSize: 10, fontFamily: "Inter, sans-serif" }} />
                   <Tooltip contentStyle={tooltipStyle} />
                   <Legend wrapperStyle={{ fontSize: 10, fontFamily: "Inter, sans-serif" }} />
-                  <Bar dataKey="Prevista" fill="#f59e0b" radius={[2, 2, 0, 0]} isAnimationActive={false} />
+                  <Bar dataKey="Programada" fill="#f59e0b" radius={[2, 2, 0, 0]} isAnimationActive={false} />
                   <Bar dataKey="Real" fill="#22c55e" radius={[2, 2, 0, 0]} isAnimationActive={false} />
                   
                   <ReferenceLine 
@@ -1774,7 +1774,7 @@ function LavRetCard({
           {/* Linha 1 */}
           <div className="flex flex-col min-w-0">
             <span className="text-[10.5px] font-bold text-[#22c55e] uppercase whitespace-nowrap leading-none">
-              PREVISTO ATÉ AGORA
+              PROGRAMADO ATÉ AGORA
             </span>
             <span className="text-[27px] font-bold text-white whitespace-nowrap leading-none mt-0 tabular-nums">
               {renderCardVal(previstoAteAgora, " t")}
