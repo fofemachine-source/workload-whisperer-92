@@ -14,9 +14,9 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ["Inter", '"Segoe UI"', "Arial", "sans-serif"],
-        mono: ["Inter", '"Segoe UI"', "Arial", "sans-serif"],
-        display: ["Inter", '"Segoe UI"', "Arial", "sans-serif"],
+        sans: ["Montserrat", '"Segoe UI"', "Arial", "sans-serif"],
+        mono: ["Montserrat", '"Segoe UI"', "Arial", "sans-serif"],
+        display: ["Montserrat", '"Segoe UI"', "Arial", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",
