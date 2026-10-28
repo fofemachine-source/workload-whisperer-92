@@ -8,6 +8,14 @@ export interface ParadaFrota {
   tempo: string;
 }
 
+export interface TurnoDescarregadoData {
+  viagensDescarregadas?: number;
+  massaDescarregada?: number;
+  viagensEmTransito?: number;
+  massaEmTransito?: number;
+  [key: string]: any;
+}
+
 export interface LavRetCardData {
   titulo?: string;
   acumuladoDia?: number | null;
@@ -26,6 +34,7 @@ export interface LavRetCardData {
   aderenciaExata?: number | null;
   faixaAderencia?: string | null;
   previstoTurnoOrigem?: string | null;
+  turnoDescarregado?: TurnoDescarregadoData | null;
   dia?: Record<string, any>;
   [key: string]: any;
 }

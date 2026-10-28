@@ -313,6 +313,15 @@ export function FrentesTable({ tipo, rows, card, className = "" }: { tipo: "LAV"
   const isLav = tipo === "LAV";
   const cor = isLav ? UM.green : UM.goldText;
   const c = card ?? {};
+  const tdDesc = c?.turnoDescarregado;
+  const totalViagensDesc = tdDesc?.viagensDescarregadas !== undefined && tdDesc?.viagensDescarregadas !== null
+    ? tdDesc.viagensDescarregadas
+    : c.viagensTurno;
+  const totalMassaDesc = tdDesc?.massaDescarregada !== undefined && tdDesc?.massaDescarregada !== null
+    ? tdDesc.massaDescarregada
+    : c.producaoTurno;
+  const totalEmTransito = Number(tdDesc?.viagensEmTransito || 0);
+
   const th = "py-1.5 px-1.5 text-[11px] font-semibold whitespace-nowrap";
   const td = "py-1.5 px-1.5 text-[13px] whitespace-nowrap tabular-nums";
   return (
@@ -380,8 +389,15 @@ export function FrentesTable({ tipo, rows, card, className = "" }: { tipo: "LAV"
         <tfoot>
           <tr style={{ background: UM.bg, color: cor }}>
             <td colSpan={3} className={`${td} font-bold uppercase`}>Total {isLav ? "Lavra" : "Retaludamento"}</td>
-            <td className={`${td} text-right font-bold`} style={{ color: UM.text }}>{fmtInt(c.viagensTurno)}</td>
-            <td className={`${td} text-right font-bold`} style={{ color: UM.text }}>{tOrDash(c.producaoTurno)}</td>
+            <td className={`${td} text-right font-bold`} style={{ color: UM.text }}>
+              {fmtInt(totalViagensDesc)}
+              {totalEmTransito > 0 && (
+                <span className="text-[11px] font-normal ml-1.5" style={{ color: "#7A7A79" }}>
+                  (+{totalEmTransito} em trânsito)
+                </span>
+              )}
+            </td>
+            <td className={`${td} text-right font-bold`} style={{ color: UM.text }}>{tOrDash(totalMassaDesc)}</td>
             <td className={`${td} text-right font-bold`} style={{ color: UM.text }}>{tOrDash(c.projecao)}</td>
             <td className={`${td} text-right font-bold`} style={{ color: UM.text }}>{tOrDash(c.previstoTurno)}</td>
             <td className={`${td} text-right`}><Dif v={c.diferencaProjetada} bold /></td>
