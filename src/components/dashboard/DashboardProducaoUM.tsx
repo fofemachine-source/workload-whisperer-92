@@ -1049,7 +1049,7 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
                 ? (item.name.includes("785") ? (tkphUltimo as any)["CR 785"] : item.name.includes("730") ? (tkphUltimo as any)["CR 730"] : null)
                 : null;
               return (
-                <div key={item.name} className="flex items-center gap-2 py-1 border-b last:border-0" style={{ borderColor: UM.border }}>
+                <div key={item.name} className="flex items-center gap-2 py-2 border-b last:border-0" style={{ borderColor: UM.border }}>
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <div className="w-[70px] flex items-center justify-center flex-shrink-0">
                       {item.type === "exc" ? (
@@ -1118,8 +1118,7 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
       </motion.div>
 
       {/* Footer */}
-      <div className="mt-1.5 flex flex-wrap items-center justify-between gap-2 px-1 text-[11px] tabular-nums" style={{ color: UM.text3 }}>
-        <span>Fonte: http://192.168.17.15:3001/api/dashboard</span>
+      <div className="mt-1.5 flex flex-wrap items-center justify-end gap-2 px-1 text-[11px] tabular-nums" style={{ color: UM.text3 }}>
         <span className="flex items-center gap-4">
           <span>
             Atualização em: <span className="font-bold" style={{ color: UM.green }}>{segundosAtualizacao}s</span>

@@ -203,7 +203,7 @@ const kLabel = (v: any) => (isNum(v) && Number(v) > 0 ? `${Math.round(Number(v) 
 
 export function DailyContratoChart({ title, data, realColor, titleColor }: { title: string; data: any[]; realColor: string; titleColor: string }) {
   return (
-    <UMCard className="p-3 flex flex-col h-[200px]">
+    <UMCard className="p-3 flex flex-col h-[235px]">
       <UMTitle
         color={titleColor}
         right={
@@ -220,17 +220,17 @@ export function DailyContratoChart({ title, data, realColor, titleColor }: { tit
           <p className="text-[12px] text-center pt-10" style={{ color: UM.text3 }}>Sem dados</p>
         ) : (
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data} margin={{ top: 18, right: 4, left: 4, bottom: 0 }} barGap={2}>
-              <XAxis dataKey="dia" tick={{ fontSize: 12, fill: UM.text, fontWeight: 600, fontFamily: "Montserrat" }} axisLine={{ stroke: UM.border }} tickLine={false} />
+            <BarChart data={data} margin={{ top: 22, right: 4, left: 4, bottom: 0 }} barGap={2}>
+              <XAxis dataKey="dia" tick={{ fontSize: 12, fill: "#2C2D2D", fontWeight: 600, fontFamily: "Montserrat" }} axisLine={{ stroke: UM.border }} tickLine={false} />
               <Tooltip
                 contentStyle={{ background: "#fff", border: `1px solid ${UM.border}`, borderRadius: 8, fontFamily: "Montserrat", fontSize: 12 }}
                 formatter={(v: any) => `${fmtInt(v)} t`}
               />
               <Bar dataKey="Programada" fill={UM.prog} radius={[2, 2, 0, 0]} animationDuration={800} animationBegin={0} animationEasing="ease-out">
-                <LabelList dataKey="Programada" position="top" formatter={kLabel} style={{ fontSize: 11, fill: UM.text2, fontWeight: 600, fontFamily: "Montserrat" }} />
+                <LabelList dataKey="Programada" position="top" formatter={kLabel} fill="#2C2D2D" fontSize={12} fontWeight={600} style={{ fontSize: 12, fill: "#2C2D2D", fontWeight: 600, fontFamily: "Montserrat" }} />
               </Bar>
               <Bar dataKey="Real" fill={realColor} radius={[2, 2, 0, 0]} animationDuration={800} animationBegin={120} animationEasing="ease-out">
-                <LabelList dataKey="Real" position="top" formatter={kLabel} style={{ fontSize: 11, fill: UM.text, fontWeight: 700, fontFamily: "Montserrat" }} />
+                <LabelList dataKey="Real" position="top" formatter={kLabel} fill="#2C2D2D" fontSize={12} fontWeight={600} style={{ fontSize: 12, fill: "#2C2D2D", fontWeight: 600, fontFamily: "Montserrat" }} />
               </Bar>
             </BarChart>
           </ResponsiveContainer>
@@ -250,7 +250,7 @@ const frenteCor = (n: string, i: number) => {
 export function FrenteDonut({ data }: { data: Array<{ name: string; value: number; pct: number }> }) {
   const total = data.reduce((s, r) => s + r.value, 0);
   return (
-    <UMCard className="p-3 flex flex-col h-[200px]">
+    <UMCard className="p-3 flex flex-col h-[235px]">
       <UMTitle>Produção por frente (t) · dia</UMTitle>
       {data.length === 0 ? (
         <p className="text-[12px] text-center pt-10" style={{ color: UM.text3 }}>Sem dados</p>
@@ -288,7 +288,7 @@ export function FrenteDonut({ data }: { data: Array<{ name: string; value: numbe
             {data.map((f, i) => {
               const c = frenteCor(f.name, i);
               return (
-                <div key={f.name} className="flex items-center gap-2 py-2 whitespace-nowrap">
+                <div key={f.name} className="flex items-center gap-2 py-2.5 whitespace-nowrap">
                   <span className="w-3.5 h-3.5 rounded-full shrink-0" style={{ background: c }} />
                   <span className="flex-1 text-[18px] font-bold" style={{ color: UM.text }}>{f.name}</span>
                   <span className="text-[18px] font-bold tabular-nums" style={{ color: c === UM.gold ? UM.goldText : c }}>{f.pct.toFixed(1).replace(".", ",")}%</span>
@@ -318,8 +318,8 @@ export function FrentesTable({ tipo, rows, card, className = "" }: { tipo: "LAV"
   const isLav = tipo === "LAV";
   const cor = isLav ? UM.green : UM.goldText;
   const c = card ?? {};
-  const th = "py-1 px-1.5 text-[11px] font-semibold whitespace-nowrap";
-  const td = "py-1 px-1.5 text-[13px] whitespace-nowrap tabular-nums";
+  const th = "py-1.5 px-1.5 text-[11px] font-semibold whitespace-nowrap";
+  const td = "py-1.5 px-1.5 text-[13px] whitespace-nowrap tabular-nums";
   return (
     <UMCard className={`p-3 flex flex-col ${className}`}>
       <UMTitle
