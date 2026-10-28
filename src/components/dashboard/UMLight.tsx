@@ -301,10 +301,17 @@ export function FrentesTable({ tipo, rows, card, className = "" }: { tipo: "LAV"
   const totalMassaDesc = tdDesc?.massaDescarregada !== undefined && tdDesc?.massaDescarregada !== null
     ? tdDesc.massaDescarregada
     : c.producaoTurno;
-  const totalEmTransito = Number(tdDesc?.viagensEmTransito || 0);
 
   const th = "py-1.5 px-1.5 text-[11px] font-semibold whitespace-nowrap";
   const td = "py-1.5 px-1.5 text-[13px] whitespace-nowrap tabular-nums";
+
+  const rowsValidas = rows.filter((r) => {
+    const vDesc = r.viagensDescarregadas !== undefined && r.viagensDescarregadas !== null
+      ? Number(r.viagensDescarregadas)
+      : Number(r.totalViagens || 0);
+    return vDesc > 0;
+  });
+
   return (
     <UMCard className={`p-3 flex flex-col ${className}`}>
       <UMTitle
@@ -332,13 +339,12 @@ export function FrentesTable({ tipo, rows, card, className = "" }: { tipo: "LAV"
           </tr>
         </thead>
         <tbody>
-          {rows.length === 0 && (
+          {rowsValidas.length === 0 && (
             <tr><td colSpan={8} className="py-2 text-center text-[12px]" style={{ color: UM.text3 }}>Nenhuma escavadeira produzindo</td></tr>
           )}
-          {rows.map((r, i) => {
+          {rowsValidas.map((r, i) => {
             const vDesc = r.viagensDescarregadas !== undefined && r.viagensDescarregadas !== null ? r.viagensDescarregadas : r.totalViagens;
             const mDesc = r.massaDescarregada !== undefined && r.massaDescarregada !== null ? r.massaDescarregada : r.totalMassa;
-            const emTransito = Number(r.viagensEmTransito || 0);
             return (
               <motion.tr
                 key={`${r.equipamento}-${i}`}
@@ -351,14 +357,7 @@ export function FrentesTable({ tipo, rows, card, className = "" }: { tipo: "LAV"
                 <td className={`${td} font-bold`} style={{ color: cor }}>{r.equipamento}</td>
                 <td className={`${td} text-[12px]`} style={{ color: UM.text2 }}>{r.frente ?? "—"}</td>
                 <td className={td}>{r.material ?? "—"}</td>
-                <td className={`${td} text-right font-semibold`}>
-                  {fmtInt(vDesc)}
-                  {emTransito > 0 && (
-                    <span className="text-[11px] font-normal ml-1.5" style={{ color: "#7A7A79" }}>
-                      (+{emTransito} em trânsito)
-                    </span>
-                  )}
-                </td>
+                <td className={`${td} text-right font-semibold`}>{fmtInt(vDesc)}</td>
                 <td className={`${td} text-right font-semibold`}>{tOrDash(mDesc)}</td>
                 <td className={`${td} text-right font-semibold`}>{tOrDash(r.projecaoTurno)}</td>
                 <td className={`${td} text-right`}>{tOrDash(r.programadoFrente)}</td>
@@ -370,14 +369,7 @@ export function FrentesTable({ tipo, rows, card, className = "" }: { tipo: "LAV"
         <tfoot>
           <tr style={{ background: UM.bg, color: cor }}>
             <td colSpan={3} className={`${td} font-bold uppercase`}>Total {isLav ? "Lavra" : "Retaludamento"}</td>
-            <td className={`${td} text-right font-bold`} style={{ color: UM.text }}>
-              {fmtInt(totalViagensDesc)}
-              {totalEmTransito > 0 && (
-                <span className="text-[11px] font-normal ml-1.5" style={{ color: "#7A7A79" }}>
-                  (+{totalEmTransito} em trânsito)
-                </span>
-              )}
-            </td>
+            <td className={`${td} text-right font-bold`} style={{ color: UM.text }}>{fmtInt(totalViagensDesc)}</td>
             <td className={`${td} text-right font-bold`} style={{ color: UM.text }}>{tOrDash(totalMassaDesc)}</td>
             <td className={`${td} text-right font-bold`} style={{ color: UM.text }}>{tOrDash(c.projecao)}</td>
             <td className={`${td} text-right font-bold`} style={{ color: UM.text }}>{tOrDash(c.previstoTurno)}</td>
