@@ -84,10 +84,19 @@ export interface DashboardApiPayload {
     equipamento: string;
     material?: string;
     frente?: string;
+    contrato?: string;
     destinos?: Array<{ destino: string; massa: number; viagens: number }>;
     totalMassa?: number;
     totalViagens?: number;
     totalTh?: number;
+    viagensDescarregadas?: number;
+    massaDescarregada?: number;
+    viagensEmTransito?: number;
+    massaEmTransito?: number;
+    projecaoTurno?: number;
+    programadoFrente?: number;
+    diferencaProjetada?: number;
+    [key: string]: any;
   }>;
   totalRankingEscavadeiras?: {
     viagens?: number;

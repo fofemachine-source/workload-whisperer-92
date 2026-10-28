@@ -997,7 +997,12 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
 
   // Frentes por contrato (escavadeirasDetalhado, só as que produzem)
   const detalhadoRaw: any[] = Array.isArray(dashboardData?.escavadeirasDetalhado) ? (dashboardData!.escavadeirasDetalhado as any[]) : [];
-  const produzindo = detalhadoRaw.filter((r) => toNum(r.totalMassa) > 0 || toNum(r.totalViagens) > 0);
+  const produzindo = detalhadoRaw.filter(
+    (r) =>
+      toNum(r.massaDescarregada ?? r.totalMassa) > 0 ||
+      toNum(r.viagensDescarregadas ?? r.totalViagens) > 0 ||
+      toNum(r.viagensEmTransito) > 0
+  );
   const frentesLav = produzindo.filter((r) => String(r.contrato || "").toUpperCase() === "LAV");
   const frentesRet = produzindo.filter((r) => String(r.contrato || "").toUpperCase() === "RET");
 

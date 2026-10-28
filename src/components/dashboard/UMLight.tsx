@@ -142,7 +142,7 @@ export function ContratoCard({ tipo, data, mensal }: { tipo: "LAV" | "RET"; data
       <div className="flex items-center justify-between px-3.5 py-1.5 border-b" style={{ borderColor: UM.border }}>
         <span className="text-[17px] font-bold tracking-[0.06em]" style={{ color: cor }}>{isLav ? "LAVRA" : "RETALUDAMENTO"}</span>
         <span className="text-[12px] font-semibold" style={{ color: UM.text }}>
-          {isLav ? "Contrato Lavra · rodoviário" : "Contrato Retaludamento · rodoviário + convencional"}
+          {isLav ? "Contrato Lavra · rodoviário" : "Contrato Retaludamento · rodoviário"}
         </span>
       </div>
       <div className="flex-1 grid grid-cols-[28%_1fr] gap-2 p-2.5">
@@ -157,12 +157,7 @@ export function ContratoCard({ tipo, data, mensal }: { tipo: "LAV" | "RET"; data
           <span className="text-[20px] font-semibold mt-1" style={{ color: cor }}>
             {fmtInt(d.viagensTurno)} viagens
           </span>
-          {!isLav && (
-            <div className="mt-1.5 text-[12px] leading-tight" style={{ color: UM.text }}>
-              <div>Rodoviário <b>{isNum(d.producaoTurno) ? `${fmtInt(d.producaoTurno)} t` : "—"}</b></div>
-              <div>Convencional <b>—</b></div>
-            </div>
-          )}
+
         </div>
         <div className="grid grid-cols-2 gap-2 min-w-0">
           <SubBox title="Turno">
@@ -350,25 +345,37 @@ export function FrentesTable({ tipo, rows, card, className = "" }: { tipo: "LAV"
           {rows.length === 0 && (
             <tr><td colSpan={8} className="py-2 text-center text-[12px]" style={{ color: UM.text3 }}>Nenhuma escavadeira produzindo</td></tr>
           )}
-          {rows.map((r, i) => (
-            <motion.tr
-              key={`${r.equipamento}-${i}`}
-              initial={{ opacity: 0, y: 4 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-              className="border-b"
-              style={{ borderColor: UM.border, color: UM.text }}
-            >
-              <td className={`${td} font-bold`} style={{ color: cor }}>{r.equipamento}</td>
-              <td className={`${td} text-[12px]`} style={{ color: UM.text2 }}>{r.frente ?? "—"}</td>
-              <td className={td}>{r.material ?? "—"}</td>
-              <td className={`${td} text-right font-semibold`}>{fmtInt(r.totalViagens)}</td>
-              <td className={`${td} text-right font-semibold`}>{tOrDash(r.totalMassa)}</td>
-              <td className={`${td} text-right font-semibold`}>{tOrDash(r.projecaoTurno)}</td>
-              <td className={`${td} text-right`}>{tOrDash(r.programadoFrente)}</td>
-              <td className={`${td} text-right`}><Dif v={r.diferencaProjetada} /></td>
-            </motion.tr>
-          ))}
+          {rows.map((r, i) => {
+            const vDesc = r.viagensDescarregadas !== undefined && r.viagensDescarregadas !== null ? r.viagensDescarregadas : r.totalViagens;
+            const mDesc = r.massaDescarregada !== undefined && r.massaDescarregada !== null ? r.massaDescarregada : r.totalMassa;
+            const emTransito = Number(r.viagensEmTransito || 0);
+            return (
+              <motion.tr
+                key={`${r.equipamento}-${i}`}
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                className="border-b"
+                style={{ borderColor: UM.border, color: UM.text }}
+              >
+                <td className={`${td} font-bold`} style={{ color: cor }}>{r.equipamento}</td>
+                <td className={`${td} text-[12px]`} style={{ color: UM.text2 }}>{r.frente ?? "—"}</td>
+                <td className={td}>{r.material ?? "—"}</td>
+                <td className={`${td} text-right font-semibold`}>
+                  {fmtInt(vDesc)}
+                  {emTransito > 0 && (
+                    <span className="text-[11px] font-normal ml-1.5" style={{ color: "#7A7A79" }}>
+                      (+{emTransito} em trânsito)
+                    </span>
+                  )}
+                </td>
+                <td className={`${td} text-right font-semibold`}>{tOrDash(mDesc)}</td>
+                <td className={`${td} text-right font-semibold`}>{tOrDash(r.projecaoTurno)}</td>
+                <td className={`${td} text-right`}>{tOrDash(r.programadoFrente)}</td>
+                <td className={`${td} text-right`}><Dif v={r.diferencaProjetada} /></td>
+              </motion.tr>
+            );
+          })}
         </tbody>
         <tfoot>
           <tr style={{ background: UM.bg, color: cor }}>
