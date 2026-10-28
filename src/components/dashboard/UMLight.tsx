@@ -76,7 +76,6 @@ export function SectionSep({ label }: { label: string }) {
 
 /* ---------- Header ---------- */
 export function UMHeader({ logo, info, onVisaoChange }: { logo: string; info: string; onVisaoChange?: () => void }) {
-  const [visao, setVisao] = React.useState<"contratual" | "rumo">("contratual");
   return (
     <UMCard className="px-4 py-2 flex items-center justify-between gap-4">
       <div className="flex items-center gap-4 min-w-0">
@@ -85,24 +84,6 @@ export function UMHeader({ logo, info, onVisaoChange }: { logo: string; info: st
           DASHBOARD OPERACIONAL · MINA
         </span>
         <span className="text-[14px] font-medium whitespace-nowrap" style={{ color: UM.text2 }}>{info}</span>
-      </div>
-      <div className="flex items-center gap-3">
-        <span className="text-[12px] font-semibold tracking-[0.12em]" style={{ color: UM.text2 }}>META</span>
-        <div className="flex rounded-[10px] border p-0.5" style={{ borderColor: UM.border, background: UM.bg }}>
-          {([
-            ["contratual", "Visão Contratual"],
-            ["rumo", "Visão Projeto Rumo"],
-          ] as const).map(([k, l]) => (
-            <button
-              key={k}
-              onClick={() => { if (k !== visao) { setVisao(k); onVisaoChange?.(); } }}
-              className="px-4 py-1.5 rounded-[8px] text-[14px] font-semibold transition-colors"
-              style={visao === k ? { background: UM.green, color: "#FFFFFF" } : { color: UM.text }}
-            >
-              {l}
-            </button>
-          ))}
-        </div>
       </div>
     </UMCard>
   );

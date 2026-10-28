@@ -1018,7 +1018,7 @@ function getMetaFrotaMes(fleetName: string, tipo: "df" | "ut", month?: number): 
       className="force-live-animation min-h-screen p-2 md:p-3 dashboard-enter"
       style={{ background: UM.bg, color: UM.text, fontFamily: "Montserrat, sans-serif", fontVariantNumeric: "tabular-nums" }}
     >
-      <UMHeader logo={logoUM} info={headerInfo} onVisaoChange={() => visaoFade.start({ opacity: [0.25, 1], transition: { duration: 0.2 } })} />
+      <UMHeader logo={logoUM} info={headerInfo} />
       <motion.div animate={visaoFade}>
 
       <SectionSep label="Visão Macro" />
